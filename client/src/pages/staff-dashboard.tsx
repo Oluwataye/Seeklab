@@ -1,4 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -11,7 +13,8 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import type { Result } from "@shared/schema";
-import { Loader2, LogOut } from "lucide-react";
+import { Loader2, Plus, Search } from "lucide-react";
+import { Link } from "wouter";
 
 export default function StaffDashboard() {
   const { logoutMutation, user } = useAuth();
@@ -28,8 +31,10 @@ export default function StaffDashboard() {
     },
   });
 
+  const pendingResults = results?.filter(r => new Date() > r.expiresAt) ?? [];
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <DashboardLayout>
       <header className="w-full bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="text-xl font-bold">Lab Staff Dashboard</div>
@@ -49,47 +54,87 @@ export default function StaffDashboard() {
           </div>
         </div>
       </header>
+      <div className="grid gap-6 max-w-7xl mx-auto px-4 py-8">
+        {/* Quick Actions */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button asChild className="w-full">
+                <Link href="/dashboard/templates">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Start New Test
+                </Link>
+              </Button>
+              <Button variant="secondary" asChild className="w-full">
+                <Link href="/dashboard/patients">
+                  <Search className="mr-2 h-4 w-4" />
+                  Search Patient Records
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b">
-            <h2 className="text-lg font-semibold">Patient Test Results</h2>
-          </div>
-
-          {isLoading ? (
-            <div className="p-12 flex justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Patient ID</TableHead>
-                  <TableHead>Test Type</TableHead>
-                  <TableHead>Access Code</TableHead>
-                  <TableHead>Test Date</TableHead>
-                  <TableHead>Expires</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {results?.map((result) => (
-                  <TableRow key={result.id}>
-                    <TableCell>{result.patientId}</TableCell>
-                    <TableCell>{result.testType}</TableCell>
-                    <TableCell>{result.accessCode}</TableCell>
-                    <TableCell>
-                      {new Date(result.testDate).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      {new Date(result.expiresAt).toLocaleDateString()}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          <Card>
+            <CardHeader>
+              <CardTitle>Pending Tasks</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <p className="text-2xl font-bold">
+                  {pendingResults.length} Tests
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Awaiting submission
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </main>
-    </div>
+
+        {/* Recent Activity */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex justify-center p-4">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Patient ID</TableHead>
+                    <TableHead>Test Type</TableHead>
+                    <TableHead>Access Code</TableHead>
+                    <TableHead>Test Date</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {results?.slice(0, 5).map((result) => (
+                    <TableRow key={result.id}>
+                      <TableCell>{result.patientId}</TableCell>
+                      <TableCell>{result.testType}</TableCell>
+                      <TableCell>{result.accessCode}</TableCell>
+                      <TableCell>
+                        {new Date(result.testDate).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        {new Date() > result.expiresAt ? "Expired" : "Active"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </DashboardLayout>
   );
 }
