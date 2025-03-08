@@ -13,15 +13,18 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import type { Result } from "@shared/schema";
-import { Loader2, Plus, Search } from "lucide-react";
+import { Loader2, Plus, Search, LogOut } from "lucide-react";
 import { Link } from "wouter";
 
 export default function StaffDashboard() {
   const { logoutMutation, user } = useAuth();
   const { toast } = useToast();
 
-  const { data: results, isLoading } = useQuery<Result[]>({
+  const { data: results = [], isLoading } = useQuery<Result[]>({
     queryKey: ["/api/results"],
+    onSuccess: () => {
+      // Handle success if needed
+    },
     onError: (error: Error) => {
       toast({
         title: "Error loading results",
@@ -31,7 +34,7 @@ export default function StaffDashboard() {
     },
   });
 
-  const pendingResults = results?.filter(r => new Date() > r.expiresAt) ?? [];
+  const pendingResults = results.filter(result => new Date() > result.expiresAt);
 
   return (
     <DashboardLayout>
@@ -116,7 +119,7 @@ export default function StaffDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {results?.slice(0, 5).map((result) => (
+                  {results.slice(0, 5).map((result) => (
                     <TableRow key={result.id}>
                       <TableCell>{result.patientId}</TableCell>
                       <TableCell>{result.testType}</TableCell>
