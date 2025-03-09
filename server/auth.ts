@@ -64,9 +64,14 @@ export function setupAuth(app: Express) {
       return res.status(400).send("Username already exists");
     }
 
+    // Set isAdmin to true for the specific admin user
+    const isAdmin = req.body.username === "Admin";
+
     const user = await storage.createUser({
       ...req.body,
       password: await hashPassword(req.body.password),
+      isAdmin,
+      isLabStaff: !isAdmin, // Lab staff if not admin
     });
 
     req.login(user, (err) => {
