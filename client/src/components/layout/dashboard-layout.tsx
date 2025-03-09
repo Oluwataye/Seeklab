@@ -12,6 +12,7 @@ import {
   BellRing,
   LogOut,
   Menu,
+  Shield,
 } from "lucide-react";
 
 const navigation = [
@@ -22,10 +23,18 @@ const navigation = [
   { name: "Profile & Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
+const adminNavigation = [
+  { name: "Admin Dashboard", href: "/admin", icon: Shield },
+];
+
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, logoutMutation } = useAuth();
   const [location] = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  const navItems = user?.isAdmin 
+    ? [...navigation, ...adminNavigation]
+    : navigation;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -42,7 +51,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               <Menu className="h-5 w-5" />
             </Button>
             <Link href="/dashboard" className="text-xl font-bold">
-              Seek Labs
+              Seek Labs {user?.isAdmin ? "Admin" : ""}
             </Link>
           </div>
           <div className="flex items-center gap-4">
@@ -73,7 +82,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         >
           <nav className="h-full pt-16 lg:pt-0">
             <div className="space-y-1 p-2">
-              {navigation.map((item) => {
+              {navItems.map((item) => {
                 const isActive = location === item.href;
                 return (
                   <Link

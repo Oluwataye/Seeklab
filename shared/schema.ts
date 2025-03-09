@@ -7,6 +7,7 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   isLabStaff: boolean("is_lab_staff").notNull().default(false),
+  isAdmin: boolean("is_admin").notNull().default(false),
 });
 
 export const results = pgTable("results", {

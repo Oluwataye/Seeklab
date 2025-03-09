@@ -10,6 +10,7 @@ export function ProtectedRoute({
   component: () => React.JSX.Element;
 }) {
   const { user, isLoading } = useAuth();
+  const isAdminRoute = path.startsWith("/admin");
 
   if (isLoading) {
     return (
@@ -29,5 +30,14 @@ export function ProtectedRoute({
     );
   }
 
-  return <Component />
+  // Check for admin routes
+  if (isAdminRoute && !user.isAdmin) {
+    return (
+      <Route path={path}>
+        <Redirect to="/dashboard" />
+      </Route>
+    );
+  }
+
+  return <Route path={path} component={Component} />;
 }
