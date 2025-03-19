@@ -27,7 +27,7 @@ export default function AdminDashboard() {
       <div className="space-y-6">
         {/* Quick Stats */}
         <div className="grid gap-4 md:grid-cols-3">
-          <Card className="shadow-sm">
+          <Card className="shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Active Users</CardTitle>
               <Users className="h-4 w-4 text-primary" />
@@ -38,7 +38,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-sm">
+          <Card className="shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Active Codes</CardTitle>
               <Key className="h-4 w-4 text-primary" />
@@ -49,7 +49,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-sm">
+          <Card className="shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Recent Results</CardTitle>
               <FileText className="h-4 w-4 text-primary" />
@@ -76,7 +76,7 @@ export default function AdminDashboard() {
                 {results.slice(0, 5).map(result => (
                   <div 
                     key={result.id} 
-                    className="flex items-center justify-between py-3 border-b last:border-0"
+                    className="flex items-center justify-between py-3 border-b last:border-0 hover:bg-gray-50 px-2 rounded-sm transition-colors"
                   >
                     <div>
                       <p className="text-sm font-medium">New test result submitted</p>

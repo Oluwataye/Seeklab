@@ -44,9 +44,9 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-screen">
       {/* Header */}
-      <header className="bg-white border-b h-16 flex-shrink-0">
+      <header className="bg-white border-b h-16 flex-shrink-0 z-20">
         <div className="h-full px-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
@@ -62,7 +62,6 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             </Link>
           </div>
 
-          {/* Notifications and User Menu */}
           <div className="flex items-center gap-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -71,7 +70,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                   <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="w-64">
                 <DropdownMenuLabel>Notifications</DropdownMenuLabel>
                 <DropdownMenuItem>New user registration</DropdownMenuItem>
                 <DropdownMenuItem>Code batch expiring</DropdownMenuItem>
@@ -144,7 +143,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
           {/* Main Content */}
           <ResizablePanel defaultSize={80}>
-            <main className="h-[calc(100vh-4rem-3rem)] overflow-auto p-6">
+            <main className="h-[calc(100vh-4rem-3rem)] overflow-auto p-6 bg-gray-50">
               <div className="max-w-7xl mx-auto">
                 {children}
               </div>
