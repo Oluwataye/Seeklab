@@ -7,6 +7,9 @@ import NotFound from "@/pages/not-found";
 import CodeEntry from "@/pages/code-entry";
 import Results from "@/pages/results";
 import AuthPage from "@/pages/auth-page";
+import AboutPage from "@/pages/about";
+import ContactPage from "@/pages/contact";
+import PrivacyPage from "@/pages/privacy";
 import StaffDashboard from "@/pages/staff-dashboard";
 import AdminDashboard from "@/pages/admin/dashboard";
 import UserManagement from "@/pages/admin/user-management";
@@ -18,16 +21,23 @@ import { ProtectedRoute } from "./lib/protected-route";
 function Router() {
   return (
     <Switch>
+      {/* Public Routes */}
       <Route path="/" component={CodeEntry} />
+      <Route path="/about" component={AboutPage} />
+      <Route path="/contact" component={ContactPage} />
+      <Route path="/privacy" component={PrivacyPage} />
       <Route path="/results" component={Results} />
       <Route path="/auth" component={AuthPage} />
+
+      {/* Protected Routes */}
       <ProtectedRoute path="/dashboard" component={StaffDashboard} />
-      {/* Admin Routes */}
       <ProtectedRoute path="/admin" component={AdminDashboard} />
       <ProtectedRoute path="/admin/users" component={UserManagement} />
       <ProtectedRoute path="/admin/roles" component={RolePermissions} />
       <ProtectedRoute path="/admin/codes" component={CodeGenerator} />
       <ProtectedRoute path="/admin/logs" component={AuditLogs} />
+
+      {/* 404 Route */}
       <Route component={NotFound} />
     </Switch>
   );
