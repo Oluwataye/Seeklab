@@ -8,15 +8,23 @@ import {
   Users,
   Shield,
   KeyRound,
-  FileText,
   Settings,
   BellRing,
   LogOut,
   Menu,
+  FileText,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const navigation = [
-  { name: "Dashboard Home", href: "/admin", icon: LayoutDashboard },
+  { name: "Dashboard Overview", href: "/admin", icon: LayoutDashboard },
   { name: "User Management", href: "/admin/users", icon: Users },
   { name: "Role & Permissions", href: "/admin/roles", icon: Shield },
   { name: "Code Generator", href: "/admin/codes", icon: KeyRound },
@@ -48,19 +56,43 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             </Link>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="relative">
-              <BellRing className="h-5 w-5" />
-              <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => logoutMutation.mutate()}
-              disabled={logoutMutation.isPending}
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
+            {/* Notifications */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative">
+                  <BellRing className="h-5 w-5" />
+                  <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                <DropdownMenuItem>New user registration</DropdownMenuItem>
+                <DropdownMenuItem>Code batch expiring</DropdownMenuItem>
+                <DropdownMenuItem>System update available</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* User Menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  {user?.username}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuItem>Profile Settings</DropdownMenuItem>
+                <DropdownMenuItem>Help & Support</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => logoutMutation.mutate()}
+                  disabled={logoutMutation.isPending}
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
