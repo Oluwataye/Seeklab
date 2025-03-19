@@ -13,7 +13,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { code } = z.object({ code: z.string() }).parse(req.body);
       const result = await storage.getResultByCode(code);
-      
+
       if (!result) {
         return res.status(404).json({ message: "Invalid access code" });
       }
@@ -50,6 +50,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     const results = await storage.getAllResults();
     res.json(results);
+  });
+
+  // Admin check endpoint
+  app.get("/api/admin/check", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user?.isAdmin) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+    res.json({ message: "Admin access confirmed" });
   });
 
   const httpServer = createServer(app);
