@@ -1,32 +1,12 @@
 import { Link } from "wouter";
-import { Home, Mail, Shield, CheckCircle, Award } from "lucide-react";
+import { Shield, CheckCircle, Award } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { PublicHeader } from "@/components/layout/public-header";
 
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header */}
-      <header className="w-full bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-8">
-            <Link href="/" className="text-xl font-bold">
-              Seek Labs
-            </Link>
-            <nav className="hidden md:flex space-x-6">
-              <Link href="/" className="text-sm hover:text-primary">
-                <Home className="h-4 w-4 inline mr-1" />
-                Home
-              </Link>
-              <Link href="/about" className="text-sm hover:text-primary font-medium">About Us</Link>
-              <Link href="/contact" className="text-sm hover:text-primary">Contact</Link>
-              <Link href="/privacy" className="text-sm hover:text-primary">Privacy Policy</Link>
-            </nav>
-          </div>
-          <Link href="/auth" className="text-sm text-primary hover:underline">
-            Lab Staff Login
-          </Link>
-        </div>
-      </header>
+      <PublicHeader />
 
       {/* Hero Section */}
       <div className="relative bg-primary text-white py-20">
@@ -84,53 +64,8 @@ export default function AboutPage() {
         </div>
       </div>
 
-      {/* Services List */}
-      <div className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-8 text-center">What We Offer</h2>
-          <ul className="max-w-2xl mx-auto space-y-4 text-lg">
-            <li className="flex items-start">
-              <CheckCircle className="h-6 w-6 mr-3 text-primary flex-shrink-0 mt-1" />
-              <span>Comprehensive opioid and substance detection panels</span>
-            </li>
-            <li className="flex items-start">
-              <CheckCircle className="h-6 w-6 mr-3 text-primary flex-shrink-0 mt-1" />
-              <span>Specialized testing programs for youth and adult populations</span>
-            </li>
-            <li className="flex items-start">
-              <CheckCircle className="h-6 w-6 mr-3 text-primary flex-shrink-0 mt-1" />
-              <span>Direct collaboration with healthcare providers and clinicians</span>
-            </li>
-            <li className="flex items-start">
-              <CheckCircle className="h-6 w-6 mr-3 text-primary flex-shrink-0 mt-1" />
-              <span>Rapid result delivery through our secure online portal</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      {/* Compliance Badges */}
-      <div className="py-12 bg-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-center items-center gap-12">
-            <div className="text-center">
-              <Shield className="h-12 w-12 mx-auto mb-2 text-primary" />
-              <p className="font-semibold">HIPAA Compliant</p>
-            </div>
-            <div className="text-center">
-              <Award className="h-12 w-12 mx-auto mb-2 text-primary" />
-              <p className="font-semibold">SAMHSA Certified</p>
-            </div>
-            <div className="text-center">
-              <CheckCircle className="h-12 w-12 mx-auto mb-2 text-primary" />
-              <p className="font-semibold">GDPR Compliant</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Footer */}
-      <footer className="bg-white border-t py-8">
+      <footer className="bg-white border-t py-8 mt-auto">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
