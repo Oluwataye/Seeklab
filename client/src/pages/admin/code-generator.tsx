@@ -30,6 +30,10 @@ export default function CodeGenerator() {
     if (file) {
       setFile(file);
       // TODO: Implement CSV processing
+      toast({
+        title: "File uploaded",
+        description: "Processing CSV file...",
+      });
     }
   };
 

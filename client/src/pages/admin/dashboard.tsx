@@ -18,7 +18,7 @@ export default function AdminDashboard() {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  const labTechnicians = users.filter(user => !user.isLabStaff).length;
+  const labTechnicians = users.filter(user => !user.isAdmin).length;
   const unusedCodes = results.filter(result => new Date() < result.expiresAt).length;
   const recentResults = results.filter(result => {
     const hours24 = 24 * 60 * 60 * 1000;
@@ -37,18 +37,18 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{labTechnicians}</div>
-              <p className="text-xs text-muted-foreground">Lab Technicians</p>
+              <p className="text-xs text-muted-foreground">Lab Staff Members</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Unused Codes</CardTitle>
+              <CardTitle className="text-sm font-medium">Active Codes</CardTitle>
               <Key className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{unusedCodes}</div>
-              <p className="text-xs text-muted-foreground">Active access codes</p>
+              <p className="text-xs text-muted-foreground">Valid access codes</p>
             </CardContent>
           </Card>
 
@@ -77,8 +77,8 @@ export default function AdminDashboard() {
             ) : (
               <div className="space-y-4">
                 {results.slice(0, 5).map(result => (
-                  <div key={result.id} className="flex items-center gap-4">
-                    <div className="flex-1">
+                  <div key={result.id} className="flex items-center justify-between py-2 border-b last:border-0">
+                    <div>
                       <p className="text-sm font-medium">New test result submitted</p>
                       <p className="text-xs text-muted-foreground">
                         Patient #{result.patientId} - {result.testType}

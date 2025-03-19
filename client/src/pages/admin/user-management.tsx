@@ -36,8 +36,9 @@ import { queryClient } from "@/lib/queryClient";
 
 type FormData = {
   username: string;
+  email: string;
   password: string;
-  isLabStaff: boolean;
+  role: 'admin' | 'lab_scientist' | 'technician' | 'psychologist';
 };
 
 export default function UserManagement() {
@@ -49,8 +50,9 @@ export default function UserManagement() {
     resolver: zodResolver(insertUserSchema),
     defaultValues: {
       username: "",
+      email: "",
       password: "",
-      isLabStaff: true,
+      role: "technician",
     },
   });
 
@@ -66,7 +68,10 @@ export default function UserManagement() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error("Failed to create user");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to create user");
+      }
       return response.json();
     },
     onSuccess: () => {
@@ -88,7 +93,8 @@ export default function UserManagement() {
   });
 
   const filteredUsers = users.filter(user =>
-    user.username.toLowerCase().includes(searchQuery.toLowerCase())
+    user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const onSubmit = (data: FormData) => {
@@ -130,12 +136,46 @@ export default function UserManagement() {
                       />
                       <FormField
                         control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input type="email" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
                         name="password"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Password</FormLabel>
                             <FormControl>
                               <Input type="password" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="role"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Role</FormLabel>
+                            <FormControl>
+                              <select
+                                {...field}
+                                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                              >
+                                <option value="technician">Lab Technician</option>
+                                <option value="lab_scientist">Lab Scientist</option>
+                                <option value="psychologist">Psychologist</option>
+                                <option value="admin">Admin</option>
+                              </select>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -173,24 +213,28 @@ export default function UserManagement() {
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="rounded-md border">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Username</TableHead>
+                      <TableHead>Email</TableHead>
                       <TableHead>Role</TableHead>
                       <TableHead>Last Login</TableHead>
-                      <TableHead className="text-right w-[100px]">Actions</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredUsers.map((user) => (
                       <TableRow key={user.id}>
                         <TableCell>{user.username}</TableCell>
+                        <TableCell>{user.email}</TableCell>
                         <TableCell>
-                          {user.isAdmin ? "Admin" : (user.isLabStaff ? "Lab Staff" : "Viewer")}
+                          {user.role === 'admin' ? 'Admin' : 
+                           user.role === 'lab_scientist' ? 'Lab Scientist' :
+                           user.role === 'psychologist' ? 'Psychologist' : 'Lab Technician'}
                         </TableCell>
-                        <TableCell>-</TableCell>
+                        <TableCell>{user.lastLogin || '-'}</TableCell>
                         <TableCell className="text-right space-x-2">
                           <Button variant="ghost" size="icon">
                             <PencilIcon className="h-4 w-4" />

@@ -14,13 +14,19 @@ const predefinedRoles = [
     locked: true,
   },
   {
-    name: "Lab Technician",
+    name: "Lab Scientist",
     description: "Can manage test results and patient records",
     permissions: ["create_test", "view_results", "edit_templates"],
     locked: true,
   },
   {
-    name: "Viewer",
+    name: "Lab Technician",
+    description: "Basic test result submission",
+    permissions: ["create_test", "view_results"],
+    locked: true,
+  },
+  {
+    name: "Psychologist",
     description: "View-only access to test results",
     permissions: ["view_results"],
     locked: true,
@@ -31,8 +37,10 @@ const availablePermissions = [
   { id: "create_test", label: "Create Tests" },
   { id: "view_results", label: "View Results" },
   { id: "edit_templates", label: "Edit Templates" },
-  { id: "delete_codes", label: "Delete Access Codes" },
+  { id: "delete_results", label: "Delete Results" },
   { id: "manage_users", label: "Manage Users" },
+  { id: "view_audit_logs", label: "View Audit Logs" },
+  { id: "generate_codes", label: "Generate Access Codes" },
 ];
 
 export default function RolePermissions() {
@@ -48,7 +56,7 @@ export default function RolePermissions() {
               <CardTitle>Role & Permissions Management</CardTitle>
               <Button>
                 <PlusCircle className="h-4 w-4 mr-2" />
-                Create New Role
+                Create Custom Role
               </Button>
             </div>
           </CardHeader>
@@ -73,11 +81,21 @@ export default function RolePermissions() {
                         </p>
                         <div className="mt-2">
                           <p className="text-sm font-medium">Permissions:</p>
-                          <ul className="mt-1 text-sm text-muted-foreground">
+                          <div className="mt-2 grid grid-cols-2 gap-2">
                             {role.permissions.map((permission) => (
-                              <li key={permission}>• {permission}</li>
+                              <div
+                                key={permission}
+                                className="flex items-center space-x-2"
+                              >
+                                <Checkbox checked disabled />
+                                <label className="text-sm">
+                                  {permission === "all"
+                                    ? "Full Access"
+                                    : availablePermissions.find((p) => p.id === permission)?.label}
+                                </label>
+                              </div>
                             ))}
-                          </ul>
+                          </div>
                         </div>
                       </div>
                       <div className="text-sm text-muted-foreground italic">
@@ -93,7 +111,7 @@ export default function RolePermissions() {
                 <h3 className="text-lg font-semibold mb-4">
                   Available Permissions
                 </h3>
-                <div className="grid gap-2">
+                <div className="grid grid-cols-2 gap-4">
                   {availablePermissions.map((permission) => (
                     <div
                       key={permission.id}
