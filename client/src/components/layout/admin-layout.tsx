@@ -46,8 +46,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-50">
-        <div className="h-16 px-4 flex items-center justify-between">
+      <header className="bg-white border-b h-16 flex-shrink-0">
+        <div className="h-full px-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -61,8 +61,9 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               Seek Labs Admin
             </Link>
           </div>
+
+          {/* Notifications and User Menu */}
           <div className="flex items-center gap-4">
-            {/* Notifications */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">
@@ -78,7 +79,6 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm">
@@ -108,9 +108,9 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         <ResizablePanelGroup direction="horizontal">
           {/* Sidebar */}
           <ResizablePanel 
-            defaultSize={15}
-            minSize={10}
-            maxSize={20}
+            defaultSize={20}
+            minSize={15}
+            maxSize={25}
             className={cn(
               "bg-white border-r",
               !isSidebarOpen && "hidden lg:block"
@@ -143,8 +143,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           <ResizableHandle withHandle />
 
           {/* Main Content */}
-          <ResizablePanel defaultSize={85}>
-            <main className="p-6 h-[calc(100vh-4rem-3rem)] overflow-auto">
+          <ResizablePanel defaultSize={80}>
+            <main className="h-[calc(100vh-4rem-3rem)] overflow-auto p-6">
               <div className="max-w-7xl mx-auto">
                 {children}
               </div>
@@ -154,7 +154,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Bottom Navigation */}
-      <footer className="bg-white border-t h-12 sticky bottom-0">
+      <footer className="bg-white border-t h-12 flex-shrink-0">
         <div className="max-w-7xl mx-auto px-4 h-full">
           <div className="flex items-center justify-between h-full">
             <div className="flex items-center space-x-4">

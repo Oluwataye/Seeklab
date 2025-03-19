@@ -27,7 +27,7 @@ export default function AdminDashboard() {
 
   return (
     <AdminLayout>
-      <div className="grid gap-6">
+      <div className="space-y-6">
         {/* Quick Stats */}
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
