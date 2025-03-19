@@ -23,18 +23,29 @@ export class DatabaseStorage implements IStorage {
   constructor() {
     this.sessionStore = new PostgresSessionStore({
       pool,
+      tableName: 'session',
       createTableIfMissing: true,
     });
   }
 
   async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+    try {
+      const [user] = await db.select().from(users).where(eq(users.id, id));
+      return user;
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      return undefined;
+    }
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user;
+    try {
+      const [user] = await db.select().from(users).where(eq(users.username, username));
+      return user;
+    } catch (error) {
+      console.error('Error fetching user by username:', error);
+      return undefined;
+    }
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
@@ -43,11 +54,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getResultByCode(code: string): Promise<Result | undefined> {
-    const [result] = await db
-      .select()
-      .from(results)
-      .where(eq(results.accessCode, code));
-    return result;
+    try {
+      const [result] = await db
+        .select()
+        .from(results)
+        .where(eq(results.accessCode, code));
+      return result;
+    } catch (error) {
+      console.error('Error fetching result by code:', error);
+      return undefined;
+    }
   }
 
   async createResult(insertResult: InsertResult): Promise<Result> {
@@ -56,7 +72,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllResults(): Promise<Result[]> {
-    return await db.select().from(results);
+    try {
+      return await db.select().from(results);
+    } catch (error) {
+      console.error('Error fetching all results:', error);
+      return [];
+    }
   }
 }
 
