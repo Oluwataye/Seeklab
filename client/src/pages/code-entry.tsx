@@ -7,7 +7,6 @@ import { Form, FormField, FormItem, FormControl } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Shield, AlertCircle, ArrowRight, Home, Mail, Phone, FileText } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 
@@ -55,30 +54,19 @@ export default function CodeEntry() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header */}
+      {/* Simple Header */}
       <header className="w-full bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-8">
-            <Link href="/" className="text-xl font-bold">
-              Seek Labs
-            </Link>
-            <nav className="hidden md:flex space-x-6">
-              <Link href="/" className="text-sm hover:text-primary">
-                <Home className="h-4 w-4 inline mr-1" />
-                Home
-              </Link>
-              <Link href="/about" className="text-sm hover:text-primary">About Us</Link>
-              <Link href="/contact" className="text-sm hover:text-primary">Contact</Link>
-              <Link href="/privacy" className="text-sm hover:text-primary">Privacy Policy</Link>
-            </nav>
-          </div>
+          <Link href="/" className="text-xl font-bold">
+            Seek Labs
+          </Link>
           <Link href="/auth" className="text-sm text-primary hover:underline">
             Lab Staff Login
           </Link>
         </div>
       </header>
 
-      {/* Hero Section */}
+      {/* Main Content */}
       <main className="flex-1 flex flex-col items-center justify-center p-4">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-4">Fast, Secure Access to Drug Test Results</h1>
@@ -88,13 +76,11 @@ export default function CodeEntry() {
         </div>
 
         <Card className="w-full max-w-md">
-          <CardContent className="pt-6 space-y-6">
-            <div className="text-center space-y-2">
-              <h2 className="text-2xl font-bold">Access Your Test Results</h2>
-              <p className="text-muted-foreground">
-                Enter the code provided by your lab to view your results
-              </p>
-            </div>
+          <CardContent className="pt-6">
+            <h2 className="text-2xl font-bold mb-4 text-center">Access Your Test Results</h2>
+            <p className="text-muted-foreground text-center mb-6">
+              Enter the code provided by your lab to view your results
+            </p>
 
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -114,49 +100,15 @@ export default function CodeEntry() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? (
-                    "Checking..."
-                  ) : (
-                    <>
-                      View Results
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </>
-                  )}
+                <Button 
+                  type="submit" 
+                  className="w-full bg-blue-600 hover:bg-blue-700" 
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Checking..." : "View Results"}
                 </Button>
               </form>
             </Form>
-
-            <div className="space-y-4 pt-4">
-              <div className="space-y-2">
-                <h2 className="font-semibold">Need Help?</h2>
-                <ul className="text-sm space-y-2 text-muted-foreground">
-                  <li className="flex items-center">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Your code is on your lab receipt or email
-                  </li>
-                  <li className="flex items-center">
-                    <Mail className="h-4 w-4 mr-2" />
-                    Lost your code? Contact support@seeklabs.com
-                  </li>
-                  <li className="flex items-center">
-                    <Phone className="h-4 w-4 mr-2" />
-                    24/7 Crisis Support: 1-800-XXX-XXXX
-                  </li>
-                </ul>
-              </div>
-
-              <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <Shield className="h-4 w-4" />
-                  HIPAA-Compliant
-                </div>
-                <div className="flex items-center gap-1">
-                  <AlertCircle className="h-4 w-4" />
-                  End-to-End Encryption
-                </div>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </main>
