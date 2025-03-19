@@ -104,7 +104,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* Main Content with Resizable Sidebar */}
-      <div className="flex-1 flex">
+      <div className="flex-1 flex overflow-hidden">
         <ResizablePanelGroup direction="horizontal">
           {/* Sidebar */}
           <ResizablePanel 
@@ -144,7 +144,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
           {/* Main Content */}
           <ResizablePanel defaultSize={80}>
-            <main className="p-6 h-[calc(100vh-4rem-3rem)]">
+            <main className="p-6 h-[calc(100vh-4rem-3rem)] overflow-auto">
               <div className="max-w-7xl mx-auto">
                 {children}
               </div>
