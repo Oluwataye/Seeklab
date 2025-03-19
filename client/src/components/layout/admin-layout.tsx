@@ -44,9 +44,9 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="flex flex-col h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b">
+      <header className="bg-white border-b sticky top-0 z-50">
         <div className="h-16 px-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
@@ -108,9 +108,9 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         <ResizablePanelGroup direction="horizontal">
           {/* Sidebar */}
           <ResizablePanel 
-            defaultSize={20} 
-            minSize={15} 
-            maxSize={30}
+            defaultSize={15}
+            minSize={10}
+            maxSize={20}
             className={cn(
               "bg-white border-r",
               !isSidebarOpen && "hidden lg:block"
@@ -143,7 +143,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           <ResizableHandle withHandle />
 
           {/* Main Content */}
-          <ResizablePanel defaultSize={80}>
+          <ResizablePanel defaultSize={85}>
             <main className="p-6 h-[calc(100vh-4rem-3rem)] overflow-auto">
               <div className="max-w-7xl mx-auto">
                 {children}
@@ -154,7 +154,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Bottom Navigation */}
-      <footer className="bg-white border-t h-12">
+      <footer className="bg-white border-t h-12 sticky bottom-0">
         <div className="max-w-7xl mx-auto px-4 h-full">
           <div className="flex items-center justify-between h-full">
             <div className="flex items-center space-x-4">
