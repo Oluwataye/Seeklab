@@ -1,0 +1,106 @@
+Public Pages
+Public Pages Structure (Top to Bottom): 
+
+1. Home Page** 
+1. **Header**: 
+   - Logo + lab name (e.g., "Seek Labs"). 
+   - Navigation links: *Home*, *About Us*, *Contact*, *Privacy Policy*. 
+   - "Lab Staff Login" button (top-right). 
+2. **Hero Section**: 
+   - Tagline: "Fast, Secure Access to Drug Test Results." 
+   - Primary CTA: "Check Your Results" button (links to Patient Portal). 
+   - Brief description: "Retrieve confidential blood test results using your unique code." 
+3. **Services Overview**: 
+   - Section title: "Our Services." 
+   - Three cards: "Opioid Detection," "Drug Sensitivity Analysis," "Secure Reporting." 
+4. **Split CTAs**: 
+   - "Patient? Access Results →" (links to Patient Portal). 
+   - "Lab Staff? Sign In →" (links to Login). 
+5. **How It Works**: 
+   - Section title: "Get Results in 3 Steps." 
+   - Steps: Receive code → Enter code → View/download results. 
+   - Code input field + "View Results" button. 
+6. **Security Assurance**: 
+   - Badges: "HIPAA-Compliant," "End-to-End Encryption." 
+7. **Footer**: 
+   - Quick links: *About Us*, *Contact*, *Privacy Policy*. 
+   - Copyright text. 
+
+2. About Us Page** 
+1. **Header**: Same as Homepage. 
+2. **Hero Section**: 
+   - Background image (lab equipment). 
+   - Headline: "Trusted Drug Abuse Diagnostics." 
+   - Subtext: "Accurate, confidential testing since [year]." 
+3. **Mission & Values**: 
+   - Section title: "Our Mission." 
+   - Text block: Lab’s commitment to combating drug abuse. 
+   - Three value cards: "Accuracy," "Privacy," "Accessibility." 
+4. **Services List**: 
+   - Section title: "What We Offer." 
+   - Bullet points: Opioid panels, youth/adult testing, clinician collaboration. 
+5. **Compliance Badges**: 
+   - Logos: HIPAA, SAMHSA, GDPR. 
+6. **Footer**: Same as Homepage. 
+
+3. Contact Page** 
+1. **Header**: Same as Homepage. 
+2. **Hero Section**: 
+   - Headline: "Get in Touch." 
+   - Subtext: "Reach us for support or inquiries." 
+3. **Contact Methods**: 
+   - Address, phone, email, operating hours (icons + text). 
+   - Embedded static map (lab location). 
+4. **Contact Form**: 
+   - Fields: Name, email, subject (dropdown), message. 
+   - "Send Message" button. 
+5. **Emergency Alert**: 
+   - Highlighted section: "24/7 Crisis Support: 1-800-XXX-XXXX." 
+6. **Footer**: Same as Homepage. 
+
+4. Patient Portal (Code Entry)** 
+1. **Header**: 
+   - Logo + "Back to Home" link. 
+   - "Lab Staff Login" link (top-right). 
+2. **Hero Section**: 
+   - Headline: "Access Your Test Results." 
+   - Subtext: "Enter your code to view confidential drug test results." 
+3. **Code Input**: 
+   - Placeholder: "Enter 8-digit code (e.g., SEEK-A1B2)." 
+   - Full-width "View Results" button. 
+   - Error message area (invalid/expired codes). 
+4. **Support Links**: 
+   - "Lost your code? Contact support@seeklabs.com." 
+5. **Footer**: Same as Homepage. 
+
+---
+
+### **5. Results Display Page** 
+1. **Minimal Header**: 
+   - Logo only. 
+   - "Close Results" button (clears session). 
+2. **Patient Summary**: 
+   - Anonymous ID: "Patient #DR-5X7Y." 
+   - Test type + date: "Opioid Panel – 15 March 2024." 
+3. **Test Results**: 
+   - Substance concentration charts (e.g., "Fentanyl: 8.2 ng/mL"). 
+   - Downloadable PDF (lab letterhead, disclaimers). 
+4. **Clinical Notes**: 
+   - Lab interpretation: "High opioid levels detected." 
+   - Next steps: "Consult a healthcare provider immediately." 
+5. **Footer**: 
+   - Lab contact + "Access New Results" button (returns to Patient Portal). 
+
+---
+
+### **6. Privacy Policy Page** 
+1. **Header**: Same as Homepage. 
+2. **Effective Date**: "Last Updated: [Date]." 
+3. **Content Sections**: 
+   - Data Collection (e.g., codes, test results). 
+   - Patient Rights (access/delete data). 
+   - Security Measures (encryption, audits). 
+4. **Contact for Privacy Concerns**: 
+   - Email: privacy@seeklabs.com. 
+5. **Compliance Badges**: HIPAA, GDPR. 
+6. **Footer**: Same as Homepage. 
