@@ -1,12 +1,11 @@
 import { Link } from "wouter";
 import { Shield, CheckCircle, Award } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { PublicHeader } from "@/components/layout/public-header";
+import { PublicLayout } from "@/components/layout/public-layout";
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <PublicHeader />
+    <PublicLayout>
 
       {/* Hero Section */}
       <div className="relative bg-primary text-white py-20">
@@ -63,25 +62,6 @@ export default function AboutPage() {
           </div>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="bg-white border-t py-8 mt-auto">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-              <h3 className="font-semibold mb-4">Quick Links</h3>
-              <div className="space-y-2">
-                <Link href="/about" className="block text-sm text-muted-foreground hover:text-primary">About Us</Link>
-                <Link href="/contact" className="block text-sm text-muted-foreground hover:text-primary">Contact</Link>
-                <Link href="/privacy" className="block text-sm text-muted-foreground hover:text-primary">Privacy Policy</Link>
-              </div>
-            </div>
-          </div>
-          <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Seek Labs. All rights reserved.
-          </div>
-        </div>
-      </footer>
-    </div>
+    </PublicLayout>
   );
 }

@@ -26,6 +26,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { NotificationPopover } from "@/components/notifications/notification-popover";
+import { Footer } from "./footer";
 
 const navigation = [
   { name: "Dashboard", href: "/scientist/dashboard", icon: LayoutDashboard },
@@ -125,8 +126,9 @@ export function ScientistLayout({ children }: { children: React.ReactNode }) {
 
           <ResizablePanel defaultSize={80}>
             <main className="h-full overflow-auto p-6 bg-gray-50">
-              <div className="max-w-7xl mx-auto">
+              <div className="max-w-7xl mx-auto flex flex-col min-h-[calc(100vh-8rem)]">
                 {children}
+                <Footer />
               </div>
             </main>
           </ResizablePanel>

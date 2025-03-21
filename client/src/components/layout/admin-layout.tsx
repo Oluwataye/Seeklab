@@ -147,7 +147,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         <div className="max-w-7xl mx-auto px-4 h-full">
           <div className="flex items-center justify-between h-full">
             <div className="text-sm text-gray-600">
-              Last updated: {new Date().toLocaleTimeString()}
+              Copyright © 2025 T-TECH SOLUTION®. ALL RIGHTS RESERVED.
             </div>
             <div className="text-sm text-gray-600">
               {user?.username} • Admin Dashboard
