@@ -116,6 +116,17 @@ export function setupAuth(app: Express) {
         }
         res.status(201).json(user);
       });
+      // Create notification for admin users about new registration
+      const adminUsers = await storage.getAllUsers();
+      for (const admin of adminUsers.filter(u => u.isAdmin)) {
+        await createNotification(
+          'USER_REGISTRATION',
+          'New User Registration',
+          `New user ${user.username} has registered`,
+          admin.id.toString(),
+          { userId: user.id }
+        );
+      }
     } catch (error) {
       next(error);
     }
@@ -333,6 +344,20 @@ export function setupAuth(app: Express) {
         accessCode: result.accessCode,
       });
 
+      // Create notification for code batch expiry
+      const expiryDate = new Date(result.expiresAt);
+      const daysUntilExpiry = Math.ceil((expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+
+      if (daysUntilExpiry <= 7) { // Notify when code will expire within 7 days
+        await createNotification(
+          'CODE_EXPIRY',
+          'Access Code Expiring Soon',
+          `Access code ${result.accessCode} will expire in ${daysUntilExpiry} days`,
+          req.user.id.toString(),
+          { resultId: result.id }
+        );
+      }
+
       res.status(201).json(result);
     } catch (error) {
       console.error("Error generating code:", error);
@@ -367,6 +392,54 @@ export function setupAuth(app: Express) {
       res.status(500).json({ message: "Failed to fetch audit logs" });
     }
   });
+
+  // Notification endpoints
+  app.get("/api/notifications", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const notifications = await storage.getNotifications(req.user.id.toString());
+      res.json(notifications);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+
+  app.post("/api/notifications/:id/read", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      await storage.markNotificationAsRead(parseInt(req.params.id));
+      res.sendStatus(200);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to mark notification as read" });
+    }
+  });
+
+  // Helper function to create notifications
+  async function createNotification(
+    type: string,
+    title: string,
+    message: string,
+    recipientId: string,
+    metadata?: Record<string, unknown>
+  ) {
+    try {
+      await storage.createNotification({
+        type,
+        title,
+        message,
+        recipientId,
+        metadata,
+      });
+    } catch (error) {
+      console.error('Failed to create notification:', error);
+    }
+  }
 
   // Helper function to create audit logs
   async function createAuditLog(req: any, action: string, entityType: string, entityId?: string, details?: Record<string, unknown>) {

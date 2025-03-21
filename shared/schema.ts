@@ -46,6 +46,17 @@ export const auditLogs = pgTable("audit_logs", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  type: text("type").notNull(), 
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  isRead: boolean("is_read").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  recipientId: text("recipient_id").notNull(), 
+  metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -78,6 +89,14 @@ export const insertAuditLogSchema = createInsertSchema(auditLogs).pick({
   ipAddress: true,
 });
 
+export const insertNotificationSchema = createInsertSchema(notifications).pick({
+  type: true,
+  title: true,
+  message: true,
+  recipientId: true,
+  metadata: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type Role = typeof roles.$inferSelect;
@@ -86,3 +105,5 @@ export type InsertResult = z.infer<typeof insertResultSchema>;
 export type InsertRole = z.infer<typeof insertRoleSchema>;
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;

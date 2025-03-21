@@ -14,7 +14,6 @@ import {
   Shield,
   KeyRound,
   Settings,
-  BellRing,
   LogOut,
   Menu,
   FileText,
@@ -27,6 +26,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { NotificationPopover } from "@/components/notifications/notification-popover";
 
 const navigation = [
   { name: "Dashboard Overview", href: "/admin", icon: LayoutDashboard },
@@ -62,20 +62,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="flex items-center gap-4">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative">
-                  <BellRing className="h-5 w-5" />
-                  <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-64">
-                <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-                <DropdownMenuItem>New user registration</DropdownMenuItem>
-                <DropdownMenuItem>Code batch expiring</DropdownMenuItem>
-                <DropdownMenuItem>System update available</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <NotificationPopover />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -142,7 +129,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
           {/* Main Content */}
           <ResizablePanel defaultSize={80}>
-            <main className="h-[calc(100vh-4rem-3rem)] overflow-auto p-6 bg-gray-50">
+            <main className="h-[calc(100vh-4rem)] overflow-auto p-6 bg-gray-50">
               <div className="max-w-7xl mx-auto">
                 {children}
               </div>

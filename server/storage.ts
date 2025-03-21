@@ -4,6 +4,7 @@ import { db } from "./db";
 import { eq } from "drizzle-orm";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
+import { notifications, type Notification, type InsertNotification } from "@shared/schema";
 
 const PostgresSessionStore = connectPg(session);
 
@@ -27,6 +28,11 @@ export interface IStorage {
   createAuditLog(log: InsertAuditLog): Promise<AuditLog>;
   getAuditLogs(): Promise<AuditLog[]>;
   sessionStore: session.Store;
+  // Notifications
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  getNotifications(userId: string): Promise<Notification[]>;
+  markNotificationAsRead(id: number): Promise<void>;
+  deleteNotification(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -172,6 +178,51 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error fetching audit logs:', error);
       return [];
+    }
+  }
+  // Notification methods
+  async createNotification(insertNotification: InsertNotification): Promise<Notification> {
+    try {
+      const [notification] = await db.insert(notifications).values(insertNotification).returning();
+      return notification;
+    } catch (error) {
+      console.error('Error creating notification:', error);
+      throw error;
+    }
+  }
+
+  async getNotifications(userId: string): Promise<Notification[]> {
+    try {
+      return await db
+        .select()
+        .from(notifications)
+        .where(eq(notifications.recipientId, userId))
+        .orderBy(notifications.createdAt)
+        .limit(50);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      return [];
+    }
+  }
+
+  async markNotificationAsRead(id: number): Promise<void> {
+    try {
+      await db
+        .update(notifications)
+        .set({ isRead: true })
+        .where(eq(notifications.id, id));
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      throw error;
+    }
+  }
+
+  async deleteNotification(id: number): Promise<void> {
+    try {
+      await db.delete(notifications).where(eq(notifications.id, id));
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+      throw error;
     }
   }
 }
