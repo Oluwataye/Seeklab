@@ -99,12 +99,13 @@ export function setupAuth(app: Express) {
         return res.status(400).json({ message: "Username already exists" });
       }
 
-      const isAdmin = req.body.username === "Admin";
+      // Check if the username contains "Admin" (case-insensitive)
+      const isAdmin = req.body.username.toLowerCase().includes("admin");
       const user = await storage.createUser({
         ...req.body,
         password: await hashPassword(req.body.password),
         isAdmin,
-        isLabStaff: !isAdmin,
+        isLabStaff: !isAdmin, // Lab staff if not admin
       });
 
       req.login(user, (err) => {

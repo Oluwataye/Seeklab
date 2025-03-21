@@ -31,11 +31,33 @@ function Router() {
 
       {/* Protected Routes */}
       <ProtectedRoute path="/dashboard" component={StaffDashboard} />
-      <ProtectedRoute path="/admin" component={AdminDashboard} />
-      <ProtectedRoute path="/admin/users" component={UserManagement} />
-      <ProtectedRoute path="/admin/roles" component={RolePermissions} />
-      <ProtectedRoute path="/admin/codes" component={CodeGenerator} />
-      <ProtectedRoute path="/admin/logs" component={AuditLogs} />
+
+      {/* Admin Routes */}
+      <ProtectedRoute 
+        path="/admin" 
+        component={AdminDashboard}
+        requireAdmin={true}
+      />
+      <ProtectedRoute 
+        path="/admin/users" 
+        component={UserManagement}
+        requireAdmin={true}
+      />
+      <ProtectedRoute 
+        path="/admin/roles" 
+        component={RolePermissions}
+        requireAdmin={true}
+      />
+      <ProtectedRoute 
+        path="/admin/codes" 
+        component={CodeGenerator}
+        requireAdmin={true}
+      />
+      <ProtectedRoute 
+        path="/admin/logs" 
+        component={AuditLogs}
+        requireAdmin={true}
+      />
 
       {/* 404 Route */}
       <Route component={NotFound} />
