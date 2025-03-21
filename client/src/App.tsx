@@ -24,6 +24,11 @@ import QualityControl from "@/pages/lab/quality";
 import LabReports from "@/pages/lab/reports";
 import LabSettings from "@/pages/lab/settings";
 import PsychologistDashboard from "@/pages/psychologist/dashboard";
+import AssessmentsPage from "@/pages/psychologist/assessments";
+import PatientsPage from "@/pages/psychologist/patients";
+import ReportsPage from "@/pages/psychologist/reports";
+import PsychologistSettingsPage from "@/pages/psychologist/settings";
+import PsychologistProfilePage from "@/pages/psychologist/profile";
 import { ProtectedRoute } from "./lib/protected-route";
 
 function Router() {
@@ -109,27 +114,27 @@ function Router() {
       />
       <ProtectedRoute 
         path="/psychologist/assessments" 
-        component={() => import("./pages/psychologist/assessments").then(m => <m.default />)}
+        component={AssessmentsPage}
         requireSpecificRole="psychologist"
       />
       <ProtectedRoute 
         path="/psychologist/patients" 
-        component={() => import("./pages/psychologist/patients").then(m => <m.default />)}
+        component={PatientsPage}
         requireSpecificRole="psychologist"
       />
       <ProtectedRoute 
         path="/psychologist/reports" 
-        component={() => import("./pages/psychologist/reports").then(m => <m.default />)}
+        component={ReportsPage}
         requireSpecificRole="psychologist"
       />
       <ProtectedRoute 
         path="/psychologist/settings" 
-        component={() => import("./pages/psychologist/settings").then(m => <m.default />)}
+        component={PsychologistSettingsPage}
         requireSpecificRole="psychologist"
       />
       <ProtectedRoute 
         path="/psychologist/profile" 
-        component={() => import("./pages/psychologist/profile").then(m => <m.default />)}
+        component={PsychologistProfilePage}
         requireSpecificRole="psychologist"
       />
 

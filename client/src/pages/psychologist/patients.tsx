@@ -43,7 +43,13 @@ export default function PatientsPage() {
   });
 
   // Derive unique patient IDs
-  const patientIds = [...new Set(results.map(result => result.patientId))];
+  const uniquePatientIds = new Set();
+  results.forEach(result => {
+    if (result.patientId) {
+      uniquePatientIds.add(result.patientId);
+    }
+  });
+  const patientIds = Array.from(uniquePatientIds) as string[];
   
   // Filter patients by search term
   const filteredPatients = patientIds.filter(patientId => 
