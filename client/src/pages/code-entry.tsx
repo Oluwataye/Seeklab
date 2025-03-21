@@ -9,6 +9,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { PublicLayout } from "@/components/layout/public-layout";
 
 const codeSchema = z.object({
   code: z.string().length(8, "Code must be 8 characters"),
@@ -53,21 +54,8 @@ export default function CodeEntry() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Simple Header */}
-      <header className="w-full bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold">
-            Seek Labs
-          </Link>
-          <Link href="/auth" className="text-sm text-primary hover:underline">
-            Lab Staff Login
-          </Link>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center justify-center p-4">
+    <PublicLayout>
+      <div className="flex flex-col items-center justify-center">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-4">Fast, Secure Access to Drug Test Results</h1>
           <p className="text-lg text-muted-foreground">
@@ -111,26 +99,7 @@ export default function CodeEntry() {
             </Form>
           </CardContent>
         </Card>
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-white border-t py-8">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-              <h3 className="font-semibold mb-4">Quick Links</h3>
-              <div className="space-y-2">
-                <Link href="/about" className="block text-sm text-muted-foreground hover:text-primary">About Us</Link>
-                <Link href="/contact" className="block text-sm text-muted-foreground hover:text-primary">Contact</Link>
-                <Link href="/privacy" className="block text-sm text-muted-foreground hover:text-primary">Privacy Policy</Link>
-              </div>
-            </div>
-          </div>
-          <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Seek Labs. All rights reserved.
-          </div>
-        </div>
-      </footer>
-    </div>
+      </div>
+    </PublicLayout>
   );
 }
