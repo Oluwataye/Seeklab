@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ScientistLayout } from "@/components/layout/scientist-layout";
+import { ScientistLayout } from "../../components/layout/scientist-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Result } from "@shared/schema";
 import { FlaskConical, ClipboardCheck, Clock, AlertCircle } from "lucide-react";
