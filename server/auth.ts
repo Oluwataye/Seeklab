@@ -214,6 +214,61 @@ export function setupAuth(app: Express) {
     }
   });
 
+  // Profile update endpoint
+  app.patch("/api/users/:id/profile", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const userId = parseInt(req.params.id);
+    if (req.user.id !== userId) {
+      return res.status(403).json({ message: "Can only update your own profile" });
+    }
+
+    try {
+      const { email, currentPassword, newPassword } = req.body;
+      const user = await storage.getUser(userId);
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Verify current password
+      if (!(await comparePasswords(currentPassword, user.password))) {
+        return res.status(400).json({ message: "Current password is incorrect" });
+      }
+
+      // Prepare update data
+      const updateData: Partial<User> = {};
+
+      if (email) {
+        updateData.email = email;
+      }
+
+      if (newPassword) {
+        updateData.password = await hashPassword(newPassword);
+      }
+
+      // Update user profile
+      const updatedUser = await storage.updateUser(userId, updateData);
+
+      // Create audit log
+      await createAuditLog(req, 'UPDATE', 'USER_PROFILE', userId.toString(), {
+        email: email ? 'updated' : undefined,
+        password: newPassword ? 'changed' : undefined
+      });
+
+      // Send success response without sensitive data
+      const { password, ...userWithoutPassword } = updatedUser;
+      res.json(userWithoutPassword);
+
+    } catch (error) {
+      console.error('Profile update error:', error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
+
   // Role management endpoints
   app.get("/api/roles", async (req, res) => {
     if (!req.isAuthenticated() || !req.user.isAdmin) {

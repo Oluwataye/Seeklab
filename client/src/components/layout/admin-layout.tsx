@@ -72,7 +72,9 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>Account</DropdownMenuLabel>
-                <DropdownMenuItem>Profile Settings</DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/admin/profile">Profile Settings</Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => logoutMutation.mutate()}
@@ -92,7 +94,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       <div className="flex-1 flex overflow-hidden">
         <ResizablePanelGroup direction="horizontal">
           {/* Sidebar */}
-          <ResizablePanel 
+          <ResizablePanel
             defaultSize={20}
             minSize={15}
             maxSize={25}
