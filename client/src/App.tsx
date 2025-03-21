@@ -107,6 +107,31 @@ function Router() {
         component={PsychologistDashboard}
         requireSpecificRole="psychologist"
       />
+      <ProtectedRoute 
+        path="/psychologist/assessments" 
+        component={() => import("./pages/psychologist/assessments").then(m => <m.default />)}
+        requireSpecificRole="psychologist"
+      />
+      <ProtectedRoute 
+        path="/psychologist/patients" 
+        component={() => import("./pages/psychologist/patients").then(m => <m.default />)}
+        requireSpecificRole="psychologist"
+      />
+      <ProtectedRoute 
+        path="/psychologist/reports" 
+        component={() => import("./pages/psychologist/reports").then(m => <m.default />)}
+        requireSpecificRole="psychologist"
+      />
+      <ProtectedRoute 
+        path="/psychologist/settings" 
+        component={() => import("./pages/psychologist/settings").then(m => <m.default />)}
+        requireSpecificRole="psychologist"
+      />
+      <ProtectedRoute 
+        path="/psychologist/profile" 
+        component={() => import("./pages/psychologist/profile").then(m => <m.default />)}
+        requireSpecificRole="psychologist"
+      />
 
       {/* 404 Route */}
       <Route component={NotFound} />
