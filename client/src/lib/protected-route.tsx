@@ -6,12 +6,14 @@ interface ProtectedRouteProps {
   path: string;
   component: () => React.JSX.Element;
   requireAdmin?: boolean;
+  requireLabStaff?: boolean;
 }
 
 export function ProtectedRoute({
   path,
   component: Component,
   requireAdmin = false,
+  requireLabStaff = false,
 }: ProtectedRouteProps) {
   const { user, isLoading } = useAuth();
 
@@ -37,7 +39,16 @@ export function ProtectedRoute({
   if (requireAdmin && !user.isAdmin) {
     return (
       <Route path={path}>
-        <Redirect to="/dashboard" />
+        <Redirect to="/" />
+      </Route>
+    );
+  }
+
+  // Check for lab staff routes
+  if (requireLabStaff && !user.isLabStaff) {
+    return (
+      <Route path={path}>
+        <Redirect to="/" />
       </Route>
     );
   }

@@ -17,6 +17,11 @@ import RolePermissions from "@/pages/admin/role-permissions";
 import CodeGenerator from "@/pages/admin/code-generator";
 import AuditLogs from "@/pages/admin/audit-logs";
 import ProfileSettings from "@/pages/admin/profile-settings";
+import TechnicianDashboard from "@/pages/lab/dashboard";
+import TestResults from "@/pages/lab/results";
+import QualityControl from "@/pages/lab/quality";
+import LabReports from "@/pages/lab/reports";
+import LabSettings from "@/pages/lab/settings";
 import { ProtectedRoute } from "./lib/protected-route";
 
 function Router() {
@@ -30,8 +35,32 @@ function Router() {
       <Route path="/results" component={Results} />
       <Route path="/auth" component={AuthPage} />
 
-      {/* Protected Routes */}
-      <ProtectedRoute path="/dashboard" component={StaffDashboard} />
+      {/* Lab Technician Routes */}
+      <ProtectedRoute 
+        path="/lab/dashboard" 
+        component={TechnicianDashboard}
+        requireLabStaff={true}
+      />
+      <ProtectedRoute 
+        path="/lab/results" 
+        component={TestResults}
+        requireLabStaff={true}
+      />
+      <ProtectedRoute 
+        path="/lab/quality" 
+        component={QualityControl}
+        requireLabStaff={true}
+      />
+      <ProtectedRoute 
+        path="/lab/reports" 
+        component={LabReports}
+        requireLabStaff={true}
+      />
+      <ProtectedRoute 
+        path="/lab/settings" 
+        component={LabSettings}
+        requireLabStaff={true}
+      />
 
       {/* Admin Routes */}
       <ProtectedRoute 
