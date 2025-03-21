@@ -28,7 +28,7 @@ export const results = pgTable("results", {
   accessCode: text("access_code").notNull().unique(),
   patientId: text("patient_id").notNull(),
   testType: text("test_type").notNull(),
-  testDate: timestamp("test_date").notNull(),
+  testDate: timestamp("test_date").notNull().defaultNow(),
   resultData: text("result_data").notNull(),
   reportUrl: text("report_url").notNull(),
   expiresAt: timestamp("expires_at").notNull(),

@@ -31,16 +31,26 @@ export default function CodeGenerator() {
 
   const generateCodeMutation = useMutation({
     mutationFn: async (data: { patientId: string; testType: string; resultData: string; reportUrl: string }) => {
-      const response = await fetch("/api/results", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to generate code");
+      try {
+        const response = await fetch("/api/results", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...data,
+            testDate: new Date().toISOString(),
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || "Failed to generate code");
+        }
+
+        return response.json();
+      } catch (error) {
+        console.error("Code generation error:", error);
+        throw error;
       }
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/results"] });
@@ -53,9 +63,10 @@ export default function CodeGenerator() {
       });
     },
     onError: (error: Error) => {
+      console.error("Mutation error:", error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to generate access code",
         variant: "destructive",
       });
     },
@@ -86,7 +97,7 @@ export default function CodeGenerator() {
       patientId,
       testType,
       resultData: notes || "No additional notes",
-      reportUrl: "https://example.com/report", // This would be replaced with actual report URL
+      reportUrl: "https://example.com/report",
     });
   };
 
