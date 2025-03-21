@@ -30,26 +30,23 @@ export default function CodeGenerator() {
   });
 
   const generateCodeMutation = useMutation({
-    mutationFn: async (data: { patientId: string; testType: string; resultData: string; reportUrl: string }) => {
+    mutationFn: async (data: { patientId: string; testType: string; resultData: string }) => {
       try {
         const response = await fetch("/api/results", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...data,
-            testDate: new Date().toISOString(),
-          }),
+          body: JSON.stringify(data),
         });
 
         if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.message || "Failed to generate code");
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to generate code");
         }
 
-        return response.json();
+        return await response.json();
       } catch (error) {
         console.error("Code generation error:", error);
-        throw error;
+        throw error instanceof Error ? error : new Error("Failed to generate code");
       }
     },
     onSuccess: () => {
@@ -97,7 +94,6 @@ export default function CodeGenerator() {
       patientId,
       testType,
       resultData: notes || "No additional notes",
-      reportUrl: "https://example.com/report",
     });
   };
 

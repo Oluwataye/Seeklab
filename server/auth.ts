@@ -289,18 +289,28 @@ export function setupAuth(app: Express) {
     }
 
     try {
-      const accessCode = `SEEK-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+      // Generate a more structured access code
+      const testType = req.body.testType.toUpperCase().substring(0, 3);
+      const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const checksum = (testType.charCodeAt(0) % 9) + 1; // Simple checksum
+      const accessCode = `SEEK-${testType}-${random}-${checksum}`;
+
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 30); // 30 days expiry
 
       const result = await storage.createResult({
-        ...req.body,
         accessCode,
-        expiresAt,
+        patientId: req.body.patientId,
+        testType: req.body.testType,
+        testDate: new Date(),
+        resultData: req.body.resultData || "No additional notes",
+        reportUrl: req.body.reportUrl || `https://reports.seeklab.com/${accessCode}`,
+        expiresAt: expiresAt,
       });
 
       res.status(201).json(result);
     } catch (error) {
+      console.error("Error generating code:", error);
       res.status(500).json({ message: "Failed to generate access code" });
     }
   });
