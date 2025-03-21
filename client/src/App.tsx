@@ -105,7 +105,7 @@ function Router() {
       <ProtectedRoute 
         path="/psychologist/dashboard" 
         component={PsychologistDashboard}
-        requireLabStaff={true}
+        requireSpecificRole="psychologist"
       />
 
       {/* 404 Route */}

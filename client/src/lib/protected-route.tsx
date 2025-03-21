@@ -7,6 +7,7 @@ interface ProtectedRouteProps {
   component: () => React.JSX.Element;
   requireAdmin?: boolean;
   requireLabStaff?: boolean;
+  requireSpecificRole?: 'admin' | 'lab_scientist' | 'technician' | 'psychologist';
 }
 
 export function ProtectedRoute({
@@ -14,6 +15,7 @@ export function ProtectedRoute({
   component: Component,
   requireAdmin = false,
   requireLabStaff = false,
+  requireSpecificRole,
 }: ProtectedRouteProps) {
   const { user, isLoading } = useAuth();
 
@@ -46,6 +48,15 @@ export function ProtectedRoute({
 
   // Check for lab staff routes
   if (requireLabStaff && !user.isLabStaff) {
+    return (
+      <Route path={path}>
+        <Redirect to="/" />
+      </Route>
+    );
+  }
+
+  // Check for specific role routes
+  if (requireSpecificRole && user.role !== requireSpecificRole) {
     return (
       <Route path={path}>
         <Redirect to="/" />
