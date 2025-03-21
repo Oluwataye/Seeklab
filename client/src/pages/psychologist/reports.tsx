@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { PsychologistLayout } from "@/components/layout/psychologist-layout";
+import { PsychologistLayout } from "../../components/layout/psychologist-layout";
 import { Result } from "@shared/schema";
 import {
   Card,

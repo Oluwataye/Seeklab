@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PsychologistLayout } from "@/components/layout/psychologist-layout";
+import { PsychologistLayout } from "../../components/layout/psychologist-layout";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
