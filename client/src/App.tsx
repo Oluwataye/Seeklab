@@ -23,6 +23,7 @@ import TestResults from "@/pages/lab/results";
 import QualityControl from "@/pages/lab/quality";
 import LabReports from "@/pages/lab/reports";
 import LabSettings from "@/pages/lab/settings";
+import PsychologistDashboard from "@/pages/psychologist/dashboard";
 import { ProtectedRoute } from "./lib/protected-route";
 
 function Router() {
@@ -98,6 +99,13 @@ function Router() {
         path="/admin/templates" 
         component={ResultTemplates}
         requireAdmin={true}
+      />
+
+      {/* Psychologist Routes */}
+      <ProtectedRoute 
+        path="/psychologist/dashboard" 
+        component={PsychologistDashboard}
+        requireLabStaff={true}
       />
 
       {/* 404 Route */}
