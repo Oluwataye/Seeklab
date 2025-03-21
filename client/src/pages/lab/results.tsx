@@ -1,6 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { TechnicianLayout } from "@/components/layout/technician-layout";
-import { Result } from "@shared/schema";
+import { Result, ResultTemplate } from "@shared/schema";
 import {
   Table,
   TableBody,
@@ -11,7 +12,6 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -20,53 +20,106 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Search } from "lucide-react";
+import { queryClient } from "@/lib/queryClient";
 
 export default function TestResults() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedResult, setSelectedResult] = useState<Result | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<ResultTemplate | null>(null);
+  const [formData, setFormData] = useState<Record<string, string>>({});
 
-  const { data: results = [], isLoading } = useQuery<Result[]>({
+  const { data: results = [], isLoading: resultsLoading } = useQuery<Result[]>({
     queryKey: ["/api/results"],
     staleTime: 1000 * 60, // 1 minute
   });
 
-  const filteredResults = results.filter(result => 
-    result.patientId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    result.accessCode.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const { data: templates = [], isLoading: templatesLoading } = useQuery<ResultTemplate[]>({
+    queryKey: ["/api/result-templates"],
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 
-  const handleUpdateResult = async () => {
-    if (!selectedResult) return;
-
-    try {
-      const response = await fetch(`/api/results/${selectedResult.id}`, {
+  const updateResultMutation = useMutation({
+    mutationFn: async (data: { resultId: number; resultData: any }) => {
+      const response = await fetch(`/api/results/${data.resultId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          resultData: selectedResult.resultData,
-        }),
+        body: JSON.stringify({ resultData: data.resultData }),
       });
-
       if (!response.ok) throw new Error("Failed to update result");
-
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/results"] });
+      setSelectedResult(null);
+      setSelectedTemplate(null);
+      setFormData({});
       toast({
         title: "Success",
         description: "Test result has been updated.",
       });
-
-      // Close dialog and refresh data
-      setSelectedResult(null);
-    } catch (error) {
+    },
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: "Failed to update test result.",
+        description: error.message,
         variant: "destructive",
       });
-    }
+    },
+  });
+
+  const filteredResults = results.filter(result =>
+    result.patientId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    result.accessCode.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleTemplateSelect = (template: ResultTemplate) => {
+    setSelectedTemplate(template);
+    // Initialize form data with empty values for each field
+    const initialData = template.fields.reduce((acc, field) => ({
+      ...acc,
+      [field.name]: "",
+    }), {});
+    setFormData(initialData);
+  };
+
+  const handleFieldChange = (fieldName: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [fieldName]: value,
+    }));
+  };
+
+  const handleUpdateResult = async () => {
+    if (!selectedResult || !selectedTemplate) return;
+
+    const resultData = {
+      templateId: selectedTemplate.id,
+      templateName: selectedTemplate.name,
+      values: formData,
+      timestamp: new Date().toISOString(),
+    };
+
+    updateResultMutation.mutate({
+      resultId: selectedResult.id,
+      resultData,
+    });
+  };
+
+  const isFormValid = () => {
+    if (!selectedTemplate) return false;
+    return selectedTemplate.fields.every(field => {
+      if (field.type === "number") {
+        const value = parseFloat(formData[field.name]);
+        const range = field.referenceRange?.split("-").map(Number);
+        return !isNaN(value) && (!range || (value >= range[0] && value <= range[1]));
+      }
+      return formData[field.name]?.trim() !== "";
+    });
   };
 
   return (
@@ -84,7 +137,7 @@ export default function TestResults() {
           />
         </div>
 
-        {isLoading ? (
+        {resultsLoading || templatesLoading ? (
           <div className="flex justify-center">
             <Loader2 className="h-8 w-8 animate-spin" />
           </div>
@@ -111,48 +164,117 @@ export default function TestResults() {
                       {new Date(result.testDate).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={result.resultData === "No additional notes" ? "outline" : "default"}>
-                        {result.resultData === "No additional notes" ? "Pending" : "Completed"}
+                      <Badge variant={result.resultData ? "default" : "outline"}>
+                        {result.resultData ? "Completed" : "Pending"}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             onClick={() => setSelectedResult(result)}
                           >
-                            Update Result
+                            {result.resultData ? "Update Result" : "Enter Result"}
                           </Button>
                         </DialogTrigger>
-                        <DialogContent>
+                        <DialogContent className="max-w-2xl">
                           <DialogHeader>
-                            <DialogTitle>Update Test Result</DialogTitle>
+                            <DialogTitle>
+                              {result.resultData ? "Update Test Result" : "Enter Test Result"}
+                            </DialogTitle>
                           </DialogHeader>
                           <div className="space-y-4">
-                            <div>
-                              <label className="text-sm font-medium">
-                                Patient ID: {selectedResult?.patientId}
-                              </label>
+                            <div className="grid gap-4">
+                              <div>
+                                <Label>Patient ID: {result.patientId}</Label>
+                              </div>
+                              <div>
+                                <Label>Test Type: {result.testType}</Label>
+                              </div>
+                              <div>
+                                <Label>Select Template</Label>
+                                <select
+                                  className="w-full border rounded-md p-2 mt-1"
+                                  onChange={(e) => {
+                                    const template = templates.find(t => t.id === parseInt(e.target.value));
+                                    if (template) handleTemplateSelect(template);
+                                  }}
+                                  value={selectedTemplate?.id || ""}
+                                >
+                                  <option value="">Choose a template...</option>
+                                  {templates.map(template => (
+                                    <option key={template.id} value={template.id}>
+                                      {template.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
                             </div>
-                            <div>
-                              <label className="text-sm font-medium">
-                                Test Type: {selectedResult?.testType}
-                              </label>
-                            </div>
-                            <div>
-                              <label className="text-sm font-medium">Result Data</label>
-                              <Textarea
-                                value={selectedResult?.resultData}
-                                onChange={(e) => setSelectedResult(prev => 
-                                  prev ? { ...prev, resultData: e.target.value } : null
-                                )}
-                                placeholder="Enter test results..."
-                                className="mt-1"
-                              />
-                            </div>
-                            <Button onClick={handleUpdateResult}>
-                              Save Results
+
+                            {selectedTemplate && (
+                              <div className="space-y-4 border rounded-lg p-4">
+                                <h3 className="font-medium">{selectedTemplate.name}</h3>
+                                {selectedTemplate.fields.map((field, index) => (
+                                  <div key={index} className="space-y-2">
+                                    <Label>
+                                      {field.name}
+                                      {field.unit && ` (${field.unit})`}
+                                    </Label>
+                                    {field.type === "number" ? (
+                                      <Input
+                                        type="number"
+                                        value={formData[field.name] || ""}
+                                        onChange={(e) => handleFieldChange(field.name, e.target.value)}
+                                        placeholder={field.referenceRange ? `Reference: ${field.referenceRange}` : ""}
+                                      />
+                                    ) : field.type === "options" ? (
+                                      <select
+                                        className="w-full border rounded-md p-2"
+                                        value={formData[field.name] || ""}
+                                        onChange={(e) => handleFieldChange(field.name, e.target.value)}
+                                      >
+                                        <option value="">Select an option...</option>
+                                        {field.options?.map((option, i) => (
+                                          <option key={i} value={option}>
+                                            {option}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    ) : (
+                                      <Input
+                                        value={formData[field.name] || ""}
+                                        onChange={(e) => handleFieldChange(field.name, e.target.value)}
+                                      />
+                                    )}
+                                    {field.referenceRange && (
+                                      <p className="text-sm text-muted-foreground">
+                                        Reference Range: {field.referenceRange}
+                                      </p>
+                                    )}
+                                  </div>
+                                ))}
+
+                                <div className="space-y-2">
+                                  <Label>Additional Notes</Label>
+                                  <Textarea
+                                    value={formData.notes || ""}
+                                    onChange={(e) => handleFieldChange("notes", e.target.value)}
+                                    placeholder="Enter any additional observations or notes..."
+                                  />
+                                </div>
+                              </div>
+                            )}
+
+                            <Button
+                              onClick={handleUpdateResult}
+                              disabled={!isFormValid() || updateResultMutation.isPending}
+                              className="w-full"
+                            >
+                              {updateResultMutation.isPending && (
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              )}
+                              Save Result
                             </Button>
                           </div>
                         </DialogContent>

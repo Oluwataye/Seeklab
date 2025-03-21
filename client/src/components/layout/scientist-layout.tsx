@@ -10,13 +10,12 @@ import {
 } from "@/components/ui/resizable";
 import {
   LayoutDashboard,
-  Users,
-  Shield,
-  KeyRound,
+  FlaskConical,
+  FileCheck,
+  FileText,
   Settings,
   LogOut,
   Menu,
-  FileText,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -29,24 +28,20 @@ import {
 import { NotificationPopover } from "@/components/notifications/notification-popover";
 
 const navigation = [
-  { name: "Dashboard Overview", href: "/admin", icon: LayoutDashboard },
-  { name: "User Management", href: "/admin/users", icon: Users },
-  { name: "Role & Permissions", href: "/admin/roles", icon: Shield },
-  { name: "Code Generator", href: "/admin/codes", icon: KeyRound },
-  { name: "Result Templates", href: "/admin/templates", icon: FileText },
-  { name: "Audit Logs", href: "/admin/logs", icon: FileText },
-  { name: "Settings", href: "/admin/settings", icon: Settings },
+  { name: "Dashboard", href: "/scientist/dashboard", icon: LayoutDashboard },
+  { name: "Review Results", href: "/scientist/review", icon: FileCheck },
+  { name: "Reports", href: "/scientist/reports", icon: FileText },
+  { name: "Settings", href: "/scientist/settings", icon: Settings },
 ];
 
-export function AdminLayout({ children }: { children: React.ReactNode }) {
+export function ScientistLayout({ children }: { children: React.ReactNode }) {
   const { user, logoutMutation } = useAuth();
   const [location] = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
     <div className="flex flex-col h-screen">
-      {/* Header */}
-      <header className="bg-white border-b h-16 flex-shrink-0 z-20">
+      <header className="bg-white border-b h-16 flex-shrink-0">
         <div className="h-full px-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
@@ -57,14 +52,14 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             >
               <Menu className="h-5 w-5" />
             </Button>
-            <Link href="/admin" className="text-xl font-bold">
-              Seek Labs Admin
+            <Link href="/scientist/dashboard" className="text-xl font-bold">
+              Laboratory Scientist Portal
             </Link>
           </div>
 
           <div className="flex items-center gap-4">
             <NotificationPopover />
-
+            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm">
@@ -74,7 +69,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>Account</DropdownMenuLabel>
                 <DropdownMenuItem asChild>
-                  <Link href="/admin/profile">Profile Settings</Link>
+                  <Link href="/scientist/profile">Profile Settings</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -91,10 +86,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      {/* Main Content with Resizable Sidebar */}
       <div className="flex-1 flex overflow-hidden">
         <ResizablePanelGroup direction="horizontal">
-          {/* Sidebar */}
           <ResizablePanel
             defaultSize={20}
             minSize={15}
@@ -130,9 +123,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
           <ResizableHandle withHandle className="bg-gray-200 hover:bg-gray-300 transition-colors" />
 
-          {/* Main Content */}
           <ResizablePanel defaultSize={80}>
-            <main className="h-[calc(100vh-4rem)] overflow-auto p-6 bg-gray-50">
+            <main className="h-full overflow-auto p-6 bg-gray-50">
               <div className="max-w-7xl mx-auto">
                 {children}
               </div>
@@ -140,20 +132,6 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
-
-      {/* Bottom Navigation */}
-      <footer className="bg-white border-t h-12 flex-shrink-0">
-        <div className="max-w-7xl mx-auto px-4 h-full">
-          <div className="flex items-center justify-between h-full">
-            <div className="text-sm text-gray-600">
-              Last updated: {new Date().toLocaleTimeString()}
-            </div>
-            <div className="text-sm text-gray-600">
-              {user?.username} • Admin Dashboard
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
