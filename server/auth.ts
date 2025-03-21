@@ -6,6 +6,7 @@ import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
+import { roles } from "@shared/schema";
 
 declare global {
   namespace Express {
@@ -182,6 +183,82 @@ export function setupAuth(app: Express) {
       res.sendStatus(200);
     } catch (error) {
       res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
+  // Role management endpoints
+  app.get("/api/roles", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+    try {
+      const roles = await storage.getAllRoles();
+      res.json(roles);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch roles" });
+    }
+  });
+
+  app.post("/api/roles", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+    try {
+      const role = await storage.createRole({
+        ...req.body,
+        isSystem: false,
+      });
+      res.status(201).json(role);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create role" });
+    }
+  });
+
+  app.patch("/api/roles/:id", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    const roleId = parseInt(req.params.id);
+    const role = await storage.getRoleById(roleId);
+
+    if (!role) {
+      return res.status(404).json({ message: "Role not found" });
+    }
+
+    if (role.isSystem) {
+      return res.status(400).json({ message: "Cannot modify system roles" });
+    }
+
+    try {
+      const updatedRole = await storage.updateRole(roleId, req.body);
+      res.json(updatedRole);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update role" });
+    }
+  });
+
+  app.delete("/api/roles/:id", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    const roleId = parseInt(req.params.id);
+    const role = await storage.getRoleById(roleId);
+
+    if (!role) {
+      return res.status(404).json({ message: "Role not found" });
+    }
+
+    if (role.isSystem) {
+      return res.status(400).json({ message: "Cannot delete system roles" });
+    }
+
+    try {
+      await storage.deleteRole(roleId);
+      res.sendStatus(200);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete role" });
     }
   });
 }

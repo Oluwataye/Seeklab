@@ -1,4 +1,4 @@
-import { users, type User, type InsertUser, results, type Result, type InsertResult } from "@shared/schema";
+import { users, type User, type InsertUser, results, type Result, type InsertResult, roles, type Role, type InsertRole } from "@shared/schema";
 import session from "express-session";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -17,6 +17,12 @@ export interface IStorage {
   getResultByCode(code: string): Promise<Result | undefined>;
   createResult(result: InsertResult): Promise<Result>;
   getAllResults(): Promise<Result[]>;
+  // Role management
+  getAllRoles(): Promise<Role[]>;
+  getRoleById(id: number): Promise<Role | undefined>;
+  createRole(role: InsertRole): Promise<Role>;
+  updateRole(id: number, data: Partial<Role>): Promise<Role>;
+  deleteRole(id: number): Promise<void>;
   sessionStore: session.Store;
 }
 
@@ -103,6 +109,43 @@ export class DatabaseStorage implements IStorage {
       console.error('Error fetching all results:', error);
       return [];
     }
+  }
+
+  async getAllRoles(): Promise<Role[]> {
+    try {
+      return await db.select().from(roles);
+    } catch (error) {
+      console.error('Error fetching all roles:', error);
+      return [];
+    }
+  }
+
+  async getRoleById(id: number): Promise<Role | undefined> {
+    try {
+      const [role] = await db.select().from(roles).where(eq(roles.id, id));
+      return role;
+    } catch (error) {
+      console.error('Error fetching role by id:', error);
+      return undefined;
+    }
+  }
+
+  async createRole(insertRole: InsertRole): Promise<Role> {
+    const [role] = await db.insert(roles).values(insertRole).returning();
+    return role;
+  }
+
+  async updateRole(id: number, data: Partial<Role>): Promise<Role> {
+    const [role] = await db
+      .update(roles)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(roles.id, id))
+      .returning();
+    return role;
+  }
+
+  async deleteRole(id: number): Promise<void> {
+    await db.delete(roles).where(eq(roles.id, id));
   }
 }
 
