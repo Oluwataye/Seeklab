@@ -51,6 +51,8 @@ export default function CodeGenerator() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/results"] });
+      // Invalidate notifications to trigger a refresh
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
       setPatientId("");
       setTestType("");
       setNotes("");

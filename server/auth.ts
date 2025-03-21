@@ -344,9 +344,17 @@ export function setupAuth(app: Express) {
         accessCode: result.accessCode,
       });
 
+      // Create notification for code generation
+      await createNotification(
+        'CODE_GENERATED',
+        'New Access Code Generated',
+        `New access code ${accessCode} generated for patient ${req.body.patientId}`,
+        req.user.id.toString(),
+        { resultId: result.id }
+      );
+
       // Create notification for code batch expiry
-      const expiryDate = new Date(result.expiresAt);
-      const daysUntilExpiry = Math.ceil((expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      const daysUntilExpiry = Math.ceil((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 
       if (daysUntilExpiry <= 7) { // Notify when code will expire within 7 days
         await createNotification(
