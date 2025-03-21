@@ -71,7 +71,7 @@ export default function CodeEntry() {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-4">Fast, Secure Access to Drug Test Results</h1>
           <p className="text-lg text-muted-foreground">
-            Retrieve confidential blood test results using your unique code
+            Retrieve confidential test results using your unique code
           </p>
         </div>
 

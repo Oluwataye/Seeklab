@@ -261,4 +261,61 @@ export function setupAuth(app: Express) {
       res.status(500).json({ message: "Failed to delete role" });
     }
   });
+
+  // Code generation and validation endpoints
+  app.post("/api/results/access", async (req, res) => {
+    try {
+      const { code } = req.body;
+      const result = await storage.getResultByCode(code);
+
+      if (!result) {
+        return res.status(404).json({ message: "Invalid access code" });
+      }
+
+      if (new Date() > new Date(result.expiresAt)) {
+        return res.status(403).json({ message: "This access code has expired" });
+      }
+
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to validate access code" });
+    }
+  });
+
+  // Generate new access code (admin only)
+  app.post("/api/results", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const accessCode = `SEEK-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 30); // 30 days expiry
+
+      const result = await storage.createResult({
+        ...req.body,
+        accessCode,
+        expiresAt,
+      });
+
+      res.status(201).json(result);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to generate access code" });
+    }
+  });
+
+  // Get all results (admin only)
+  app.get("/api/results", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const results = await storage.getAllResults();
+      res.json(results);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch results" });
+    }
+  });
 }
