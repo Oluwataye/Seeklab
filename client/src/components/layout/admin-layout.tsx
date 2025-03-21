@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { NotificationPopover } from "@/components/notifications/notification-popover";
+import { Footer } from "./footer";
 
 const navigation = [
   { name: "Dashboard Overview", href: "/admin", icon: LayoutDashboard },

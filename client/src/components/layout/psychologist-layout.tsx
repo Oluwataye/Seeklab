@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { NotificationPopover } from "@/components/notifications/notification-popover";
+import { Footer } from "./footer";
 
 const navigation = [
   { name: "Dashboard", href: "/psychologist/dashboard", icon: LayoutDashboard },
@@ -131,8 +132,9 @@ export function PsychologistLayout({ children }: { children: React.ReactNode }) 
           {/* Main Content */}
           <ResizablePanel defaultSize={80}>
             <main className="h-[calc(100vh-4rem)] overflow-auto p-6 bg-gray-50">
-              <div className="max-w-7xl mx-auto">
+              <div className="max-w-7xl mx-auto flex flex-col min-h-[calc(100vh-8rem)]">
                 {children}
+                <Footer />
               </div>
             </main>
           </ResizablePanel>
