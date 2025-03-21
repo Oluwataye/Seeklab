@@ -1,4 +1,4 @@
-import { users, type User, type InsertUser, results, type Result, type InsertResult, roles, type Role, type InsertRole } from "@shared/schema";
+import { users, type User, type InsertUser, results, type Result, type InsertResult, roles, type Role, type InsertRole, auditLogs, type AuditLog, type InsertAuditLog } from "@shared/schema";
 import session from "express-session";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -23,6 +23,9 @@ export interface IStorage {
   createRole(role: InsertRole): Promise<Role>;
   updateRole(id: number, data: Partial<Role>): Promise<Role>;
   deleteRole(id: number): Promise<void>;
+  // Audit logs
+  createAuditLog(log: InsertAuditLog): Promise<AuditLog>;
+  getAuditLogs(): Promise<AuditLog[]>;
   sessionStore: session.Store;
 }
 
@@ -146,6 +149,30 @@ export class DatabaseStorage implements IStorage {
 
   async deleteRole(id: number): Promise<void> {
     await db.delete(roles).where(eq(roles.id, id));
+  }
+
+  // Audit log methods
+  async createAuditLog(insertLog: InsertAuditLog): Promise<AuditLog> {
+    try {
+      const [log] = await db.insert(auditLogs).values(insertLog).returning();
+      return log;
+    } catch (error) {
+      console.error('Error creating audit log:', error);
+      throw error;
+    }
+  }
+
+  async getAuditLogs(): Promise<AuditLog[]> {
+    try {
+      return await db
+        .select()
+        .from(auditLogs)
+        .orderBy(auditLogs.createdAt)
+        .limit(1000);
+    } catch (error) {
+      console.error('Error fetching audit logs:', error);
+      return [];
+    }
   }
 }
 

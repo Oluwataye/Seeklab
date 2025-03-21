@@ -109,8 +109,11 @@ export function setupAuth(app: Express) {
         isLabStaff: !isAdmin, // Lab staff if not admin
       });
 
-      req.login(user, (err) => {
+      req.login(user, async (err) => {
         if (err) return next(err);
+        if (user) {
+          await createAuditLog(req, 'CREATE', 'USER', user.id.toString());
+        }
         res.status(201).json(user);
       });
     } catch (error) {
@@ -118,13 +121,25 @@ export function setupAuth(app: Express) {
     }
   });
 
-  app.post("/api/login", passport.authenticate("local"), (req, res) => {
-    res.status(200).json(req.user);
+  app.post("/api/login", async (req, res, next) => {
+    passport.authenticate("local", async (err: any, user: any, info: any) => {
+      if (err) { return next(err); }
+      if (!user) { return res.status(401).json({ message: info?.message || 'Invalid credentials' }); }
+      req.login(user, async (err) => {
+        if (err) { return next(err); }
+        await createAuditLog(req, 'LOGIN', 'USER', user.id.toString());
+        res.status(200).json(req.user);
+      });
+    })(req, res, next);
   });
 
   app.post("/api/logout", (req, res, next) => {
+    const userId = req.user?.id.toString();
     req.logout((err) => {
       if (err) return next(err);
+      if (userId) {
+        createAuditLog(req, 'LOGOUT', 'USER', userId);
+      }
       res.sendStatus(200);
     });
   });
@@ -159,6 +174,7 @@ export function setupAuth(app: Express) {
 
     try {
       const user = await storage.updateUser(userId, userData);
+      await createAuditLog(req, 'UPDATE', 'USER', userId.toString(), userData); // Added audit log
       res.json(user);
     } catch (error) {
       res.status(500).json({ message: "Failed to update user" });
@@ -180,6 +196,7 @@ export function setupAuth(app: Express) {
 
     try {
       await storage.deleteUser(userId);
+      await createAuditLog(req, 'DELETE', 'USER', userId.toString()); // Added audit log
       res.sendStatus(200);
     } catch (error) {
       res.status(500).json({ message: "Failed to delete user" });
@@ -208,6 +225,7 @@ export function setupAuth(app: Express) {
         ...req.body,
         isSystem: false,
       });
+      await createAuditLog(req, 'CREATE', 'ROLE', role.id.toString(), req.body); // Added audit log
       res.status(201).json(role);
     } catch (error) {
       res.status(500).json({ message: "Failed to create role" });
@@ -232,6 +250,7 @@ export function setupAuth(app: Express) {
 
     try {
       const updatedRole = await storage.updateRole(roleId, req.body);
+      await createAuditLog(req, 'UPDATE', 'ROLE', roleId.toString(), req.body); // Added audit log
       res.json(updatedRole);
     } catch (error) {
       res.status(500).json({ message: "Failed to update role" });
@@ -256,6 +275,7 @@ export function setupAuth(app: Express) {
 
     try {
       await storage.deleteRole(roleId);
+      await createAuditLog(req, 'DELETE', 'ROLE', roleId.toString()); // Added audit log
       res.sendStatus(200);
     } catch (error) {
       res.status(500).json({ message: "Failed to delete role" });
@@ -308,6 +328,11 @@ export function setupAuth(app: Express) {
         expiresAt: expiresAt,
       });
 
+      await createAuditLog(req, 'CREATE', 'RESULT', result.id.toString(), {
+        patientId: result.patientId,
+        accessCode: result.accessCode,
+      });
+
       res.status(201).json(result);
     } catch (error) {
       console.error("Error generating code:", error);
@@ -328,4 +353,34 @@ export function setupAuth(app: Express) {
       res.status(500).json({ message: "Failed to fetch results" });
     }
   });
+
+  // Audit logs endpoints
+  app.get("/api/audit-logs", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const logs = await storage.getAuditLogs();
+      res.json(logs);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch audit logs" });
+    }
+  });
+
+  // Helper function to create audit logs
+  async function createAuditLog(req: any, action: string, entityType: string, entityId?: string, details?: Record<string, unknown>) {
+    try {
+      await storage.createAuditLog({
+        userId: req.user.id.toString(),
+        action,
+        entityType,
+        entityId,
+        details,
+        ipAddress: req.ip,
+      });
+    } catch (error) {
+      console.error('Failed to create audit log:', error);
+    }
+  }
 }

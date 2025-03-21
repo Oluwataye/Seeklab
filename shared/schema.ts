@@ -35,6 +35,17 @@ export const results = pgTable("results", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+export const auditLogs = pgTable("audit_logs", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  action: text("action").notNull(),
+  entityType: text("entity_type").notNull(),
+  entityId: text("entity_id"),
+  details: jsonb("details").$type<Record<string, unknown>>(),
+  ipAddress: text("ip_address"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -58,9 +69,20 @@ export const insertResultSchema = createInsertSchema(results).pick({
   expiresAt: true,
 });
 
+export const insertAuditLogSchema = createInsertSchema(auditLogs).pick({
+  userId: true,
+  action: true,
+  entityType: true,
+  entityId: true,
+  details: true,
+  ipAddress: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type Role = typeof roles.$inferSelect;
 export type Result = typeof results.$inferSelect;
 export type InsertResult = z.infer<typeof insertResultSchema>;
 export type InsertRole = z.infer<typeof insertRoleSchema>;
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
