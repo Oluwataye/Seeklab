@@ -16,7 +16,7 @@ export default function AdminDashboard() {
   });
 
   const labTechnicians = users.filter(user => !user.isAdmin).length;
-  const unusedCodes = results.filter(result => new Date() < result.expiresAt).length;
+  const unusedCodes = results.filter(result => new Date() < new Date(result.expiresAt)).length;
   const recentResults = results.filter(result => {
     const hours24 = 24 * 60 * 60 * 1000;
     return (Date.now() - new Date(result.createdAt).getTime()) < hours24;
@@ -26,43 +26,49 @@ export default function AdminDashboard() {
     <AdminLayout>
       <div className="space-y-6">
         {/* Quick Stats */}
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card className="shadow-sm hover:shadow-md transition-shadow">
+        <div className="grid gap-6 md:grid-cols-3">
+          <Card className="bg-white shadow-md hover:shadow-lg transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-              <Users className="h-4 w-4 text-primary" />
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <Users className="h-4 w-4 text-primary" />
+              </div>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-primary">{labTechnicians}</div>
-              <p className="text-xs text-muted-foreground mt-1">Lab Staff Members</p>
+              <p className="text-sm text-muted-foreground mt-1">Lab Staff Members</p>
             </CardContent>
           </Card>
 
-          <Card className="shadow-sm hover:shadow-md transition-shadow">
+          <Card className="bg-white shadow-md hover:shadow-lg transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Active Codes</CardTitle>
-              <Key className="h-4 w-4 text-primary" />
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <Key className="h-4 w-4 text-primary" />
+              </div>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-primary">{unusedCodes}</div>
-              <p className="text-xs text-muted-foreground mt-1">Valid access codes</p>
+              <p className="text-sm text-muted-foreground mt-1">Valid access codes</p>
             </CardContent>
           </Card>
 
-          <Card className="shadow-sm hover:shadow-md transition-shadow">
+          <Card className="bg-white shadow-md hover:shadow-lg transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Recent Results</CardTitle>
-              <FileText className="h-4 w-4 text-primary" />
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <FileText className="h-4 w-4 text-primary" />
+              </div>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-primary">{recentResults}</div>
-              <p className="text-xs text-muted-foreground mt-1">Tests in last 24h</p>
+              <p className="text-sm text-muted-foreground mt-1">Tests in last 24h</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Activity Feed */}
-        <Card className="shadow-sm">
+        <Card className="bg-white shadow-md">
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
           </CardHeader>
@@ -72,27 +78,27 @@ export default function AdminDashboard() {
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-1">
                 {results.slice(0, 5).map(result => (
                   <div 
                     key={result.id} 
-                    className="flex items-center justify-between py-3 border-b last:border-0 hover:bg-gray-50 px-2 rounded-sm transition-colors"
+                    className="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 transition-colors border-b last:border-0"
                   >
                     <div>
-                      <p className="text-sm font-medium">New test result submitted</p>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="font-medium">New test result submitted</p>
+                      <p className="text-sm text-muted-foreground mt-1">
                         Patient #{result.patientId} - {result.testType}
                       </p>
                     </div>
-                    <time className="text-xs text-muted-foreground">
+                    <time className="text-sm text-muted-foreground">
                       {new Date(result.createdAt).toLocaleString()}
                     </time>
                   </div>
                 ))}
                 {results.length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    No recent activity
-                  </p>
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No recent activity</p>
+                  </div>
                 )}
               </div>
             )}

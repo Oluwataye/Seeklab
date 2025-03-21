@@ -18,7 +18,6 @@ import {
   LogOut,
   Menu,
   FileText,
-  Home,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -84,14 +83,14 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                   {user?.username}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Account</DropdownMenuLabel>
                 <DropdownMenuItem>Profile Settings</DropdownMenuItem>
-                <DropdownMenuItem>Help & Support</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => logoutMutation.mutate()}
                   disabled={logoutMutation.isPending}
+                  className="text-red-600"
                 >
                   <LogOut className="h-4 w-4 mr-2" />
                   Logout
@@ -124,7 +123,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                       key={item.name}
                       href={item.href}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md",
+                        "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
                         isActive
                           ? "bg-primary text-primary-foreground"
                           : "text-gray-700 hover:bg-gray-50"
@@ -139,7 +138,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             </nav>
           </ResizablePanel>
 
-          <ResizableHandle withHandle />
+          <ResizableHandle withHandle className="bg-gray-200 hover:bg-gray-300 transition-colors" />
 
           {/* Main Content */}
           <ResizablePanel defaultSize={80}>
@@ -156,15 +155,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       <footer className="bg-white border-t h-12 flex-shrink-0">
         <div className="max-w-7xl mx-auto px-4 h-full">
           <div className="flex items-center justify-between h-full">
-            <div className="flex items-center space-x-4">
-              <Link href="/admin" className="text-sm text-gray-600 hover:text-primary">
-                <Home className="h-4 w-4 inline mr-1" />
-                Home
-              </Link>
-              <span className="text-gray-400">•</span>
-              <span className="text-sm text-gray-600">
-                Last updated: {new Date().toLocaleTimeString()}
-              </span>
+            <div className="text-sm text-gray-600">
+              Last updated: {new Date().toLocaleTimeString()}
             </div>
             <div className="text-sm text-gray-600">
               {user?.username} • Admin Dashboard
