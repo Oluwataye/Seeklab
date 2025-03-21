@@ -16,6 +16,7 @@ import UserManagement from "@/pages/admin/user-management";
 import RolePermissions from "@/pages/admin/role-permissions";
 import CodeGenerator from "@/pages/admin/code-generator";
 import AuditLogs from "@/pages/admin/audit-logs";
+import ProfileSettings from "@/pages/admin/profile-settings";
 import { ProtectedRoute } from "./lib/protected-route";
 
 function Router() {
@@ -56,6 +57,11 @@ function Router() {
       <ProtectedRoute 
         path="/admin/logs" 
         component={AuditLogs}
+        requireAdmin={true}
+      />
+      <ProtectedRoute 
+        path="/admin/profile" 
+        component={ProfileSettings}
         requireAdmin={true}
       />
 
