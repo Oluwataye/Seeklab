@@ -9,6 +9,7 @@ import { z } from "zod";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { FlaskConical, Lock, User, Mail } from "lucide-react";
+import { useEffect } from "react";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -50,8 +51,15 @@ export default function AuthPage() {
     },
   });
 
+  // Use useEffect for navigation to avoid state updates during render
+  useEffect(() => {
+    if (user) {
+      navigate(user.isAdmin ? "/admin" : "/dashboard");
+    }
+  }, [user, navigate]);
+  
+  // Return null early if user exists
   if (user) {
-    navigate(user.isAdmin ? "/admin" : "/dashboard");
     return null;
   }
 
