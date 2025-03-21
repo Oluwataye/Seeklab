@@ -128,11 +128,11 @@ export default function SettingsPage() {
   // Update settings mutation
   const updateSettingsMutation = useMutation({
     mutationFn: async (data: SettingsFormValues) => {
-      return apiRequest({
-        url: "/api/user/settings",
-        method: "POST",
-        body: data,
-      });
+      return apiRequest(
+        "POST",
+        "/api/user/settings",
+        data
+      );
     },
     onSuccess: () => {
       toast({
@@ -152,14 +152,14 @@ export default function SettingsPage() {
   // Update password mutation
   const updatePasswordMutation = useMutation({
     mutationFn: async (data: PasswordFormValues) => {
-      return apiRequest({
-        url: "/api/user/password",
-        method: "POST",
-        body: {
+      return apiRequest(
+        "POST",
+        "/api/user/password",
+        {
           currentPassword: data.currentPassword,
           newPassword: data.newPassword,
-        },
-      });
+        }
+      );
     },
     onSuccess: () => {
       passwordForm.reset({
@@ -256,6 +256,7 @@ export default function SettingsPage() {
                           <Select
                             onValueChange={field.onChange}
                             defaultValue={field.value}
+                            value={field.value}
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -286,6 +287,7 @@ export default function SettingsPage() {
                           <Select
                             onValueChange={field.onChange}
                             defaultValue={field.value}
+                            value={field.value}
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -537,6 +539,7 @@ export default function SettingsPage() {
                           <Select
                             onValueChange={field.onChange}
                             defaultValue={field.value}
+                            value={field.value}
                           >
                             <FormControl>
                               <SelectTrigger>
