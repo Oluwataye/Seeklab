@@ -71,11 +71,11 @@ export default function ProfilePage() {
   // Update profile mutation
   const updateProfileMutation = useMutation({
     mutationFn: async (data: ProfileFormData) => {
-      return apiRequest({
-        url: "/api/user/profile",
-        method: "POST",
-        body: data,
-      });
+      return apiRequest(
+        "POST",
+        "/api/user/profile",
+        data
+      );
     },
     onSuccess: () => {
       toast({
@@ -98,14 +98,11 @@ export default function ProfilePage() {
       const formData = new FormData();
       formData.append("avatar", file);
       
-      return apiRequest({
-        url: "/api/user/avatar",
-        method: "POST",
-        body: formData,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      return apiRequest(
+        "POST",
+        "/api/user/avatar",
+        formData
+      );
     },
     onSuccess: () => {
       toast({

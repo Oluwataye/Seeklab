@@ -51,11 +51,11 @@ export default function AssessmentsPage() {
 
   const addAssessmentMutation = useMutation({
     mutationFn: async ({ id, assessment }: { id: number, assessment: string }) => {
-      return apiRequest({
-        url: `/api/results/${id}/assessment`,
-        method: "POST",
-        body: { assessment },
-      });
+      return apiRequest(
+        "POST",
+        `/api/results/${id}/assessment`,
+        { assessment }
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/results"] });

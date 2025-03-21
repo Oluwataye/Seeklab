@@ -184,11 +184,11 @@ export default function SettingsPage() {
   // Update security settings mutation
   const updateSecurityMutation = useMutation({
     mutationFn: async (data: SecurityFormValues) => {
-      return apiRequest({
-        url: "/api/user/security",
-        method: "POST",
-        body: data,
-      });
+      return apiRequest(
+        "POST",
+        "/api/user/security",
+        data
+      );
     },
     onSuccess: () => {
       toast({
