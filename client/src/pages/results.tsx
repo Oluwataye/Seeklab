@@ -55,13 +55,21 @@ export default function Results() {
               <div>
                 <h2 className="text-lg font-semibold">Test Results</h2>
                 <div className="mt-2 p-4 bg-gray-50 rounded-lg">
-                  <pre className="whitespace-pre-wrap">{result.resultData}</pre>
+                  <pre className="whitespace-pre-wrap">
+                    {typeof result.resultData === 'object' && result.resultData
+                      ? JSON.stringify(result.resultData, null, 2) 
+                      : "No result data available"}
+                  </pre>
                 </div>
               </div>
 
               <div className="flex justify-center">
                 <Button asChild>
-                  <a href={result.reportUrl} target="_blank" rel="noopener noreferrer">
+                  <a 
+                    href={typeof result.reportUrl === 'string' ? result.reportUrl : "#"} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                  >
                     <FileText className="mr-2 h-4 w-4" />
                     Download Full Report (PDF)
                   </a>
