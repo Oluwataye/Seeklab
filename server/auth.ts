@@ -132,4 +132,56 @@ export function setupAuth(app: Express) {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     res.json(req.user);
   });
+
+  // Get all users (admin only)
+  app.get("/api/users", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+    const users = await storage.getAllUsers();
+    res.json(users);
+  });
+
+  // Update user (admin only)
+  app.patch("/api/users/:id", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    const userId = parseInt(req.params.id);
+    const userData = req.body;
+
+    // Prevent changing own admin status
+    if (req.user.id === userId && 'isAdmin' in userData) {
+      return res.status(400).json({ message: "Cannot modify your own admin status" });
+    }
+
+    try {
+      const user = await storage.updateUser(userId, userData);
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
+  // Delete user (admin only)
+  app.delete("/api/users/:id", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    const userId = parseInt(req.params.id);
+
+    // Prevent self-deletion
+    if (req.user.id === userId) {
+      return res.status(400).json({ message: "Cannot delete your own account" });
+    }
+
+    try {
+      await storage.deleteUser(userId);
+      res.sendStatus(200);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
 }
