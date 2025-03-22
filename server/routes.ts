@@ -44,6 +44,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/results", async (req, res) => {
+    console.log('GET /api/results - Auth check:', { 
+      isAuthenticated: req.isAuthenticated(),
+      userRole: req.user?.role,
+      isLabStaff: req.user?.isLabStaff
+    });
+    
     if (!req.isAuthenticated() || !req.user?.isLabStaff) {
       return res.status(403).json({ message: "Unauthorized" });
     }
