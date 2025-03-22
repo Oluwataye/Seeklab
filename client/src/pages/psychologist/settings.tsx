@@ -41,7 +41,8 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Bell, Shield, Eye, EyeOff } from "lucide-react";
+import { Loader2, Bell, Shield } from "lucide-react";
+import { PasswordInput } from "@/components/ui/password-input";
 
 // Settings form schema
 const settingsFormSchema = z.object({
