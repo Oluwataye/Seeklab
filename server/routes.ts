@@ -174,6 +174,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         testType,
         testDate: now,
         resultData,
+        reportUrl: "https://example.com/reports/mock-report.pdf", // Mock report URL to satisfy not-null constraint
         expiresAt,
       };
       
