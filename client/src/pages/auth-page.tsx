@@ -11,6 +11,7 @@ import { useLocation } from "wouter";
 import { FlaskConical, Lock, User, Mail } from "lucide-react";
 import { useEffect } from "react";
 import { PublicLayout } from "@/components/layout/public-layout";
+import { PasswordInput } from "@/components/ui/password-input";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -125,9 +126,8 @@ export default function AuthPage() {
                             <FormLabel>Password</FormLabel>
                             <FormControl>
                               <div className="relative">
-                                <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                                <Input 
-                                  type="password" 
+                                <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground z-10" />
+                                <PasswordInput 
                                   {...field} 
                                   className="pl-10"
                                   placeholder="Enter your password" 
@@ -195,9 +195,8 @@ export default function AuthPage() {
                             <FormLabel>Password</FormLabel>
                             <FormControl>
                               <div className="relative">
-                                <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                                <Input 
-                                  type="password" 
+                                <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground z-10" />
+                                <PasswordInput 
                                   {...field} 
                                   className="pl-10"
                                   placeholder="Create a password" 
@@ -216,9 +215,8 @@ export default function AuthPage() {
                             <FormLabel>Confirm Password</FormLabel>
                             <FormControl>
                               <div className="relative">
-                                <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                                <Input 
-                                  type="password" 
+                                <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground z-10" />
+                                <PasswordInput 
                                   {...field} 
                                   className="pl-10"
                                   placeholder="Confirm your password" 

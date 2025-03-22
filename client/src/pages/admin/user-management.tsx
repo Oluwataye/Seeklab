@@ -33,6 +33,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { queryClient } from "@/lib/queryClient";
+import { PasswordInput } from "@/components/ui/password-input";
 
 type FormData = {
   username: string;
@@ -264,7 +265,7 @@ export default function UserManagement() {
                           <FormItem>
                             <FormLabel>Password</FormLabel>
                             <FormControl>
-                              <Input type="password" {...field} />
+                              <PasswordInput {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -452,7 +453,7 @@ export default function UserManagement() {
                   <FormItem>
                     <FormLabel>Password (leave empty to keep current)</FormLabel>
                     <FormControl>
-                      <Input type="password" {...field} />
+                      <PasswordInput {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
