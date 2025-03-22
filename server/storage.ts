@@ -119,6 +119,20 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
+  
+  async updateResult(id: number, data: Partial<Result>): Promise<Result> {
+    try {
+      const [result] = await db
+        .update(results)
+        .set(data)
+        .where(eq(results.id, id))
+        .returning();
+      return result;
+    } catch (error) {
+      console.error('Error updating result:', error);
+      throw error;
+    }
+  }
 
   async getAllRoles(): Promise<Role[]> {
     try {
