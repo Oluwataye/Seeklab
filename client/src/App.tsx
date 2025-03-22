@@ -41,6 +41,7 @@ function Router() {
       <Route path="/privacy" component={PrivacyPage} />
       <Route path="/results" component={Results} />
       <Route path="/auth" component={AuthPage} />
+      <Route path="/dashboard" component={StaffDashboard} />
 
       {/* Lab Technician Routes */}
       <ProtectedRoute 
