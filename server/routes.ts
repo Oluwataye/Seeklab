@@ -11,7 +11,13 @@ import fs from "fs";
 // Configure multer storage for logo uploads
 const logoStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'public/uploads/');
+    // Use an absolute path to the uploads directory to ensure it works correctly
+    const uploadsPath = path.join(process.cwd(), 'public/uploads');
+    // Ensure the directory exists
+    if (!fs.existsSync(uploadsPath)) {
+      fs.mkdirSync(uploadsPath, { recursive: true });
+    }
+    cb(null, uploadsPath);
   },
   filename: (req, file, cb) => {
     // Generate a unique filename with timestamp
@@ -420,6 +426,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const file = req.file;
       
       // Create the URL path for the uploaded logo
+      // Make sure this path matches the static file serving in index.ts
       const logoUrl = `/uploads/${file.filename}`;
       
       // Get current logo settings
