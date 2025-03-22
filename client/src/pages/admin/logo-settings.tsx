@@ -86,8 +86,26 @@ export default function LogoSettings() {
       });
       
       // Update the form with the new logo URL
-      form.setValue('imageUrl', data.imageUrl);
+      form.setValue('imageUrl', data.imageUrl, { 
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true
+      });
+      
+      // Reset the file input and preview
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
       setUploadPreview(null);
+      
+      // Submit the form automatically to update the logo settings
+      const currentSettings = {
+        name: form.getValues('name'),
+        tagline: form.getValues('tagline'),
+        imageUrl: data.imageUrl
+      };
+      
+      mutation.mutate(currentSettings);
       
       // Invalidate the logo settings query to refresh data
       queryClient.invalidateQueries({ queryKey: ['/api/settings/logo'] });
@@ -293,17 +311,22 @@ export default function LogoSettings() {
                 
                 <div className="border rounded-md p-4 bg-gray-50 flex items-center justify-center">
                   <div className="relative p-4 bg-white rounded-md border">
-                    <div className="h-20 flex items-center justify-center mb-2">
-                      <img 
-                        src={form.watch('imageUrl')} 
-                        alt="Current logo" 
-                        className="max-h-full max-w-full object-contain"
-                        onError={(e) => {
-                          // If image fails to load, show a fallback icon
-                          const target = e.target as HTMLImageElement;
-                          target.src = '/logo.svg';
-                        }}
-                      />
+                    <div className="h-20 w-40 flex items-center justify-center mb-2">
+                      {isLoading ? (
+                        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                      ) : (
+                        <img 
+                          key={form.watch('imageUrl')} // Force re-render on URL change
+                          src={form.watch('imageUrl')} 
+                          alt="Current logo" 
+                          className="max-h-full max-w-full object-contain"
+                          onError={(e) => {
+                            // If image fails to load, show a fallback icon
+                            const target = e.target as HTMLImageElement;
+                            target.src = '/logo.svg';
+                          }}
+                        />
+                      )}
                     </div>
                     <p className="text-xs text-center text-muted-foreground">
                       Current Logo Image
@@ -396,33 +419,108 @@ export default function LogoSettings() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-8">
-              <div className="p-4 border rounded-md">
-                <h3 className="mb-2 text-sm font-medium">Header Logo (Default)</h3>
-                <div className="bg-white p-4 flex items-center">
-                  <BrandLogo variant="default" showText={true} />
+              {/* Create a LivePreview component that updates when the form changes */}
+              {isLoading ? (
+                <div className="flex items-center justify-center p-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
-              </div>
-              
-              <div className="p-4 border rounded-md">
-                <h3 className="mb-2 text-sm font-medium">Small Logo</h3>
-                <div className="bg-white p-4 flex items-center">
-                  <BrandLogo variant="small" showText={true} />
-                </div>
-              </div>
-              
-              <div className="p-4 border rounded-md">
-                <h3 className="mb-2 text-sm font-medium">Large Logo</h3>
-                <div className="bg-white p-4 flex items-center">
-                  <BrandLogo variant="large" showText={true} />
-                </div>
-              </div>
-              
-              <div className="p-4 border rounded-md">
-                <h3 className="mb-2 text-sm font-medium">Icon Only</h3>
-                <div className="bg-white p-4 flex items-center">
-                  <BrandLogo variant="default" showText={false} />
-                </div>
-              </div>
+              ) : (
+                <>
+                  <div className="p-4 border rounded-md">
+                    <h3 className="mb-2 text-sm font-medium">Header Logo (Default)</h3>
+                    <div className="bg-white p-4 flex items-center">
+                      {/* Use the form values directly for live preview */}
+                      <div className="flex items-center gap-2">
+                        <img 
+                          key={form.watch('imageUrl') + '-default'} 
+                          src={form.watch('imageUrl')} 
+                          alt={form.watch('name')}
+                          className="h-8 w-8 rounded-sm object-contain"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = '/logo.svg';
+                          }}
+                        />
+                        <div className="flex flex-col">
+                          <span className="font-bold text-base">
+                            {form.watch('name')}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {form.watch('tagline')}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 border rounded-md">
+                    <h3 className="mb-2 text-sm font-medium">Small Logo</h3>
+                    <div className="bg-white p-4 flex items-center">
+                      <div className="flex items-center gap-2">
+                        <img 
+                          key={form.watch('imageUrl') + '-small'} 
+                          src={form.watch('imageUrl')} 
+                          alt={form.watch('name')}
+                          className="h-6 w-6 rounded-sm object-contain"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = '/logo.svg';
+                          }}
+                        />
+                        <div className="flex flex-col">
+                          <span className="font-bold text-sm">
+                            {form.watch('name')}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 border rounded-md">
+                    <h3 className="mb-2 text-sm font-medium">Large Logo</h3>
+                    <div className="bg-white p-4 flex items-center">
+                      <div className="flex items-center gap-2">
+                        <img 
+                          key={form.watch('imageUrl') + '-large'} 
+                          src={form.watch('imageUrl')} 
+                          alt={form.watch('name')}
+                          className="h-12 w-12 rounded-sm object-contain"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = '/logo.svg';
+                          }}
+                        />
+                        <div className="flex flex-col">
+                          <span className="font-bold text-xl">
+                            {form.watch('name')}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {form.watch('tagline')}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 border rounded-md">
+                    <h3 className="mb-2 text-sm font-medium">Icon Only</h3>
+                    <div className="bg-white p-4 flex items-center">
+                      <div className="flex items-center">
+                        <img 
+                          key={form.watch('imageUrl') + '-icon'} 
+                          src={form.watch('imageUrl')} 
+                          alt={form.watch('name')}
+                          className="h-8 w-8 rounded-sm object-contain"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = '/logo.svg';
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>

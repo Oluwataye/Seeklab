@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
@@ -27,6 +27,8 @@ export function BrandLogo({
   variant = 'default', 
   showText = true 
 }: BrandLogoProps) {
+  const [imageError, setImageError] = useState(false);
+  
   // Fetch logo settings from server
   const { data: logoSettings, isLoading } = useQuery<LogoSettings>({
     queryKey: ['/api/settings/logo'],
@@ -34,6 +36,8 @@ export function BrandLogo({
     initialData: defaultLogoSettings,
     // Don't refetch too often
     staleTime: 1000 * 60 * 60, // 1 hour
+    refetchOnWindowFocus: false,
+    refetchOnMount: false
   });
 
   // Size mappings for different variants
@@ -49,6 +53,11 @@ export function BrandLogo({
     large: 'text-xl',
   };
 
+  // Determine which image URL to use
+  const imageUrl = imageError ? 
+    defaultLogoSettings.imageUrl : 
+    (logoSettings?.imageUrl || defaultLogoSettings.imageUrl);
+
   // Render logo with loading state
   return (
     <div className={cn('flex items-center gap-2', className)}>
@@ -56,14 +65,13 @@ export function BrandLogo({
         <Loader2 className={cn('animate-spin', sizes[variant])} />
       ) : (
         <img 
-          src={logoSettings?.imageUrl || defaultLogoSettings.imageUrl} 
+          src={imageUrl} 
           alt={logoSettings?.name || defaultLogoSettings.name} 
           className={cn('rounded-sm', sizes[variant])} 
-          onError={(e) => {
+          onError={() => {
             // If the image fails to load, fall back to the default logo
-            const target = e.target as HTMLImageElement;
-            if (target.src !== defaultLogoSettings.imageUrl) {
-              target.src = defaultLogoSettings.imageUrl;
+            if (!imageError) {
+              setImageError(true);
             }
           }}
         />
