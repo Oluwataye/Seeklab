@@ -93,7 +93,6 @@ type SecurityFormValues = z.infer<typeof securityFormSchema>;
 export default function SettingsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [showPassword, setShowPassword] = useState(false);
   
   // Settings form
   const settingsForm = useForm<SettingsFormValues>({
@@ -387,27 +386,9 @@ export default function SettingsPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Current Password</FormLabel>
-                          <div className="relative">
-                            <FormControl>
-                              <Input 
-                                type={showPassword ? "text" : "password"} 
-                                {...field} 
-                              />
-                            </FormControl>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="absolute right-0 top-0 h-full px-3"
-                              onClick={() => setShowPassword(!showPassword)}
-                            >
-                              {showPassword ? (
-                                <EyeOff className="h-4 w-4" />
-                              ) : (
-                                <Eye className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </div>
+                          <FormControl>
+                            <PasswordInput {...field} />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -419,27 +400,9 @@ export default function SettingsPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>New Password</FormLabel>
-                          <div className="relative">
-                            <FormControl>
-                              <Input 
-                                type={showPassword ? "text" : "password"} 
-                                {...field} 
-                              />
-                            </FormControl>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="absolute right-0 top-0 h-full px-3"
-                              onClick={() => setShowPassword(!showPassword)}
-                            >
-                              {showPassword ? (
-                                <EyeOff className="h-4 w-4" />
-                              ) : (
-                                <Eye className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </div>
+                          <FormControl>
+                            <PasswordInput {...field} />
+                          </FormControl>
                           <FormDescription>
                             Password must be at least 8 characters and include uppercase, lowercase, and numbers.
                           </FormDescription>
@@ -454,27 +417,9 @@ export default function SettingsPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Confirm New Password</FormLabel>
-                          <div className="relative">
-                            <FormControl>
-                              <Input 
-                                type={showPassword ? "text" : "password"} 
-                                {...field} 
-                              />
-                            </FormControl>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="absolute right-0 top-0 h-full px-3"
-                              onClick={() => setShowPassword(!showPassword)}
-                            >
-                              {showPassword ? (
-                                <EyeOff className="h-4 w-4" />
-                              ) : (
-                                <Eye className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </div>
+                          <FormControl>
+                            <PasswordInput {...field} />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}

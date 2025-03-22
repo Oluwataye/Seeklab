@@ -161,14 +161,28 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createRole(insertRole: InsertRole): Promise<Role> {
-    const [role] = await db.insert(roles).values(insertRole).returning();
+    // Ensure permissions is properly cast as a string array
+    const roleToInsert = {
+      ...insertRole,
+      permissions: Array.isArray(insertRole.permissions) ? insertRole.permissions : []
+    };
+    const [role] = await db.insert(roles).values(roleToInsert).returning();
     return role;
   }
 
   async updateRole(id: number, data: Partial<Role>): Promise<Role> {
+    // Ensure permissions is properly cast as a string array if present
+    const roleToUpdate = {
+      ...data,
+      permissions: data.permissions ? 
+        (Array.isArray(data.permissions) ? data.permissions : []) : 
+        undefined,
+      updatedAt: new Date()
+    };
+    
     const [role] = await db
       .update(roles)
-      .set({ ...data, updatedAt: new Date() })
+      .set(roleToUpdate)
       .where(eq(roles.id, id))
       .returning();
     return role;
