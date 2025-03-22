@@ -3,6 +3,7 @@ import { AdminLayout } from "@/components/layout/admin-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
@@ -125,7 +126,7 @@ export default function ProfileSettings() {
                     <FormItem>
                       <FormLabel>Current Password</FormLabel>
                       <FormControl>
-                        <Input {...field} type="password" />
+                        <PasswordInput {...field} />
                       </FormControl>
                     </FormItem>
                   )}
@@ -138,7 +139,7 @@ export default function ProfileSettings() {
                     <FormItem>
                       <FormLabel>New Password (Optional)</FormLabel>
                       <FormControl>
-                        <Input {...field} type="password" />
+                        <PasswordInput {...field} />
                       </FormControl>
                     </FormItem>
                   )}
@@ -151,7 +152,7 @@ export default function ProfileSettings() {
                     <FormItem>
                       <FormLabel>Confirm New Password</FormLabel>
                       <FormControl>
-                        <Input {...field} type="password" />
+                        <PasswordInput {...field} />
                       </FormControl>
                     </FormItem>
                   )}
