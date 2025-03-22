@@ -19,7 +19,12 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 const logoSettingsSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   tagline: z.string().min(5, { message: "Tagline must be at least 5 characters." }),
-  imageUrl: z.string().url({ message: "Must be a valid URL." }).or(z.literal('/logo.svg'))
+  imageUrl: z.string()
+    .min(1, { message: "Image URL is required" })
+    // Accept both absolute URLs and relative paths starting with /
+    .refine(val => val.startsWith('/') || val.startsWith('http'), {
+      message: "Image URL must be a path starting with / or a full URL"
+    })
 });
 
 interface LogoSettings {
@@ -392,22 +397,17 @@ export default function LogoSettings() {
                     )}
                   />
                   
-                  <FormField
-                    control={form.control}
-                    name="imageUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Logo URL</FormLabel>
-                        <FormControl>
-                          <Input {...field} readOnly={isUploading} />
-                        </FormControl>
-                        <FormDescription>
-                          The URL to your organization's logo image. This is updated automatically when you upload a new logo.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {/* Make Logo URL field completely optional */}
+                  <div className="mb-2">
+                    <h4 className="text-sm font-medium mb-1">Logo URL</h4>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      This URL is automatically updated when you upload a new logo.
+                    </p>
+                    <div className="bg-muted p-2 rounded text-xs font-mono overflow-x-auto">
+                      {form.watch('imageUrl')}
+                    </div>
+                    <input type="hidden" {...form.register('imageUrl')} />
+                  </div>
                   
                   <Button 
                     type="submit" 
