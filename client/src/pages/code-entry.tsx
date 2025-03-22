@@ -107,9 +107,9 @@ export default function CodeEntry() {
 
   return (
     <PublicLayout>
-      <div className="flex flex-col items-center justify-center max-w-5xl mx-auto">
+      <div className="patient-portal flex flex-col items-center justify-center max-w-5xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-4">Fast, Secure Access to Drug Test Results</h1>
+          <h1 className="text-4xl font-bold mb-4 lab-header">Fast, Secure Access to Drug Test Results</h1>
           <p className="text-lg text-muted-foreground">
             HIPAA-compliant medical test results portal
           </p>
@@ -142,7 +142,7 @@ export default function CodeEntry() {
                                 <Input
                                   {...field}
                                   placeholder="Enter 8-digit code (e.g., SEEK-A1B2)"
-                                  className="text-center text-xl tracking-wider"
+                                  className="text-center text-xl tracking-wider code-input"
                                   disabled={resultMutation.isPending}
                                   autoComplete="off"
                                   maxLength={8}
@@ -154,13 +154,14 @@ export default function CodeEntry() {
                                   }}
                                 />
                               </FormControl>
-                              <FormMessage />
+                              <FormMessage className="error-text" />
                             </FormItem>
                           )}
                         />
                         <Button 
                           type="submit" 
-                          className="w-full bg-blue-600 hover:bg-blue-700" 
+                          className="w-full" 
+                          style={{ backgroundColor: 'var(--lab-header)', color: 'white' }}
                           disabled={resultMutation.isPending}
                           size="lg"
                         >
