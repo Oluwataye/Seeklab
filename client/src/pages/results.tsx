@@ -12,7 +12,8 @@ import {
   ArrowLeft,
   ExternalLink,
   Check,
-  Ban
+  Ban,
+  Loader2
 } from "lucide-react";
 import type { Result } from "@shared/schema";
 import { PublicLayout } from "@/components/layout/public-layout";
@@ -27,22 +28,71 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
+import { useMutation } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Results() {
   const [, navigate] = useLocation();
+  const { toast } = useToast();
   const [timeLeft, setTimeLeft] = useState(5 * 60); // 5 minutes in seconds
   const [isExpired, setIsExpired] = useState(false);
-  const result = (window.history.state?.state?.result as Result | undefined);
+  const [result, setResult] = useState<Result | undefined>(window.history.state?.state?.result);
 
+  // Mutation to fetch results by code if not in state
+  const fetchResultMutation = useMutation({
+    mutationFn: async (code: string) => {
+      const response = await fetch("/api/results/access", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to access results");
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setResult(data);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to access results",
+        variant: "destructive",
+      });
+      setTimeout(() => navigate("/"), 1500);
+    }
+  });
+
+  // Attempt to get result from localStorage if not in state
   useEffect(() => {
     if (!result) {
-      navigate("/");
+      const lastCode = localStorage.getItem('lastAccessedCode');
+      
+      if (lastCode) {
+        // Try to get from localStorage cache first
+        const cachedData = localStorage.getItem(`result-${lastCode}`);
+        if (cachedData) {
+          try {
+            const parsedCache = JSON.parse(cachedData);
+            if (parsedCache.result) {
+              setResult(parsedCache.result);
+              return;
+            }
+          } catch (e) {
+            console.error("Error parsing cached result:", e);
+          }
+        }
+        
+        // If not in cache, fetch from server
+        fetchResultMutation.mutate(lastCode);
+      } else {
+        navigate("/");
+      }
       return;
-    }
-
-    // Format results data for better display
-    if (result.resultData?.values) {
-      // No action needed, already formatted
     }
 
     // Auto-expire after 5 minutes
@@ -58,7 +108,7 @@ export default function Results() {
     }, 1000);
 
     return () => clearInterval(expiryInterval);
-  }, [result, navigate]);
+  }, [result, navigate, fetchResultMutation]);
 
   // Redirect if expired
   useEffect(() => {
@@ -82,6 +132,16 @@ export default function Results() {
   };
 
   if (!result) {
+    if (fetchResultMutation.isPending) {
+      return (
+        <PublicLayout>
+          <div className="flex flex-col items-center justify-center p-12">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+            <p className="text-muted-foreground text-lg">Loading test results...</p>
+          </div>
+        </PublicLayout>
+      );
+    }
     return null;
   }
 
