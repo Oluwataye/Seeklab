@@ -4,7 +4,7 @@ import { db } from "./db";
 import { eq } from "drizzle-orm";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
-import { notifications, type Notification, type InsertNotification } from "@shared/schema";
+import { notifications, type Notification, type InsertNotification, testTypes, type TestType, type InsertTestType } from "@shared/schema";
 
 const PostgresSessionStore = connectPg(session);
 

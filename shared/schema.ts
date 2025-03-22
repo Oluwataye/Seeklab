@@ -85,6 +85,16 @@ export const notifications = pgTable("notifications", {
   metadata: jsonb("metadata").$type<Record<string, unknown>>(),
 });
 
+export const testTypes = pgTable("test_types", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  description: text("description"),
+  category: text("category"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const insertResultTemplateSchema = createInsertSchema(resultTemplates).pick({
   name: true,
   category: true,
@@ -132,6 +142,13 @@ export const insertNotificationSchema = createInsertSchema(notifications).pick({
   metadata: true,
 });
 
+export const insertTestTypeSchema = createInsertSchema(testTypes).pick({
+  name: true,
+  description: true,
+  category: true,
+  isActive: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type Role = typeof roles.$inferSelect;
@@ -144,3 +161,5 @@ export type AuditLog = typeof auditLogs.$inferSelect;
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type TestType = typeof testTypes.$inferSelect;
+export type InsertTestType = z.infer<typeof insertTestTypeSchema>;
