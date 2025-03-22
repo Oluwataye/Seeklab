@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   Card,
   CardContent,
@@ -132,8 +133,7 @@ export default function TechnicianProfilePage() {
                     <FormItem>
                       <FormLabel>Current Password</FormLabel>
                       <FormControl>
-                        <Input
-                          type="password"
+                        <PasswordInput
                           placeholder="Enter your current password"
                           {...field}
                         />
@@ -150,8 +150,7 @@ export default function TechnicianProfilePage() {
                     <FormItem>
                       <FormLabel>New Password (optional)</FormLabel>
                       <FormControl>
-                        <Input
-                          type="password"
+                        <PasswordInput
                           placeholder="Enter a new password"
                           {...field}
                         />
@@ -168,8 +167,7 @@ export default function TechnicianProfilePage() {
                     <FormItem>
                       <FormLabel>Confirm New Password</FormLabel>
                       <FormControl>
-                        <Input
-                          type="password"
+                        <PasswordInput
                           placeholder="Confirm your new password"
                           {...field}
                         />
