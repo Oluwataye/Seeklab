@@ -33,13 +33,13 @@ export default function LogoSettings() {
   const queryClient = useQueryClient();
   
   // Fetch current logo settings
-  const { data: logoSettings, isLoading } = useQuery<LogoSettings>({
+  const { data: logoSettings, isLoading } = useQuery({
     queryKey: ['/api/settings/logo'],
     initialData: {
       name: 'SeekLab',
       tagline: 'Medical Lab Results Management',
       imageUrl: '/logo.svg'
-    }
+    } as LogoSettings
   });
 
   // Form setup
