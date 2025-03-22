@@ -274,6 +274,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Admin check endpoint
   // Scientific review endpoint for lab scientists
+  // PATCH endpoint for updating result data
+  app.patch("/api/results/:id", async (req, res) => {
+    if (!req.isAuthenticated() || (!req.user?.isLabStaff && !req.user?.isAdmin)) {
+      return res.status(403).json({ message: "Unauthorized - Lab staff or admin access required" });
+    }
+
+    try {
+      const resultId = parseInt(req.params.id);
+      
+      if (isNaN(resultId)) {
+        return res.status(400).json({ message: "Invalid result ID" });
+      }
+      
+      // Allow updating resultData
+      const { resultData } = z.object({
+        resultData: z.object({
+          templateId: z.number(),
+          templateName: z.string(),
+          values: z.record(z.string(), z.union([z.string(), z.number()])),
+          timestamp: z.string()
+        })
+      }).parse(req.body);
+      
+      // Get the current result
+      const results = await storage.getAllResults();
+      const result = results.find(r => r.id === resultId);
+      
+      if (!result) {
+        return res.status(404).json({ message: "Result not found" });
+      }
+      
+      // Technicians can only input/update results that haven't been approved yet
+      if (req.user?.role === 'technician' && 
+          result.scientistReview && 
+          result.scientistReview.approved) {
+        return res.status(403).json({ 
+          message: "Cannot modify approved results. Only scientists or admins can update approved results." 
+        });
+      }
+      
+      // Update the result
+      const updatedResult = await storage.updateResult(resultId, {
+        resultData
+      });
+      
+      // Clear cache for this result
+      resultCache.delete(`result-${result.accessCode}`);
+      
+      // Create audit log
+      if (req.user?.id) {
+        await storage.createAuditLog({
+          userId: req.user.id.toString(),
+          action: "update_result",
+          entityType: "result",
+          entityId: resultId.toString(),
+          details: { resultData },
+          ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+        });
+      }
+      
+      res.json(updatedResult);
+    } catch (error) {
+      console.error('Error updating result:', error);
+      res.status(400).json({ message: "Invalid result data" });
+    }
+  });
+
   app.post("/api/results/:id/review", async (req, res) => {
     if (!req.isAuthenticated() || req.user?.role !== 'lab_scientist') {
       return res.status(403).json({ message: "Unauthorized - Scientific review requires lab scientist role" });
