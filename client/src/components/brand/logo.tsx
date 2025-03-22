@@ -59,6 +59,13 @@ export function BrandLogo({
           src={logoSettings?.imageUrl || defaultLogoSettings.imageUrl} 
           alt={logoSettings?.name || defaultLogoSettings.name} 
           className={cn('rounded-sm', sizes[variant])} 
+          onError={(e) => {
+            // If the image fails to load, fall back to the default logo
+            const target = e.target as HTMLImageElement;
+            if (target.src !== defaultLogoSettings.imageUrl) {
+              target.src = defaultLogoSettings.imageUrl;
+            }
+          }}
         />
       )}
       

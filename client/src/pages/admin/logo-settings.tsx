@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -12,6 +12,8 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { BrandLogo } from "@/components/brand/logo";
+import { Upload, Image as ImageIcon, Check, Loader2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 // Define schema for logo settings form
 const logoSettingsSchema = z.object({
@@ -31,6 +33,10 @@ type LogoSettingsFormValues = z.infer<typeof logoSettingsSchema>;
 export default function LogoSettings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadPreview, setUploadPreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [showCropDialog, setShowCropDialog] = useState(false);
   
   // Fetch current logo settings
   const { data: logoSettings, isLoading } = useQuery({
@@ -50,6 +56,52 @@ export default function LogoSettings() {
       tagline: logoSettings.tagline,
       imageUrl: logoSettings.imageUrl,
     },
+  });
+
+  // Logo upload mutation
+  const uploadMutation = useMutation({
+    mutationFn: async (file: File) => {
+      setIsUploading(true);
+      const formData = new FormData();
+      formData.append('logo', file);
+      
+      // Make sure cookies are included in the request for authentication
+      const response = await fetch('/api/settings/logo/upload', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include' // Important for auth cookies
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to upload logo');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Logo uploaded",
+        description: "Your logo has been uploaded successfully"
+      });
+      
+      // Update the form with the new logo URL
+      form.setValue('imageUrl', data.imageUrl);
+      setUploadPreview(null);
+      
+      // Invalidate the logo settings query to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/settings/logo'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Upload failed",
+        description: error.message || "Failed to upload logo image",
+        variant: "destructive"
+      });
+    },
+    onSettled: () => {
+      setIsUploading(false);
+    }
   });
 
   // Mutation for updating logo settings
@@ -74,6 +126,65 @@ export default function LogoSettings() {
     }
   });
 
+  // Handle file input change
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    // Check file type and size
+    const validTypes = ['image/jpeg', 'image/png', 'image/svg+xml'];
+    if (!validTypes.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a JPEG, PNG or SVG image file",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (file.size > 2 * 1024 * 1024) { // 2MB limit
+      toast({
+        title: "File too large",
+        description: "Image file must be less than 2MB",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Create a preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        setUploadPreview(reader.result);
+        setShowCropDialog(true);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+  
+  // Trigger file input click
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+  
+  // Handle logo upload confirmation
+  const handleUploadConfirm = () => {
+    const file = fileInputRef.current?.files?.[0];
+    if (file) {
+      uploadMutation.mutate(file);
+      setShowCropDialog(false);
+    }
+  };
+  
+  // Cancel upload
+  const handleCancelUpload = () => {
+    setUploadPreview(null);
+    setShowCropDialog(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   // Form submission handler
   function onSubmit(data: LogoSettingsFormValues) {
     mutation.mutate(data);
@@ -91,6 +202,53 @@ export default function LogoSettings() {
         
         <Separator />
         
+        {/* Logo Preview Dialog */}
+        <AlertDialog open={showCropDialog} onOpenChange={setShowCropDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Upload Logo</AlertDialogTitle>
+              <AlertDialogDescription>
+                Review your logo before uploading. The image will be used throughout the application and on reports.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            
+            <div className="py-4">
+              {uploadPreview && (
+                <div className="border rounded-lg overflow-hidden bg-gray-50 p-4 flex justify-center">
+                  <img 
+                    src={uploadPreview} 
+                    alt="Logo Preview" 
+                    className="max-h-64 object-contain"
+                  />
+                </div>
+              )}
+            </div>
+            
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={handleCancelUpload}>
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleUploadConfirm}
+                disabled={isUploading}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Check className="mr-2 h-4 w-4" />
+                    Upload Logo
+                  </>
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+        
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
@@ -100,6 +258,64 @@ export default function LogoSettings() {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              <input 
+                type="file" 
+                ref={fileInputRef}
+                className="hidden"
+                onChange={handleFileChange}
+                accept="image/jpeg,image/png,image/svg+xml"
+              />
+              
+              <div className="mb-6">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="text-sm font-medium">Logo Image</h3>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleUploadClick}
+                    disabled={isUploading}
+                    className="flex items-center"
+                  >
+                    {isUploading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload New Logo
+                      </>
+                    )}
+                  </Button>
+                </div>
+                
+                <div className="border rounded-md p-4 bg-gray-50 flex items-center justify-center">
+                  <div className="relative p-4 bg-white rounded-md border">
+                    <div className="h-20 flex items-center justify-center mb-2">
+                      <img 
+                        src={form.watch('imageUrl')} 
+                        alt="Current logo" 
+                        className="max-h-full max-w-full object-contain"
+                        onError={(e) => {
+                          // If image fails to load, show a fallback icon
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/logo.svg';
+                        }}
+                      />
+                    </div>
+                    <p className="text-xs text-center text-muted-foreground">
+                      Current Logo Image
+                    </p>
+                  </div>
+                </div>
+                
+                <p className="text-xs text-muted-foreground mt-2">
+                  Recommended: PNG or SVG with transparent background. Max 2MB.
+                </p>
+              </div>
+              
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <FormField
@@ -143,10 +359,10 @@ export default function LogoSettings() {
                       <FormItem>
                         <FormLabel>Logo URL</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} readOnly={isUploading} />
                         </FormControl>
                         <FormDescription>
-                          The URL to your organization's logo image. Default is /logo.svg
+                          The URL to your organization's logo image. This is updated automatically when you upload a new logo.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -156,9 +372,16 @@ export default function LogoSettings() {
                   <Button 
                     type="submit" 
                     className="mt-4"
-                    disabled={mutation.isPending || isLoading}
+                    disabled={mutation.isPending || isLoading || isUploading}
                   >
-                    {mutation.isPending ? "Saving..." : "Save Changes"}
+                    {mutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      "Save Changes"
+                    )}
                   </Button>
                 </form>
               </Form>

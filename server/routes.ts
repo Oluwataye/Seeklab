@@ -4,6 +4,39 @@ import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { insertResultSchema, insertTestTypeSchema } from "@shared/schema";
 import { z } from "zod";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+
+// Configure multer storage for logo uploads
+const logoStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'public/uploads/');
+  },
+  filename: (req, file, cb) => {
+    // Generate a unique filename with timestamp
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, `logo-${uniqueSuffix}${ext}`);
+  }
+});
+
+// File filter to only allow image files
+const fileFilter = (req: Express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/svg+xml'];
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only JPEG, PNG and SVG files are allowed'));
+  }
+};
+
+// Set up multer upload
+const upload = multer({ 
+  storage: logoStorage,
+  fileFilter,
+  limits: { fileSize: 2 * 1024 * 1024 } // 2MB limit
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
@@ -373,6 +406,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error updating logo settings:', error);
       res.status(400).json({ message: "Invalid logo settings" });
+    }
+  });
+  
+  // Logo upload endpoint - for uploading logo image files
+  app.post("/api/settings/logo/upload", upload.single('logo'), async (req, res) => {
+    if (!req.isAuthenticated() || !req.user?.isAdmin) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+      
+      // Get the uploaded file details
+      const file = req.file;
+      
+      // Create the URL path for the uploaded logo
+      const logoUrl = `/uploads/${file.filename}`;
+      
+      // In a production environment, we would store this URL in the database
+      // For now, we'll just return the URL and path for usage in the app
+      res.json({
+        imageUrl: logoUrl,
+        originalName: file.originalname,
+        size: file.size,
+        message: "Logo uploaded successfully"
+      });
+      
+      // Log the logo upload
+      if (req.user?.id) {
+        await storage.createAuditLog({
+          userId: req.user.id.toString(),
+          action: "upload_logo",
+          entityType: "settings",
+          details: { 
+            logoUrl,
+            originalName: file.originalname,
+            size: file.size,
+            mimetype: file.mimetype
+          },
+          ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+        });
+      }
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      res.status(500).json({ message: "Failed to upload logo" });
     }
   });
 

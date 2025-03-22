@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,8 +28,10 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { generatePDF } from "@/lib/pdf-generator";
+import { BrandLogo } from "@/components/brand/logo";
 
 export default function Results() {
   const [, navigate] = useLocation();
@@ -37,6 +39,19 @@ export default function Results() {
   const [timeLeft, setTimeLeft] = useState(5 * 60); // 5 minutes in seconds
   const [isExpired, setIsExpired] = useState(false);
   const [result, setResult] = useState<Result | undefined>(window.history.state?.state?.result);
+  const reportRef = useRef<HTMLDivElement>(null);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+  
+  // Fetch logo settings
+  const { data: logoSettings } = useQuery({
+    queryKey: ['/api/settings/logo'],
+    // Default logo settings if API fails
+    initialData: {
+      imageUrl: '/logo.svg',
+      name: 'SeekLab',
+      tagline: 'Medical Lab Results Management',
+    }
+  });
 
   // Mutation to fetch results by code if not in state
   const fetchResultMutation = useMutation({
@@ -123,6 +138,64 @@ export default function Results() {
   const handlePrint = () => {
     window.print();
   };
+  
+  // Handle PDF generation and download
+  const handlePdfDownload = async () => {
+    if (!reportRef.current || !logoSettings) return;
+    
+    try {
+      setGeneratingPdf(true);
+      
+      // Cache the result in localStorage for future reference
+      if (result) {
+        try {
+          const lastCode = result.accessCode;
+          localStorage.setItem('lastAccessedCode', lastCode);
+          localStorage.setItem(`result-${lastCode}`, JSON.stringify({ 
+            result,
+            timestamp: Date.now() 
+          }));
+        } catch (e) {
+          console.warn('Failed to cache result', e);
+        }
+      }
+      
+      // Generate PDF with the current logo settings
+      await generatePDF(reportRef.current, {
+        filename: `${result?.patientId || 'patient'}_results_${new Date().toISOString().split('T')[0]}.pdf`,
+        logoUrl: logoSettings.imageUrl,
+        organization: logoSettings.name,
+        pageTitle: 'Test Results Report',
+        watermark: true
+      });
+      
+      toast({
+        title: "Success",
+        description: "PDF report has been generated and downloaded.",
+      });
+      
+      // Log the download (without sensitive info)
+      try {
+        const analyticsData = {
+          event: 'pdf_download',
+          testType: result?.testType,
+          timestamp: new Date().toISOString()
+        };
+        console.info('Download analytics:', analyticsData);
+      } catch (e) {
+        // Quiet failure for analytics
+      }
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF report. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setGeneratingPdf(false);
+    }
+  };
 
   // Format values for display
   const formatTimeLeft = () => {
@@ -186,7 +259,7 @@ export default function Results() {
           </div>
           
           <div className="max-w-4xl mx-auto space-y-6">
-            <Card className="shadow-sm print:shadow-none">
+            <Card className="shadow-sm print:shadow-none" ref={reportRef}>
               <CardHeader className="print:pb-2">
                 <div className="flex justify-between items-start">
                   <div>
@@ -334,10 +407,27 @@ export default function Results() {
                         download="test_result.pdf"
                       >
                         <Download className="mr-2 h-4 w-4" />
-                        Download PDF Report
+                        Download Original Report
                       </a>
                     </Button>
                   )}
+                  <Button 
+                    onClick={handlePdfDownload}
+                    disabled={generatingPdf}
+                    className="lab-highlight"
+                  >
+                    {generatingPdf ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Generating PDF...
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="mr-2 h-4 w-4" />
+                        Generate Branded PDF
+                      </>
+                    )}
+                  </Button>
                   <Button variant="outline" onClick={handlePrint}>
                     <Printer className="mr-2 h-4 w-4" />
                     Print Results
