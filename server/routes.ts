@@ -218,6 +218,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin check endpoint
+  // Scientific review endpoint for lab scientists
+  app.post("/api/results/:id/review", async (req, res) => {
+    if (!req.isAuthenticated() || req.user?.role !== 'lab_scientist') {
+      return res.status(403).json({ message: "Unauthorized - Scientific review requires lab scientist role" });
+    }
+
+    try {
+      const resultId = parseInt(req.params.id);
+      
+      if (isNaN(resultId)) {
+        return res.status(400).json({ message: "Invalid result ID" });
+      }
+      
+      const { approved, comments } = z.object({
+        approved: z.boolean(),
+        comments: z.string()
+      }).parse(req.body);
+      
+      // Get the current result
+      const results = await storage.getAllResults();
+      const result = results.find(r => r.id === resultId);
+      
+      if (!result) {
+        return res.status(404).json({ message: "Result not found" });
+      }
+      
+      // Update the result with the scientist's review
+      const updatedResult = await storage.updateResult(resultId, {
+        scientistReview: {
+          approved,
+          comments,
+          reviewedBy: req.user?.username || 'Unknown scientist',
+          reviewedAt: new Date().toISOString()
+        }
+      });
+      
+      // Create audit log for this action
+      if (req.user?.id) {
+        await storage.createAuditLog({
+          userId: req.user.id.toString(),
+          action: approved ? "approve_result" : "reject_result",
+          entityType: "result",
+          entityId: resultId.toString(),
+          details: { 
+            comments,
+            patientId: result.patientId,
+            testType: result.testType
+          },
+          ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+        });
+      }
+      
+      // If approved, create a notification for any psychologist users
+      if (approved) {
+        const users = await storage.getAllUsers();
+        const psychologists = users.filter(u => u.role === 'psychologist');
+        
+        for (const psychologist of psychologists) {
+          await storage.createNotification({
+            type: "result_review",
+            title: "New Result Available for Assessment",
+            message: `A test result for patient ${result.patientId} has been approved and is ready for psychological assessment.`,
+            recipientId: psychologist.id.toString(),
+            metadata: {
+              resultId: resultId.toString(),
+              patientId: result.patientId,
+              testType: result.testType
+            }
+          });
+        }
+      }
+      
+      res.json(updatedResult);
+    } catch (error) {
+      console.error('Error submitting result review:', error);
+      res.status(400).json({ message: "Invalid review data" });
+    }
+  });
+
   app.get("/api/admin/check", async (req, res) => {
     if (!req.isAuthenticated() || !req.user?.isAdmin) {
       return res.status(403).json({ message: "Unauthorized" });

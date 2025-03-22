@@ -16,6 +16,7 @@ import {
   Menu,
   FlaskConical,
   ListChecks,
+  TestTube,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -31,6 +32,7 @@ import { Footer } from "./footer";
 const navigation = [
   { name: "Dashboard", href: "/lab/dashboard", icon: LayoutDashboard },
   { name: "Test Results", href: "/lab/results", icon: FlaskConical },
+  { name: "Mock Generator", href: "/lab/mock-generator", icon: TestTube },
   { name: "Quality Control", href: "/lab/quality", icon: ListChecks },
   { name: "Reports", href: "/lab/reports", icon: FileText },
   { name: "Settings", href: "/lab/settings", icon: Settings },

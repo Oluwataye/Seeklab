@@ -24,6 +24,7 @@ import QualityControl from "@/pages/lab/quality";
 import LabReports from "@/pages/lab/reports";
 import LabSettings from "@/pages/lab/settings";
 import TechnicianProfilePage from "@/pages/lab/profile";
+import MockGenerator from "@/pages/lab/mock-generator";
 import ScientistDashboard from "@/pages/lab/scientist-dashboard";
 import ReviewResultsPage from "@/pages/lab/review";
 import PsychologistDashboard from "@/pages/psychologist/dashboard";
@@ -75,6 +76,11 @@ function Router() {
       <ProtectedRoute 
         path="/lab/profile" 
         component={TechnicianProfilePage}
+        requireLabStaff={true}
+      />
+      <ProtectedRoute 
+        path="/lab/mock-generator" 
+        component={MockGenerator}
         requireLabStaff={true}
       />
       
