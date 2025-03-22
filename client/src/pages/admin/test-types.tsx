@@ -52,13 +52,7 @@ export default function TestTypes() {
   // Mutation to create a new test type
   const createMutation = useMutation({
     mutationFn: async (data: typeof newTestType) => {
-      return await apiRequest('/api/test-types', {
-        method: 'POST',
-        body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      return await apiRequest('/api/test-types', 'POST', data);
     },
     onSuccess: () => {
       toast({
@@ -86,13 +80,7 @@ export default function TestTypes() {
   // Mutation to update a test type
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number, data: Partial<TestType> }) => {
-      return await apiRequest(`/api/test-types/${id}`, {
-        method: 'PATCH',
-        body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      return await apiRequest(`/api/test-types/${id}`, 'PATCH', data);
     },
     onSuccess: () => {
       toast({
@@ -114,9 +102,7 @@ export default function TestTypes() {
   // Mutation to delete a test type
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      return await apiRequest(`/api/test-types/${id}`, {
-        method: 'DELETE'
-      });
+      return await apiRequest(`/api/test-types/${id}`, 'DELETE');
     },
     onSuccess: () => {
       toast({

@@ -17,6 +17,7 @@ import {
   LogOut,
   Menu,
   FileText,
+  TestTube
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -36,6 +37,7 @@ const navigation = [
   { name: "Role & Permissions", href: "/admin/roles", icon: Shield },
   { name: "Code Generator", href: "/admin/codes", icon: KeyRound },
   { name: "Result Templates", href: "/admin/templates", icon: FileText },
+  { name: "Test Types", href: "/admin/test-types", icon: TestTube },
   { name: "Audit Logs", href: "/admin/logs", icon: FileText },
   { name: "Logo Settings", href: "/admin/logo", icon: Settings },
   { name: "Profile", href: "/admin/profile", icon: Settings },
