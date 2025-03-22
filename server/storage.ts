@@ -18,6 +18,7 @@ export interface IStorage {
   getResultByCode(code: string): Promise<Result | undefined>;
   createResult(result: InsertResult): Promise<Result>;
   getAllResults(): Promise<Result[]>;
+  updateResult(id: number, data: Partial<Result>): Promise<Result>;
   // Role management
   getAllRoles(): Promise<Role[]>;
   getRoleById(id: number): Promise<Role | undefined>;
@@ -194,6 +195,7 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
+  
   // Notification methods
   async createNotification(insertNotification: InsertNotification): Promise<Notification> {
     try {
