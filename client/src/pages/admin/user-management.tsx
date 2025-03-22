@@ -45,6 +45,8 @@ export default function UserManagement() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+  const [isEditUserOpen, setIsEditUserOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const form = useForm<FormData>({
     resolver: zodResolver(insertUserSchema),
@@ -52,6 +54,17 @@ export default function UserManagement() {
       username: "",
       email: "",
       password: "",
+      role: "technician",
+    },
+  });
+  
+  const editForm = useForm<Omit<FormData, 'password'> & { password?: string }>({
+    resolver: zodResolver(insertUserSchema.omit({ password: true }).extend({
+      password: insertUserSchema.shape.password.optional(),
+    })),
+    defaultValues: {
+      username: "",
+      email: "",
       role: "technician",
     },
   });
@@ -82,6 +95,37 @@ export default function UserManagement() {
         title: "Success",
         description: "User created successfully",
       });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateUserMutation = useMutation({
+    mutationFn: async ({ userId, data }: { userId: number, data: Partial<FormData> }) => {
+      const response = await fetch(`/api/users/${userId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to update user");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      setIsEditUserOpen(false);
+      toast({
+        title: "Success",
+        description: "User updated successfully",
+      });
+      setSelectedUser(null);
     },
     onError: (error: Error) => {
       toast({
@@ -125,6 +169,32 @@ export default function UserManagement() {
 
   const onSubmit = (data: FormData) => {
     createUserMutation.mutate(data);
+  };
+
+  const onEditSubmit = (data: Omit<FormData, 'password'> & { password?: string }) => {
+    if (selectedUser) {
+      // Only include password in the update if it's provided
+      const updateData = { ...data };
+      if (!updateData.password) {
+        delete updateData.password;
+      }
+      
+      updateUserMutation.mutate({
+        userId: selectedUser.id,
+        data: updateData
+      });
+    }
+  };
+  
+  const handleEditUser = (user: User) => {
+    setSelectedUser(user);
+    editForm.reset({
+      username: user.username,
+      email: user.email || '',
+      role: user.role as FormData['role'],
+      password: '',  // Empty password field as we don't want to change it by default
+    });
+    setIsEditUserOpen(true);
   };
 
   return (
@@ -260,9 +330,13 @@ export default function UserManagement() {
                            user.role === 'lab_scientist' ? 'Lab Scientist' :
                            user.role === 'psychologist' ? 'Psychologist' : 'Lab Technician'}
                         </TableCell>
-                        <TableCell>{user.lastLogin || '-'}</TableCell>
+                        <TableCell>{user.lastLogin ? new Date(user.lastLogin).toLocaleString() : '-'}</TableCell>
                         <TableCell className="text-right space-x-2">
-                          <Button variant="ghost" size="icon">
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => handleEditUser(user)}
+                          >
                             <PencilIcon className="h-4 w-4" />
                           </Button>
                           <Button 
@@ -287,6 +361,89 @@ export default function UserManagement() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Edit User Dialog */}
+      <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+          </DialogHeader>
+          <Form {...editForm}>
+            <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
+              <FormField
+                control={editForm.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Username</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password (leave empty to keep current)</FormLabel>
+                    <FormControl>
+                      <Input type="password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Role</FormLabel>
+                    <FormControl>
+                      <select
+                        {...field}
+                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      >
+                        <option value="technician">Lab Technician</option>
+                        <option value="lab_scientist">Lab Scientist</option>
+                        <option value="psychologist">Psychologist</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button
+                type="submit"
+                disabled={updateUserMutation.isPending}
+                className="w-full"
+              >
+                {updateUserMutation.isPending && (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                )}
+                Update User
+              </Button>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 }
