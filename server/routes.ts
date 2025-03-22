@@ -12,7 +12,7 @@ import fs from "fs";
 const logoStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     // Use an absolute path to the uploads directory to ensure it works correctly
-    const uploadsPath = path.join(process.cwd(), 'public/uploads');
+    const uploadsPath = path.join(process.cwd(), 'uploads');
     // Ensure the directory exists
     if (!fs.existsSync(uploadsPath)) {
       fs.mkdirSync(uploadsPath, { recursive: true });

@@ -5,7 +5,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 // Ensure uploads directory exists
-const uploadsDir = path.join(process.cwd(), 'public/uploads');
+const uploadsDir = path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
   console.log('Created uploads directory at:', uploadsDir);
@@ -15,7 +15,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Serve static files from the public/uploads directory
+// Serve static files from the uploads directory
 app.use('/uploads', express.static(uploadsDir, {
   maxAge: '1h',         // Cache for 1 hour
   fallthrough: false,   // Return 404 for nonexistent files
