@@ -23,6 +23,7 @@ import TestResults from "@/pages/lab/results";
 import QualityControl from "@/pages/lab/quality";
 import LabReports from "@/pages/lab/reports";
 import LabSettings from "@/pages/lab/settings";
+import TechnicianProfilePage from "@/pages/lab/profile";
 import ScientistDashboard from "@/pages/lab/scientist-dashboard";
 import PsychologistDashboard from "@/pages/psychologist/dashboard";
 import AssessmentsPage from "@/pages/psychologist/assessments";
@@ -68,6 +69,11 @@ function Router() {
       <ProtectedRoute 
         path="/lab/settings" 
         component={LabSettings}
+        requireLabStaff={true}
+      />
+      <ProtectedRoute 
+        path="/lab/profile" 
+        component={TechnicianProfilePage}
         requireLabStaff={true}
       />
       
