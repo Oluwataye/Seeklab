@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { NotificationPopover } from "@/components/notifications/notification-popover";
+import { BrandLogo } from "@/components/brand/logo";
 import { Footer } from "./footer";
 
 const navigation = [
@@ -36,6 +37,7 @@ const navigation = [
   { name: "Code Generator", href: "/admin/codes", icon: KeyRound },
   { name: "Result Templates", href: "/admin/templates", icon: FileText },
   { name: "Audit Logs", href: "/admin/logs", icon: FileText },
+  { name: "Logo Settings", href: "/admin/logo-settings", icon: Settings },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
@@ -58,8 +60,9 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             >
               <Menu className="h-5 w-5" />
             </Button>
-            <Link href="/admin" className="text-xl font-bold">
-              Seek Labs Admin
+            <Link href="/admin" className="flex items-center">
+              <BrandLogo showText={true} variant="default" />
+              <span className="ml-2 font-semibold text-primary">Admin</span>
             </Link>
           </div>
 

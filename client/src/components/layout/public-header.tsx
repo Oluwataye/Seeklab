@@ -1,13 +1,14 @@
 import { Link } from "wouter";
 import { Home } from "lucide-react";
+import { BrandLogo } from "@/components/brand/logo";
 
 export function PublicHeader() {
   return (
     <header className="w-full bg-white border-b">
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center space-x-8">
-          <Link href="/" className="text-xl font-bold">
-            Seek Labs
+          <Link href="/" className="flex items-center">
+            <BrandLogo showText={true} variant="default" />
           </Link>
           <nav className="flex space-x-6">
             <Link href="/" className="text-sm hover:text-primary">

@@ -65,7 +65,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Cache cleanup: If cache grows too large, remove oldest entries
       if (resultCache.size > 1000) {
-        const oldestKey = [...resultCache.keys()].sort((a, b) => 
+        const keys = Array.from(resultCache.keys());
+        const oldestKey = keys.sort((a, b) => 
           resultCache.get(a).timestamp - resultCache.get(b).timestamp
         )[0];
         resultCache.delete(oldestKey);
