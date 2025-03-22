@@ -18,6 +18,7 @@ import CodeGenerator from "@/pages/admin/code-generator";
 import AuditLogs from "@/pages/admin/audit-logs";
 import ProfileSettings from "@/pages/admin/profile-settings";
 import ResultTemplates from "@/pages/admin/result-templates";
+import LogoSettings from "@/pages/admin/logo-settings";
 import TechnicianDashboard from "@/pages/lab/dashboard";
 import TestResults from "@/pages/lab/results";
 import QualityControl from "@/pages/lab/quality";
@@ -135,6 +136,11 @@ function Router() {
       <ProtectedRoute 
         path="/admin/templates" 
         component={ResultTemplates}
+        requireAdmin={true}
+      />
+      <ProtectedRoute 
+        path="/admin/logo" 
+        component={LogoSettings}
         requireAdmin={true}
       />
 

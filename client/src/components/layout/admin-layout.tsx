@@ -37,8 +37,8 @@ const navigation = [
   { name: "Code Generator", href: "/admin/codes", icon: KeyRound },
   { name: "Result Templates", href: "/admin/templates", icon: FileText },
   { name: "Audit Logs", href: "/admin/logs", icon: FileText },
-  { name: "Logo Settings", href: "/admin/logo-settings", icon: Settings },
-  { name: "Settings", href: "/admin/settings", icon: Settings },
+  { name: "Logo Settings", href: "/admin/logo", icon: Settings },
+  { name: "Profile", href: "/admin/profile", icon: Settings },
 ];
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
