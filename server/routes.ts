@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
-import { insertResultSchema } from "@shared/schema";
+import { insertResultSchema, insertTestTypeSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -373,6 +373,151 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error updating logo settings:', error);
       res.status(400).json({ message: "Invalid logo settings" });
+    }
+  });
+
+  // Test Types management endpoints
+  // Get all test types
+  app.get("/api/test-types", async (req, res) => {
+    try {
+      const testTypes = await storage.getAllTestTypes();
+      res.json(testTypes);
+    } catch (error) {
+      console.error('Error fetching test types:', error);
+      res.status(500).json({ message: "Failed to fetch test types" });
+    }
+  });
+
+  // Get a specific test type by ID
+  app.get("/api/test-types/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid test type ID" });
+      }
+
+      const testType = await storage.getTestTypeById(id);
+      if (!testType) {
+        return res.status(404).json({ message: "Test type not found" });
+      }
+
+      res.json(testType);
+    } catch (error) {
+      console.error('Error fetching test type:', error);
+      res.status(500).json({ message: "Failed to fetch test type" });
+    }
+  });
+
+  // Create a new test type (admin only)
+  app.post("/api/test-types", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user?.isAdmin) {
+      return res.status(403).json({ message: "Unauthorized - Admin access required" });
+    }
+
+    try {
+      const testTypeData = insertTestTypeSchema.parse(req.body);
+      const testType = await storage.createTestType(testTypeData);
+      
+      // Create audit log for this action
+      if (req.user?.id) {
+        await storage.createAuditLog({
+          userId: req.user.id.toString(),
+          action: "create_test_type",
+          entityType: "test_type",
+          entityId: testType.id.toString(),
+          details: { name: testType.name, category: testType.category },
+          ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+        });
+      }
+      
+      res.status(201).json(testType);
+    } catch (error) {
+      console.error('Error creating test type:', error);
+      res.status(400).json({ message: "Invalid test type data" });
+    }
+  });
+
+  // Update a test type (admin only)
+  app.patch("/api/test-types/:id", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user?.isAdmin) {
+      return res.status(403).json({ message: "Unauthorized - Admin access required" });
+    }
+
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid test type ID" });
+      }
+
+      const testType = await storage.getTestTypeById(id);
+      if (!testType) {
+        return res.status(404).json({ message: "Test type not found" });
+      }
+
+      const updateSchema = z.object({
+        name: z.string().optional(),
+        description: z.string().nullable().optional(),
+        category: z.string().nullable().optional(),
+        isActive: z.boolean().optional()
+      });
+
+      const updateData = updateSchema.parse(req.body);
+      const updatedTestType = await storage.updateTestType(id, updateData);
+      
+      // Create audit log for this action
+      if (req.user?.id) {
+        await storage.createAuditLog({
+          userId: req.user.id.toString(),
+          action: "update_test_type",
+          entityType: "test_type",
+          entityId: id.toString(),
+          details: updateData,
+          ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+        });
+      }
+      
+      res.json(updatedTestType);
+    } catch (error) {
+      console.error('Error updating test type:', error);
+      res.status(400).json({ message: "Invalid update data" });
+    }
+  });
+
+  // Delete a test type (admin only)
+  app.delete("/api/test-types/:id", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user?.isAdmin) {
+      return res.status(403).json({ message: "Unauthorized - Admin access required" });
+    }
+
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid test type ID" });
+      }
+
+      const testType = await storage.getTestTypeById(id);
+      if (!testType) {
+        return res.status(404).json({ message: "Test type not found" });
+      }
+
+      await storage.deleteTestType(id);
+      
+      // Create audit log for this action
+      if (req.user?.id) {
+        await storage.createAuditLog({
+          userId: req.user.id.toString(),
+          action: "delete_test_type",
+          entityType: "test_type",
+          entityId: id.toString(),
+          details: { name: testType.name },
+          ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+        });
+      }
+      
+      res.status(204).end();
+    } catch (error) {
+      console.error('Error deleting test type:', error);
+      res.status(500).json({ message: "Failed to delete test type" });
     }
   });
 

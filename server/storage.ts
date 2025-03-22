@@ -34,6 +34,12 @@ export interface IStorage {
   getNotifications(userId: string): Promise<Notification[]>;
   markNotificationAsRead(id: number): Promise<void>;
   deleteNotification(id: number): Promise<void>;
+  // Test types
+  getAllTestTypes(): Promise<TestType[]>;
+  getTestTypeById(id: number): Promise<TestType | undefined>;
+  createTestType(testType: InsertTestType): Promise<TestType>;
+  updateTestType(id: number, data: Partial<TestType>): Promise<TestType>;
+  deleteTestType(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -238,6 +244,59 @@ export class DatabaseStorage implements IStorage {
       await db.delete(notifications).where(eq(notifications.id, id));
     } catch (error) {
       console.error('Error deleting notification:', error);
+      throw error;
+    }
+  }
+
+  // Test type methods
+  async getAllTestTypes(): Promise<TestType[]> {
+    try {
+      return await db.select().from(testTypes);
+    } catch (error) {
+      console.error('Error fetching all test types:', error);
+      return [];
+    }
+  }
+
+  async getTestTypeById(id: number): Promise<TestType | undefined> {
+    try {
+      const [testType] = await db.select().from(testTypes).where(eq(testTypes.id, id));
+      return testType;
+    } catch (error) {
+      console.error('Error fetching test type by id:', error);
+      return undefined;
+    }
+  }
+
+  async createTestType(insertTestType: InsertTestType): Promise<TestType> {
+    try {
+      const [testType] = await db.insert(testTypes).values(insertTestType).returning();
+      return testType;
+    } catch (error) {
+      console.error('Error creating test type:', error);
+      throw error;
+    }
+  }
+
+  async updateTestType(id: number, data: Partial<TestType>): Promise<TestType> {
+    try {
+      const [testType] = await db
+        .update(testTypes)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(testTypes.id, id))
+        .returning();
+      return testType;
+    } catch (error) {
+      console.error('Error updating test type:', error);
+      throw error;
+    }
+  }
+
+  async deleteTestType(id: number): Promise<void> {
+    try {
+      await db.delete(testTypes).where(eq(testTypes.id, id));
+    } catch (error) {
+      console.error('Error deleting test type:', error);
       throw error;
     }
   }
