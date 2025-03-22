@@ -20,6 +20,12 @@ const logoSettingsSchema = z.object({
   imageUrl: z.string().url({ message: "Must be a valid URL." }).or(z.literal('/logo.svg'))
 });
 
+interface LogoSettings {
+  imageUrl: string;
+  name: string;
+  tagline: string;
+}
+
 type LogoSettingsFormValues = z.infer<typeof logoSettingsSchema>;
 
 export default function LogoSettings() {
@@ -27,28 +33,29 @@ export default function LogoSettings() {
   const queryClient = useQueryClient();
   
   // Fetch current logo settings
-  const { data: logoSettings, isLoading } = useQuery({
+  const { data: logoSettings, isLoading } = useQuery<LogoSettings>({
     queryKey: ['/api/settings/logo'],
+    initialData: {
+      name: 'SeekLab',
+      tagline: 'Medical Lab Results Management',
+      imageUrl: '/logo.svg'
+    }
   });
 
   // Form setup
   const form = useForm<LogoSettingsFormValues>({
     resolver: zodResolver(logoSettingsSchema),
     defaultValues: {
-      name: logoSettings?.name || '',
-      tagline: logoSettings?.tagline || '',
-      imageUrl: logoSettings?.imageUrl || '/logo.svg',
+      name: logoSettings.name,
+      tagline: logoSettings.tagline,
+      imageUrl: logoSettings.imageUrl,
     },
-    values: logoSettings as LogoSettingsFormValues,
   });
 
   // Mutation for updating logo settings
   const mutation = useMutation({
     mutationFn: async (data: LogoSettingsFormValues) => {
-      return apiRequest('/api/settings/logo', {
-        method: 'POST',
-        body: JSON.stringify(data)
-      });
+      return apiRequest('POST', '/api/settings/logo', data);
     },
     onSuccess: () => {
       toast({
