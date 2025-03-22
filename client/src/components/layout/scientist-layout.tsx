@@ -29,10 +29,10 @@ import { NotificationPopover } from "@/components/notifications/notification-pop
 import { Footer } from "./footer";
 
 const navigation = [
-  { name: "Dashboard", href: "/scientist/dashboard", icon: LayoutDashboard },
-  { name: "Review Results", href: "/scientist/review", icon: FileCheck },
-  { name: "Reports", href: "/scientist/reports", icon: FileText },
-  { name: "Settings", href: "/scientist/settings", icon: Settings },
+  { name: "Dashboard", href: "/lab/scientist-dashboard", icon: LayoutDashboard },
+  { name: "Review Results", href: "/lab/review", icon: FileCheck },
+  { name: "Reports", href: "/lab/reports", icon: FileText },
+  { name: "Settings", href: "/lab/settings", icon: Settings },
 ];
 
 export function ScientistLayout({ children }: { children: React.ReactNode }) {
@@ -53,7 +53,7 @@ export function ScientistLayout({ children }: { children: React.ReactNode }) {
             >
               <Menu className="h-5 w-5" />
             </Button>
-            <Link href="/scientist/dashboard" className="text-xl font-bold">
+            <Link href="/lab/scientist-dashboard" className="text-xl font-bold">
               Laboratory Scientist Portal
             </Link>
           </div>
@@ -70,7 +70,7 @@ export function ScientistLayout({ children }: { children: React.ReactNode }) {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>Account</DropdownMenuLabel>
                 <DropdownMenuItem asChild>
-                  <Link href="/scientist/profile">Profile Settings</Link>
+                  <Link href="/lab/scientist-profile">Profile Settings</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

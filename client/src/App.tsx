@@ -25,6 +25,7 @@ import LabReports from "@/pages/lab/reports";
 import LabSettings from "@/pages/lab/settings";
 import TechnicianProfilePage from "@/pages/lab/profile";
 import ScientistDashboard from "@/pages/lab/scientist-dashboard";
+import ReviewResultsPage from "@/pages/lab/review";
 import PsychologistDashboard from "@/pages/psychologist/dashboard";
 import AssessmentsPage from "@/pages/psychologist/assessments";
 import PatientsPage from "@/pages/psychologist/patients";
@@ -81,6 +82,16 @@ function Router() {
       <ProtectedRoute 
         path="/lab/scientist-dashboard" 
         component={ScientistDashboard}
+        requireSpecificRole="lab_scientist"
+      />
+      <ProtectedRoute 
+        path="/lab/review" 
+        component={ReviewResultsPage}
+        requireSpecificRole="lab_scientist"
+      />
+      <ProtectedRoute 
+        path="/lab/scientist-profile" 
+        component={TechnicianProfilePage}
         requireSpecificRole="lab_scientist"
       />
 
