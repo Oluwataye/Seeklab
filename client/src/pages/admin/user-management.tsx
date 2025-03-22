@@ -368,9 +368,16 @@ export default function UserManagement() {
                         <TableCell>{user.username}</TableCell>
                         <TableCell>{user.email}</TableCell>
                         <TableCell>
-                          {user.role === 'admin' ? 'Admin' : 
-                           user.role === 'lab_scientist' ? 'Lab Scientist' :
-                           user.role === 'psychologist' ? 'Psychologist' : 'Lab Technician'}
+                          {isLoadingRoles 
+                            ? user.role 
+                            : (
+                              // Find the proper role name from the roles array
+                              // By matching the lowercase underscore name to the user.role value
+                              sortedRoles.find(r => 
+                                r.name.toLowerCase().replace(/\s+/g, '_') === user.role
+                              )?.name || user.role
+                            )
+                          }
                         </TableCell>
                         <TableCell>{user.lastLogin ? new Date(user.lastLogin).toLocaleString() : '-'}</TableCell>
                         <TableCell className="text-right space-x-2">
