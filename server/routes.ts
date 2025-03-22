@@ -319,6 +319,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ message: "Admin access confirmed" });
   });
 
+  // Logo settings endpoint - public, cached for performance
+  app.get("/api/settings/logo", async (req, res) => {
+    try {
+      // Set cache headers for performance optimization
+      res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+      
+      // Return logo settings
+      // In a production environment, this would be stored in the database
+      // and managed through an admin interface
+      res.json({
+        imageUrl: '/logo.svg',
+        name: 'SeekLab',
+        tagline: 'Medical Lab Results Management'
+      });
+    } catch (error) {
+      console.error('Error fetching logo settings:', error);
+      res.status(500).json({ message: "Failed to fetch logo settings" });
+    }
+  });
+
+  // Admin endpoint to update logo settings
+  app.post("/api/settings/logo", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user?.isAdmin) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const logoSettings = z.object({
+        imageUrl: z.string().optional(),
+        name: z.string().optional(),
+        tagline: z.string().optional()
+      }).parse(req.body);
+
+      // In a production environment, this would update the database
+      // For now, we'll just return the updated settings
+      res.json({
+        ...logoSettings,
+        message: "Logo settings updated successfully"
+      });
+      
+      // Log the change
+      if (req.user?.id) {
+        await storage.createAuditLog({
+          userId: req.user.id.toString(),
+          action: "update_logo_settings",
+          entityType: "settings",
+          details: logoSettings,
+          ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+        });
+      }
+    } catch (error) {
+      console.error('Error updating logo settings:', error);
+      res.status(400).json({ message: "Invalid logo settings" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
