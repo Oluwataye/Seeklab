@@ -413,26 +413,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Logo upload endpoint - for uploading logo image files
   app.post("/api/settings/logo/upload", upload.single('logo'), async (req, res) => {
+    console.log('Logo upload request received:', {
+      isAuthenticated: req.isAuthenticated(),
+      userIsAdmin: req.user?.isAdmin,
+      hasFile: !!req.file,
+      fileDetails: req.file ? {
+        filename: req.file.filename,
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+        path: req.file.path,
+      } : null,
+      body: req.body
+    });
+
     if (!req.isAuthenticated() || !req.user?.isAdmin) {
+      console.log('Unauthorized logo upload attempt');
       return res.status(403).json({ message: "Unauthorized" });
     }
 
     try {
       if (!req.file) {
+        console.log('No file uploaded in the request');
         return res.status(400).json({ message: "No file uploaded" });
       }
       
       // Get the uploaded file details
       const file = req.file;
+      console.log('File uploaded successfully:', {
+        filename: file.filename,
+        originalname: file.originalname,
+        size: file.size,
+        path: file.path,
+        destination: file.destination
+      });
       
       // Create the URL path for the uploaded logo
       // Make sure this path matches the static file serving in index.ts
       const logoUrl = `/uploads/${file.filename}`;
+      console.log('Logo URL for image:', logoUrl);
       
       // Get current logo settings
       const currentSettings = await storage.getLogoSettings();
+      console.log('Current logo settings:', currentSettings);
       
       // Update logo URL in database settings
+      console.log('Updating logo settings with new URL:', logoUrl);
       await storage.updateLogoSettings({ imageUrl: logoUrl });
       
       res.json({
