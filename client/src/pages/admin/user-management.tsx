@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AdminLayout } from "@/components/layout/admin-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertUserSchema, type User } from "@shared/schema";
+import { insertUserSchema, type User, type Role } from "@shared/schema";
 import { Loader2, UserPlus, Search, Trash2, PencilIcon } from "lucide-react";
 import {
   Form,
@@ -38,7 +38,7 @@ type FormData = {
   username: string;
   email: string;
   password: string;
-  role: 'admin' | 'lab_scientist' | 'technician' | 'psychologist';
+  role: string; // Changed from enum to string to support custom roles
 };
 
 export default function UserManagement() {
@@ -72,6 +72,20 @@ export default function UserManagement() {
   const { data: users = [], isLoading } = useQuery<User[]>({
     queryKey: ["/api/users"],
     staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+  
+  const { data: roles = [], isLoading: isLoadingRoles } = useQuery<Role[]>({
+    queryKey: ["/api/roles"],
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+  
+  // Sort roles - custom roles first, then system roles
+  const sortedRoles = [...roles].sort((a, b) => {
+    // Custom roles first (isSystem=false)
+    if (a.isSystem && !b.isSystem) return 1;
+    if (!a.isSystem && b.isSystem) return -1;
+    // Then sort alphabetically
+    return a.name.localeCompare(b.name);
   });
 
   const createUserMutation = useMutation({
@@ -266,11 +280,39 @@ export default function UserManagement() {
                               <select
                                 {...field}
                                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                disabled={isLoadingRoles}
                               >
-                                <option value="technician">Lab Technician</option>
-                                <option value="lab_scientist">Lab Scientist</option>
-                                <option value="psychologist">Psychologist</option>
-                                <option value="admin">Admin</option>
+                                {isLoadingRoles ? (
+                                  <option value="">Loading roles...</option>
+                                ) : (
+                                  <>
+                                    {/* Custom roles first */}
+                                    {sortedRoles.filter(r => !r.isSystem).length > 0 && (
+                                      <optgroup label="Custom Roles">
+                                        {sortedRoles
+                                          .filter(r => !r.isSystem)
+                                          .map(role => (
+                                            <option key={role.id} value={role.name.toLowerCase().replace(/\s+/g, '_')}>
+                                              {role.name}
+                                            </option>
+                                          ))
+                                        }
+                                      </optgroup>
+                                    )}
+                                    
+                                    {/* Then system roles */}
+                                    <optgroup label="System Roles">
+                                      {sortedRoles
+                                        .filter(r => r.isSystem)
+                                        .map(role => (
+                                          <option key={role.id} value={role.name.toLowerCase().replace(/\s+/g, '_')}>
+                                            {role.name}
+                                          </option>
+                                        ))
+                                      }
+                                    </optgroup>
+                                  </>
+                                )}
                               </select>
                             </FormControl>
                             <FormMessage />
@@ -419,11 +461,39 @@ export default function UserManagement() {
                       <select
                         {...field}
                         className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        disabled={isLoadingRoles}
                       >
-                        <option value="technician">Lab Technician</option>
-                        <option value="lab_scientist">Lab Scientist</option>
-                        <option value="psychologist">Psychologist</option>
-                        <option value="admin">Admin</option>
+                        {isLoadingRoles ? (
+                          <option value="">Loading roles...</option>
+                        ) : (
+                          <>
+                            {/* Custom roles first */}
+                            {sortedRoles.filter(r => !r.isSystem).length > 0 && (
+                              <optgroup label="Custom Roles">
+                                {sortedRoles
+                                  .filter(r => !r.isSystem)
+                                  .map(role => (
+                                    <option key={role.id} value={role.name.toLowerCase().replace(/\s+/g, '_')}>
+                                      {role.name}
+                                    </option>
+                                  ))
+                                }
+                              </optgroup>
+                            )}
+                            
+                            {/* Then system roles */}
+                            <optgroup label="System Roles">
+                              {sortedRoles
+                                .filter(r => r.isSystem)
+                                .map(role => (
+                                  <option key={role.id} value={role.name.toLowerCase().replace(/\s+/g, '_')}>
+                                    {role.name}
+                                  </option>
+                                ))
+                              }
+                            </optgroup>
+                          </>
+                        )}
                       </select>
                     </FormControl>
                     <FormMessage />
