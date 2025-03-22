@@ -125,7 +125,7 @@ export default function TestResults() {
   return (
     <TechnicianLayout>
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold">Test Results</h1>
+        <h1 className="text-3xl font-bold lab-header">Test Results</h1>
 
         <div className="flex items-center space-x-2">
           <Search className="w-5 h-5 text-muted-foreground" />
@@ -144,7 +144,7 @@ export default function TestResults() {
         ) : (
           <div className="border rounded-lg">
             <Table>
-              <TableHeader>
+              <TableHeader className="lab-table-header">
                 <TableRow>
                   <TableHead>Access Code</TableHead>
                   <TableHead>Patient ID</TableHead>
@@ -180,7 +180,7 @@ export default function TestResults() {
                         </DialogTrigger>
                         <DialogContent className="max-w-2xl">
                           <DialogHeader>
-                            <DialogTitle>
+                            <DialogTitle className="lab-header">
                               {result.resultData ? "Update Test Result" : "Enter Test Result"}
                             </DialogTitle>
                           </DialogHeader>
@@ -269,7 +269,7 @@ export default function TestResults() {
                             <Button
                               onClick={handleUpdateResult}
                               disabled={!isFormValid() || updateResultMutation.isPending}
-                              className="w-full"
+                              className="w-full lab-highlight"
                             >
                               {updateResultMutation.isPending && (
                                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
