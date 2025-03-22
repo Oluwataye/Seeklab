@@ -40,11 +40,11 @@ export default function TestTypes() {
 
   // Query to fetch test types
   const { 
-    data: testTypes, 
+    data: testTypes = [], 
     isLoading, 
     isError, 
     error
-  } = useQuery({
+  } = useQuery<TestType[]>({
     queryKey: ['/api/test-types'],
     retry: 1
   });
@@ -192,7 +192,7 @@ export default function TestTypes() {
                   Error loading test types: {error instanceof Error ? error.message : "Unknown error"}
                 </AlertDescription>
               </Alert>
-            ) : testTypes && testTypes.length > 0 ? (
+            ) : testTypes.length > 0 ? (
               <Table>
                 <TableHeader>
                   <TableRow>
