@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
-import { storage } from "./storage";
+import { storage } from "./storage_updated";
 import { insertResultSchema, insertTestTypeSchema } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
@@ -359,14 +359,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set cache headers for performance optimization
       res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
       
-      // Return logo settings
-      // In a production environment, this would be stored in the database
-      // and managed through an admin interface
-      res.json({
-        imageUrl: '/logo.svg',
-        name: 'SeekLab',
-        tagline: 'Medical Lab Results Management'
-      });
+      // Fetch logo settings from database
+      const logoSettings = await storage.getLogoSettings();
+      res.json(logoSettings);
     } catch (error) {
       console.error('Error fetching logo settings:', error);
       res.status(500).json({ message: "Failed to fetch logo settings" });
@@ -386,8 +381,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         tagline: z.string().optional()
       }).parse(req.body);
 
-      // In a production environment, this would update the database
-      // For now, we'll just return the updated settings
+      // Update logo settings in database
+      const updatedSetting = await storage.updateLogoSettings(logoSettings);
+      
       res.json({
         ...logoSettings,
         message: "Logo settings updated successfully"
@@ -426,8 +422,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create the URL path for the uploaded logo
       const logoUrl = `/uploads/${file.filename}`;
       
-      // In a production environment, we would store this URL in the database
-      // For now, we'll just return the URL and path for usage in the app
+      // Get current logo settings
+      const currentSettings = await storage.getLogoSettings();
+      
+      // Update logo URL in database settings
+      await storage.updateLogoSettings({ imageUrl: logoUrl });
+      
       res.json({
         imageUrl: logoUrl,
         originalName: file.originalname,
