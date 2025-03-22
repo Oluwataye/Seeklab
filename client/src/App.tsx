@@ -23,6 +23,7 @@ import TestResults from "@/pages/lab/results";
 import QualityControl from "@/pages/lab/quality";
 import LabReports from "@/pages/lab/reports";
 import LabSettings from "@/pages/lab/settings";
+import ScientistDashboard from "@/pages/lab/scientist-dashboard";
 import PsychologistDashboard from "@/pages/psychologist/dashboard";
 import AssessmentsPage from "@/pages/psychologist/assessments";
 import PatientsPage from "@/pages/psychologist/patients";
@@ -68,6 +69,13 @@ function Router() {
         path="/lab/settings" 
         component={LabSettings}
         requireLabStaff={true}
+      />
+      
+      {/* Lab Scientist Routes */}
+      <ProtectedRoute 
+        path="/lab/scientist-dashboard" 
+        component={ScientistDashboard}
+        requireSpecificRole="lab_scientist"
       />
 
       {/* Admin Routes */}

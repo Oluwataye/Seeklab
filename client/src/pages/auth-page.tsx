@@ -55,7 +55,17 @@ export default function AuthPage() {
   // Use useEffect for navigation to avoid state updates during render
   useEffect(() => {
     if (user) {
-      navigate(user.isAdmin ? "/admin" : "/dashboard");
+      if (user.isAdmin) {
+        navigate("/admin");
+      } else if (user.role === "technician") {
+        navigate("/lab/dashboard");
+      } else if (user.role === "lab_scientist") {
+        navigate("/lab/scientist-dashboard");
+      } else if (user.role === "psychologist") {
+        navigate("/psychologist/dashboard");
+      } else {
+        navigate("/dashboard");
+      }
     }
   }, [user, navigate]);
   
