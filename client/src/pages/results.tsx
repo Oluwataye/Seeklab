@@ -10,9 +10,7 @@ import {
   Printer, 
   Download, 
   ArrowLeft,
-  ExternalLink,
   Check,
-  Ban,
   Loader2
 } from "lucide-react";
 import type { Result } from "@shared/schema";
@@ -20,18 +18,11 @@ import { PublicLayout } from "@/components/layout/public-layout";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { generatePDF } from "@/lib/pdf-generator";
 import { BrandLogo } from "@/components/brand/logo";
+import { PatientResultView } from "@/components/test-results/patient-view";
 
 export default function Results() {
   const [, navigate] = useLocation();
@@ -277,114 +268,23 @@ export default function Results() {
               </CardHeader>
 
               <CardContent className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Patient Information</h3>
-                    <Table>
-                      <TableBody>
-                        <TableRow>
-                          <TableCell className="font-medium">Patient ID</TableCell>
-                          <TableCell>{result.patientId}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell className="font-medium">Test Type</TableCell>
-                          <TableCell>{result.testType}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell className="font-medium">Test Date</TableCell>
-                          <TableCell>{new Date(result.testDate).toLocaleDateString()}</TableCell>
-                        </TableRow>
-                        {result.resultData?.timestamp && (
-                          <TableRow>
-                            <TableCell className="font-medium">Result Date</TableCell>
-                            <TableCell>{new Date(result.resultData.timestamp).toLocaleDateString()}</TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
+                <div className="p-4 border border-gray-100 rounded-lg bg-white">
+                  {/* Using the PatientResultView component */}
+                  <div className="max-w-full">
+                    {result && (
+                      <div 
+                        className="patient-result-view" 
+                        data-testid="patient-result-view"
+                      >
+                        <PatientResultView 
+                          result={result} 
+                          onPrint={handlePdfDownload}
+                        />
+                      </div>
+                    )}
                   </div>
-
-                  {result.scientistReview && (
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">Scientific Review</h3>
-                      <Table>
-                        <TableBody>
-                          <TableRow>
-                            <TableCell className="font-medium">Status</TableCell>
-                            <TableCell>
-                              <div className="flex items-center">
-                                {result.scientistReview.approved ? (
-                                  <>
-                                    <Check className="mr-2 h-4 w-4 text-green-500" />
-                                    <span>Approved</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Ban className="mr-2 h-4 w-4 text-red-500" />
-                                    <span>Rejected</span>
-                                  </>
-                                )}
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell className="font-medium">Reviewed By</TableCell>
-                            <TableCell>{result.scientistReview.reviewedBy}</TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell className="font-medium">Review Date</TableCell>
-                            <TableCell>{new Date(result.scientistReview.reviewedAt).toLocaleDateString()}</TableCell>
-                          </TableRow>
-                          {result.scientistReview.comments && (
-                            <TableRow>
-                              <TableCell className="font-medium">Comments</TableCell>
-                              <TableCell className="whitespace-pre-wrap">{result.scientistReview.comments}</TableCell>
-                            </TableRow>
-                          )}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  )}
                 </div>
-
-                <Separator />
-
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Test Results</h3>
-                  {result.resultData && result.resultData.values ? (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Test</TableHead>
-                          <TableHead>Result</TableHead>
-                          <TableHead>Reference Range</TableHead>
-                          <TableHead>Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {Object.entries(result.resultData.values).map(([key, value]) => {
-                          // Mock reference ranges - in a real app these would come from the template
-                          const referenceRange = "Normal range";
-                          const status = "Normal";
-                          
-                          return (
-                            <TableRow key={key}>
-                              <TableCell className="font-medium">{key}</TableCell>
-                              <TableCell>{value}</TableCell>
-                              <TableCell>{referenceRange}</TableCell>
-                              <TableCell>{status}</TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  ) : (
-                    <div className="p-4 bg-gray-50 rounded-lg text-center text-muted-foreground">
-                      No detailed result data available
-                    </div>
-                  )}
-                </div>
-
+                
                 {result.psychologistAssessment && (
                   <>
                     <Separator />

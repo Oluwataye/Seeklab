@@ -39,6 +39,107 @@ interface ResultTemplate {
 
 const predefinedTemplates = [
   {
+    name: "12-Panel Drug Test",
+    category: "Toxicology",
+    fields: [
+      { 
+        name: "Amphetamines (AMP)", 
+        type: "options", 
+        options: ["Negative", "Presumptive Positive", "Not Tested"] 
+      },
+      { 
+        name: "Barbiturates (BAR)", 
+        type: "options", 
+        options: ["Negative", "Presumptive Positive", "Not Tested"] 
+      },
+      { 
+        name: "Benzodiazepines (BZO)", 
+        type: "options", 
+        options: ["Negative", "Presumptive Positive", "Not Tested"] 
+      },
+      { 
+        name: "Cannabis (THC)", 
+        type: "options", 
+        options: ["Negative", "Presumptive Positive", "Not Tested"] 
+      },
+      { 
+        name: "Cocaine (COC)", 
+        type: "options", 
+        options: ["Negative", "Presumptive Positive", "Not Tested"]  
+      },
+      { 
+        name: "Methadone (MTD)", 
+        type: "options", 
+        options: ["Negative", "Presumptive Positive", "Not Tested"] 
+      },
+      { 
+        name: "Methaqualone (MQL)", 
+        type: "options", 
+        options: ["Negative", "Presumptive Positive", "Not Tested"] 
+      },
+      { 
+        name: "Opiates (OPI)", 
+        type: "options", 
+        options: ["Negative", "Presumptive Positive", "Not Tested"] 
+      },
+      { 
+        name: "Phencyclidine (PCP)", 
+        type: "options", 
+        options: ["Negative", "Presumptive Positive", "Not Tested"]  
+      },
+      { 
+        name: "Propoxyphene (PPX)", 
+        type: "options", 
+        options: ["Negative", "Presumptive Positive", "Not Tested"] 
+      },
+      { 
+        name: "Ecstasy (MDMA)", 
+        type: "options", 
+        options: ["Negative", "Presumptive Positive", "Not Tested"] 
+      },
+      { 
+        name: "Oxycodone (OXY)", 
+        type: "options", 
+        options: ["Negative", "Presumptive Positive", "Not Tested"] 
+      },
+      {
+        name: "Specimen Validity",
+        type: "options",
+        options: ["Valid", "Invalid", "Not Tested"]
+      },
+      {
+        name: "Oxidant",
+        type: "options",
+        options: ["Normal", "Abnormal", "Not Tested"]
+      },
+      {
+        name: "Specific Gravity",
+        type: "options",
+        options: ["Normal", "Abnormal", "Not Tested"]
+      },
+      {
+        name: "pH",
+        type: "options",
+        options: ["Normal", "Abnormal", "Not Tested"]
+      },
+      {
+        name: "Nitrite",
+        type: "options",
+        options: ["Normal", "Abnormal", "Not Tested"]
+      },
+      {
+        name: "Creatinine",
+        type: "options",
+        options: ["Normal", "Abnormal", "Not Tested"]
+      },
+      { 
+        name: "Comments", 
+        type: "text" 
+      },
+    ],
+    interpretationGuidelines: "This is a preliminary drug screening test. Presumptive positive results should be confirmed with a more specific method such as GC/MS (Gas Chromatography/Mass Spectrometry). Negative results do not necessarily indicate the absence of drug metabolites below the detection threshold.",
+  },
+  {
     name: "Complete Blood Count (CBC)",
     category: "Hematology",
     fields: [

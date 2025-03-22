@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { ScientistLayout } from "@/components/layout/scientist-layout";
-import { Result } from "@shared/schema";
+import { Result, ResultTemplate } from "@shared/schema";
 import {
   Card,
   CardContent,
@@ -25,29 +25,40 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { queryClient } from "@/lib/queryClient";
-import { Clipboard, Loader2, Search } from "lucide-react";
+import { CheckCircle, ClipboardCheck, ClipboardList, Loader2, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { TestResultForm } from "@/components/test-results/test-result-form";
+import { ResultReviewForm } from "@/components/test-results/review-form";
+import { PatientResultView } from "@/components/test-results/patient-view";
 
 export default function ReviewResultsPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedResult, setSelectedResult] = useState<Result | null>(null);
-
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("review");
+  
+  // Get all results
   const resultsQuery = useQuery<Result[]>({
     queryKey: ["/api/results"],
     staleTime: 1000 * 60, // 1 minute
   });
   
+  // Get all templates
+  const templatesQuery = useQuery<ResultTemplate[]>({
+    queryKey: ["/api/result-templates"],
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+  
   const results = resultsQuery.data || [];
-  const isLoading = resultsQuery.isLoading;
+  const templates = templatesQuery.data || [];
+  const isLoading = resultsQuery.isLoading || templatesQuery.isLoading;
   
   // Display errors if they occur
   React.useEffect(() => {
     if (resultsQuery.error) {
-      console.error("Error fetching results:", resultsQuery.error);
       toast({
         title: "Error fetching results",
         description: resultsQuery.error instanceof Error 
@@ -57,67 +68,46 @@ export default function ReviewResultsPage() {
       });
     }
   }, [resultsQuery.error, toast]);
-  
-  console.log("Results data:", { 
-    results, 
-    isLoading, 
-    error: resultsQuery.error
-  });
 
-  const reviewMutation = useMutation({
-    mutationFn: async (data: { resultId: number; approved: boolean; comments: string }) => {
-      const response = await fetch(`/api/results/${data.resultId}/review`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          approved: data.approved,
-          comments: data.comments,
-        }),
-      });
-      if (!response.ok) throw new Error("Failed to submit review");
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/results"] });
-      setSelectedResult(null);
-      toast({
-        title: "Success",
-        description: "Result review has been submitted.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+  // Handle dialog close
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+    setSelectedResult(null);
+  };
 
+  // Filter results with data but no review (pending review)
   const pendingReviews = results.filter(r => 
-    r.resultData && !r.scientistReview
-  ).length;
+    r.resultData && 
+    Object.keys(r.resultData).length > 0 && 
+    (!r.scientistReview || !r.scientistReview.reviewedAt)
+  );
 
-  const completedReviews = results.filter(r => r.scientistReview).length;
+  // Filter results with review (completed review)
+  const completedReviews = results.filter(r => 
+    r.scientistReview && 
+    r.scientistReview.reviewedAt
+  );
 
+  // Filter results based on search term
   const filteredResults = results.filter(result => 
     result.patientId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    result.accessCode.toLowerCase().includes(searchTerm.toLowerCase())
+    result.accessCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    result.testType.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <ScientistLayout>
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold">Review Test Results</h1>
+        <h1 className="text-3xl font-bold">Scientific Review Dashboard</h1>
 
         <div className="grid gap-4 md:grid-cols-2">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pending Reviews</CardTitle>
-              <Clipboard className="h-4 w-4 text-muted-foreground" />
+              <ClipboardList className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{pendingReviews}</div>
+              <div className="text-2xl font-bold">{pendingReviews.length}</div>
               <p className="text-xs text-muted-foreground">
                 Results awaiting scientific review
               </p>
@@ -127,10 +117,10 @@ export default function ReviewResultsPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Completed Reviews</CardTitle>
-              <Clipboard className="h-4 w-4 text-muted-foreground" />
+              <ClipboardCheck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{completedReviews}</div>
+              <div className="text-2xl font-bold">{completedReviews.length}</div>
               <p className="text-xs text-muted-foreground">
                 Results with completed scientific review
               </p>
@@ -141,7 +131,7 @@ export default function ReviewResultsPage() {
         <div className="flex items-center space-x-2">
           <Search className="w-5 h-5 text-muted-foreground" />
           <Input
-            placeholder="Search by Patient ID or Access Code..."
+            placeholder="Search by Patient ID, Test Type, or Access Code..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="max-w-sm"
@@ -160,120 +150,130 @@ export default function ReviewResultsPage() {
                   <TableHead>Patient ID</TableHead>
                   <TableHead>Test Type</TableHead>
                   <TableHead>Result Date</TableHead>
-                  <TableHead>Review Status</TableHead>
-                  <TableHead>Action</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredResults.map((result) => (
-                  <TableRow key={result.id}>
-                    <TableCell>{result.patientId}</TableCell>
-                    <TableCell>{result.testType}</TableCell>
-                    <TableCell>
-                      {result.resultData?.timestamp 
-                        ? new Date(result.resultData.timestamp).toLocaleDateString()
-                        : '-'}
-                    </TableCell>
-                    <TableCell>
-                      {result.scientistReview 
-                        ? (
-                          <span className={cn(
-                            "px-2 py-1 text-xs rounded-full",
-                            result.scientistReview.approved 
-                              ? "bg-green-100 text-green-800" 
-                              : "bg-red-100 text-red-800"
-                          )}>
-                            {result.scientistReview.approved ? "Approved" : "Rejected"}
-                          </span>
-                        ) 
-                        : <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Pending</span>
-                      }
-                    </TableCell>
-                    <TableCell>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button 
-                            variant="outline"
-                            onClick={() => setSelectedResult(result)}
-                          >
-                            {result.scientistReview ? "View Review" : "Review Result"}
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
-                          <DialogHeader>
-                            <DialogTitle>Scientific Review</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <div>
-                              <h3 className="font-medium">Test Results</h3>
-                              <div className="mt-2 space-y-2">
-                                {result.resultData?.values && Object.entries(result.resultData.values).map(([key, value]) => (
-                                  <div key={key} className="grid grid-cols-2 gap-2">
-                                    <span className="font-medium">{key}:</span>
-                                    <span>{value}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                            
-                            <div className="space-y-2">
-                              <h3 className="font-medium">Review Comments</h3>
-                              <Textarea
-                                defaultValue={result.scientistReview?.comments || ""}
-                                className="min-h-[150px]"
-                                placeholder="Enter your scientific review comments..."
-                                disabled={!!result.scientistReview}
-                              />
-                            </div>
-
-                            {!result.scientistReview && (
-                              <div className="flex gap-2">
-                                <Button
-                                  className="flex-1"
-                                  variant="destructive"
-                                  disabled={reviewMutation.isPending}
-                                  onClick={() => {
-                                    const textareaElem = document.querySelector('textarea');
-                                    const comments = textareaElem ? textareaElem.value : '';
-                                    reviewMutation.mutate({
-                                      resultId: result.id,
-                                      approved: false,
-                                      comments,
-                                    });
-                                  }}
-                                >
-                                  {reviewMutation.isPending && (
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                  )}
-                                  Reject Result
-                                </Button>
-                                <Button
-                                  className="flex-1"
-                                  variant="default"
-                                  disabled={reviewMutation.isPending}
-                                  onClick={() => {
-                                    const textareaElem = document.querySelector('textarea');
-                                    const comments = textareaElem ? textareaElem.value : '';
-                                    reviewMutation.mutate({
-                                      resultId: result.id,
-                                      approved: true,
-                                      comments,
-                                    });
-                                  }}
-                                >
-                                  {reviewMutation.isPending && (
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                  )}
-                                  Approve Result
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-                        </DialogContent>
-                      </Dialog>
+                {filteredResults.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center">
+                      No results found.
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  filteredResults.map((result) => {
+                    const hasResultData = result.resultData && Object.keys(result.resultData).length > 0;
+                    const needsReview = hasResultData && (!result.scientistReview || !result.scientistReview.reviewedAt);
+                    
+                    return (
+                      <TableRow key={result.id}>
+                        <TableCell>{result.patientId}</TableCell>
+                        <TableCell>{result.testType}</TableCell>
+                        <TableCell>
+                          {hasResultData && result.resultData?.timestamp 
+                            ? new Date(result.resultData.timestamp).toLocaleDateString()
+                            : result.testDate ? new Date(result.testDate).toLocaleDateString() : '-'}
+                        </TableCell>
+                        <TableCell>
+                          {result.scientistReview && result.scientistReview.reviewedAt ? (
+                            <span className={cn(
+                              "px-2 py-1 text-xs rounded-full",
+                              result.scientistReview.approved 
+                                ? "bg-green-100 text-green-800" 
+                                : "bg-red-100 text-red-800"
+                            )}>
+                              {result.scientistReview.approved ? "Approved" : "Rejected"}
+                            </span>
+                          ) : (
+                            hasResultData ? (
+                              <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
+                                Ready for Review
+                              </span>
+                            ) : (
+                              <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
+                                No Data
+                              </span>
+                            )
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Dialog 
+                            open={dialogOpen && selectedResult?.id === result.id} 
+                            onOpenChange={(open) => {
+                              setDialogOpen(open);
+                              if (!open) setSelectedResult(null);
+                            }}
+                          >
+                            <DialogTrigger asChild>
+                              <div className="flex space-x-2">
+                                <Button 
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedResult(result);
+                                    setDialogOpen(true);
+                                    setActiveTab(hasResultData ? "review" : "data");
+                                  }}
+                                  className={needsReview ? "border-yellow-300 bg-yellow-50 hover:bg-yellow-100" : ""}
+                                >
+                                  {needsReview ? (
+                                    <>
+                                      <CheckCircle className="h-4 w-4 mr-2 text-yellow-600" />
+                                      Review
+                                    </>
+                                  ) : result.scientistReview ? "View Result" : "Enter Data"}
+                                </Button>
+                              </div>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                              <DialogHeader>
+                                <DialogTitle>
+                                  Test Result: {result.patientId} - {result.testType}
+                                </DialogTitle>
+                              </DialogHeader>
+                              
+                              {selectedResult && (
+                                <Tabs defaultValue={activeTab} className="w-full">
+                                  <TabsList className="grid w-full grid-cols-3">
+                                    <TabsTrigger value="data">Test Data</TabsTrigger>
+                                    <TabsTrigger value="review" disabled={!hasResultData}>
+                                      Scientific Review
+                                    </TabsTrigger>
+                                    <TabsTrigger value="preview">Preview</TabsTrigger>
+                                  </TabsList>
+                                  
+                                  <TabsContent value="data" className="mt-4">
+                                    <TestResultForm
+                                      result={selectedResult}
+                                      templates={templates}
+                                      onSuccess={handleCloseDialog}
+                                      userRole="lab_scientist"
+                                      canDelete={true}
+                                    />
+                                  </TabsContent>
+                                  
+                                  <TabsContent value="review" className="mt-4">
+                                    <ResultReviewForm
+                                      result={selectedResult}
+                                      onSuccess={handleCloseDialog}
+                                    />
+                                  </TabsContent>
+                                  
+                                  <TabsContent value="preview" className="mt-4">
+                                    <PatientResultView 
+                                      result={selectedResult}
+                                      onPrint={handleCloseDialog}
+                                    />
+                                  </TabsContent>
+                                </Tabs>
+                              )}
+                            </DialogContent>
+                          </Dialog>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
               </TableBody>
             </Table>
           </div>
