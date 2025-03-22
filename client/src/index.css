@@ -75,7 +75,56 @@
   }
 
   /* Mental Health Dashboard Styling */
+  .mental-health-header {
+    color: var(--mental-chart-line);
+  }
+  
+  .mental-health-card-header {
+    background-color: var(--mental-chart-line);
+    color: white;
+  }
+  
+  .mental-health-table-header {
+    background-color: var(--mental-chart-line);
+    color: white;
+  }
+  
+  .mental-health-button {
+    background-color: var(--mental-chart-line);
+    color: white;
+  }
+  
   .chart-container {
     @apply p-4 rounded-lg border shadow-sm;
+  }
+  
+  /* Admin Dashboard Styling */
+  .admin-header {
+    color: var(--lab-header);
+  }
+  
+  .admin-card-header {
+    background-color: var(--lab-header);
+    color: white;
+  }
+  
+  /* Table Header Styling */
+  .lab-table-header {
+    background-color: var(--lab-header);
+    color: white;
+  }
+  
+  .lab-table-header th {
+    color: white;
+  }
+  
+  .mental-health-table-header th {
+    color: white;
+  }
+  
+  /* Button Styling */
+  .lab-highlight {
+    background-color: var(--lab-template-highlight);
+    color: white;
   }
 }

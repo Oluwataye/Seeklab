@@ -172,7 +172,7 @@ export default function PsychologistDashboard() {
                         </DialogTrigger>
                         <DialogContent className="max-w-2xl">
                           <DialogHeader>
-                            <DialogTitle>Psychological Assessment</DialogTitle>
+                            <DialogTitle className="mental-health-header">Psychological Assessment</DialogTitle>
                           </DialogHeader>
                           <div className="space-y-4">
                             <div>
@@ -200,7 +200,7 @@ export default function PsychologistDashboard() {
                             <Button
                               onClick={() => handleAssessmentSubmit(result.psychologistAssessment || "")}
                               disabled={addAssessmentMutation.isPending}
-                              className="w-full"
+                              className="w-full mental-health-button"
                             >
                               {addAssessmentMutation.isPending && (
                                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />

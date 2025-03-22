@@ -28,7 +28,7 @@ export default function AdminDashboard() {
         {/* Quick Stats */}
         <div className="grid gap-6 md:grid-cols-3">
           <Card className="bg-white shadow-md hover:shadow-lg transition-all duration-200">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 admin-card-header">
               <CardTitle className="text-sm font-medium">Active Users</CardTitle>
               <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                 <Users className="h-4 w-4 text-primary" />
@@ -41,7 +41,7 @@ export default function AdminDashboard() {
           </Card>
 
           <Card className="bg-white shadow-md hover:shadow-lg transition-all duration-200">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 admin-card-header">
               <CardTitle className="text-sm font-medium">Active Codes</CardTitle>
               <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                 <Key className="h-4 w-4 text-primary" />
@@ -54,7 +54,7 @@ export default function AdminDashboard() {
           </Card>
 
           <Card className="bg-white shadow-md hover:shadow-lg transition-all duration-200">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 admin-card-header">
               <CardTitle className="text-sm font-medium">Recent Results</CardTitle>
               <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                 <FileText className="h-4 w-4 text-primary" />
@@ -69,8 +69,8 @@ export default function AdminDashboard() {
 
         {/* Activity Feed */}
         <Card className="bg-white shadow-md">
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
+          <CardHeader className="admin-card-header">
+            <CardTitle className="admin-header">Recent Activity</CardTitle>
           </CardHeader>
           <CardContent>
             {usersLoading || resultsLoading ? (
