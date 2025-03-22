@@ -123,17 +123,38 @@ export async function generatePDF(
         // Create diagonal watermark
         pdf.setTextColor(200, 200, 200);
         pdf.setFontSize(40);
+        pdf.setGState({ opacity: 0.15 } as any);
+        
+        // Calculate dimensions for repeated watermark text
+        const watermarkText = "CONFIDENTIAL";
+        const angle = -45;
+        
+        // Add multiple watermarks for better coverage
+        for (let x = 0; x < pdfWidth + 100; x += 120) {
+          for (let y = 0; y < pdfHeight + 100; y += 120) {
+            pdf.text(
+              watermarkText,
+              x,
+              y,
+              {
+                angle: angle,
+              }
+            );
+          }
+        }
+        
+        // Company name watermark in center
+        pdf.setFontSize(60);
         pdf.setGState({ opacity: 0.1 } as any);
         
-        // Simple watermark solution that works with jsPDF
+        // Center the main watermark
         const textWidth = pdf.getTextWidth(organization);
         pdf.text(
           organization, 
           pdfWidth / 2 - textWidth / 2, 
           pdfHeight / 2, 
           { 
-            angle: -45,
-            align: 'center'
+            angle: -45
           }
         );
         
