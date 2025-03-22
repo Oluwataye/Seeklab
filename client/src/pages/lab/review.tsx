@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { ScientistLayout } from "@/components/layout/scientist-layout";
 import { Result } from "@shared/schema";
@@ -36,9 +36,32 @@ export default function ReviewResultsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedResult, setSelectedResult] = useState<Result | null>(null);
 
-  const { data: results = [], isLoading } = useQuery<Result[]>({
+  const resultsQuery = useQuery<Result[]>({
     queryKey: ["/api/results"],
     staleTime: 1000 * 60, // 1 minute
+  });
+  
+  const results = resultsQuery.data || [];
+  const isLoading = resultsQuery.isLoading;
+  
+  // Display errors if they occur
+  React.useEffect(() => {
+    if (resultsQuery.error) {
+      console.error("Error fetching results:", resultsQuery.error);
+      toast({
+        title: "Error fetching results",
+        description: resultsQuery.error instanceof Error 
+          ? resultsQuery.error.message 
+          : "Failed to load results",
+        variant: "destructive",
+      });
+    }
+  }, [resultsQuery.error, toast]);
+  
+  console.log("Results data:", { 
+    results, 
+    isLoading, 
+    error: resultsQuery.error
   });
 
   const reviewMutation = useMutation({

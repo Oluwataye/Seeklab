@@ -207,15 +207,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log('GET /api/results - Auth check:', { 
       isAuthenticated: req.isAuthenticated(),
       userRole: req.user?.role,
-      isLabStaff: req.user?.isLabStaff
+      isLabStaff: req.user?.isLabStaff,
+      isAdmin: req.user?.isAdmin
     });
     
-    if (!req.isAuthenticated() || !req.user?.isLabStaff) {
-      return res.status(403).json({ message: "Unauthorized" });
+    // Check if the user is authenticated and has lab staff or admin role
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized - Not authenticated" });
     }
-
-    const results = await storage.getAllResults();
-    res.json(results);
+    
+    // For scientists and admins allow access to all results
+    if (req.user?.role === 'lab_scientist' || req.user?.isAdmin) {
+      const results = await storage.getAllResults();
+      return res.json(results);
+    }
+    
+    // Allow technicians if they have isLabStaff property
+    if (req.user?.isLabStaff) {
+      const results = await storage.getAllResults();
+      return res.json(results);
+    }
+    
+    // Deny access for other roles
+    return res.status(403).json({ message: "Unauthorized - Insufficient permissions" });
   });
 
   // Admin check endpoint

@@ -429,19 +429,7 @@ export function setupAuth(app: Express) {
     }
   });
 
-  // Get all results (admin only)
-  app.get("/api/results", async (req, res) => {
-    if (!req.isAuthenticated() || !req.user.isAdmin) {
-      return res.status(403).json({ message: "Unauthorized" });
-    }
-
-    try {
-      const results = await storage.getAllResults();
-      res.json(results);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch results" });
-    }
-  });
+  // Removed duplicate /api/results GET route since it's defined in routes.ts
 
   // Audit logs endpoints
   app.get("/api/audit-logs", async (req, res) => {
