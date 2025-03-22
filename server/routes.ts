@@ -448,10 +448,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         destination: file.destination
       });
       
-      // Create the URL path for the uploaded logo
-      // Make sure this path matches the static file serving in index.ts
-      const logoUrl = `/uploads/${file.filename}`;
-      console.log('Logo URL for image:', logoUrl);
+      // Get the relative path for the uploaded logo
+      // The file.path will contain the absolute path, so we need to extract just the filename
+      const filename = path.basename(file.path);
+      const logoUrl = `/uploads/${filename}`;
+      console.log('Logo URL for image:', logoUrl, 'from filename:', filename, 'original path:', file.path);
       
       // Get current logo settings
       const currentSettings = await storage.getLogoSettings();
@@ -485,7 +486,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     } catch (error) {
       console.error('Error uploading logo:', error);
-      res.status(500).json({ message: "Failed to upload logo" });
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.error('Detailed error:', errorMessage);
+      res.status(500).json({ message: `Failed to upload logo: ${errorMessage}` });
     }
   });
 

@@ -16,7 +16,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Serve static files from the public/uploads directory
-app.use('/uploads', express.static(uploadsDir));
+app.use('/uploads', express.static(uploadsDir, {
+  maxAge: '1h',         // Cache for 1 hour
+  fallthrough: false,   // Return 404 for nonexistent files
+  etag: true,           // Enable ETag for efficient caching
+  lastModified: true,   // Enable Last-Modified header
+  setHeaders: (res, path) => {
+    console.log(`Serving static file: ${path}`);
+    // Add custom headers for debugging
+    res.setHeader('X-File-Path', path);
+  }
+}));
 
 // Add request logging middleware
 app.use((req, res, next) => {

@@ -65,19 +65,36 @@ export default function LogoSettings() {
       const formData = new FormData();
       formData.append('logo', file);
       
-      // Make sure cookies are included in the request for authentication
-      const response = await fetch('/api/settings/logo/upload', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include' // Important for auth cookies
-      });
+      console.log('Uploading file:', file.name, 'size:', file.size, 'type:', file.type);
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to upload logo');
+      try {
+        // Make sure cookies are included in the request for authentication
+        const response = await fetch('/api/settings/logo/upload', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include', // Important for auth cookies
+          headers: {
+            // Don't set Content-Type header when using FormData
+            // It will be automatically set with the boundary parameter
+            'Accept': 'application/json'
+          }
+        });
+        
+        console.log('Upload response status:', response.status);
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+          console.error('Upload failed with error:', errorData);
+          throw new Error(errorData.message || 'Failed to upload logo');
+        }
+        
+        const data = await response.json();
+        console.log('Upload successful, received:', data);
+        return data;
+      } catch (error) {
+        console.error('Error in upload mutation:', error);
+        throw error;
       }
-      
-      return response.json();
     },
     onSuccess: (data) => {
       toast({
