@@ -4,7 +4,7 @@ import { Express } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
-import { storage } from "./storage_updated";
+import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
 import { roles } from "@shared/schema";
 
