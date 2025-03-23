@@ -40,6 +40,11 @@ export interface IStorage {
   createTestType(testType: InsertTestType): Promise<TestType>;
   updateTestType(id: number, data: Partial<TestType>): Promise<TestType>;
   deleteTestType(id: number): Promise<void>;
+  // Settings
+  getSetting(key: string): Promise<Setting | undefined>;
+  createOrUpdateSetting(key: string, value: any): Promise<Setting>;
+  getLogoSettings(): Promise<{ imageUrl: string; name: string; tagline: string }>;
+  updateLogoSettings(settings: { imageUrl?: string; name?: string; tagline?: string }): Promise<Setting>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -311,6 +316,94 @@ export class DatabaseStorage implements IStorage {
       await db.delete(testTypes).where(eq(testTypes.id, id));
     } catch (error) {
       console.error('Error deleting test type:', error);
+      throw error;
+    }
+  }
+
+  // Settings methods
+  async getSetting(key: string): Promise<Setting | undefined> {
+    try {
+      const [setting] = await db.select().from(settings).where(eq(settings.key, key));
+      return setting;
+    } catch (error) {
+      console.error('Error fetching setting:', error);
+      return undefined;
+    }
+  }
+
+  async createOrUpdateSetting(key: string, value: any): Promise<Setting> {
+    try {
+      // Check if setting exists
+      const existingSetting = await this.getSetting(key);
+      
+      if (existingSetting) {
+        // Update existing setting
+        const [updatedSetting] = await db
+          .update(settings)
+          .set({ 
+            value,
+            updatedAt: new Date() 
+          })
+          .where(eq(settings.key, key))
+          .returning();
+        return updatedSetting;
+      } else {
+        // Create new setting
+        const [newSetting] = await db
+          .insert(settings)
+          .values({
+            key,
+            value,
+          })
+          .returning();
+        return newSetting;
+      }
+    } catch (error) {
+      console.error('Error creating/updating setting:', error);
+      throw error;
+    }
+  }
+
+  async getLogoSettings(): Promise<{ imageUrl: string; name: string; tagline: string }> {
+    try {
+      const setting = await this.getSetting('logoSettings');
+      
+      if (setting) {
+        return setting.value as { imageUrl: string; name: string; tagline: string };
+      }
+      
+      // Return default settings if not found
+      return {
+        imageUrl: '/logo.svg',
+        name: 'SeekLab',
+        tagline: 'Medical Lab Results Management'
+      };
+    } catch (error) {
+      console.error('Error fetching logo settings:', error);
+      // Return default settings on error
+      return {
+        imageUrl: '/logo.svg',
+        name: 'SeekLab',
+        tagline: 'Medical Lab Results Management'
+      };
+    }
+  }
+
+  async updateLogoSettings(logoSettings: { imageUrl?: string; name?: string; tagline?: string }): Promise<Setting> {
+    try {
+      // Get current settings
+      const currentSettings = await this.getLogoSettings();
+      
+      // Merge with new settings (only update what's provided)
+      const updatedSettings = {
+        ...currentSettings,
+        ...logoSettings
+      };
+      
+      // Save to database
+      return this.createOrUpdateSetting('logoSettings', updatedSettings);
+    } catch (error) {
+      console.error('Error updating logo settings:', error);
       throw error;
     }
   }
