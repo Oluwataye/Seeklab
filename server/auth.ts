@@ -106,7 +106,7 @@ export function setupAuth(app: Express) {
         ...req.body,
         password: await hashPassword(req.body.password),
         isAdmin,
-        isLabStaff: !isAdmin, // Lab staff if not admin
+        isLabStaff: false, // No longer using isLabStaff flag
       });
 
       req.login(user, async (err) => {

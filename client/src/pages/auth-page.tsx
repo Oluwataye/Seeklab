@@ -82,9 +82,9 @@ export default function AuthPage() {
             <CardContent className="pt-6">
               <div className="mb-8 text-center">
                 <FlaskConical className="h-12 w-12 text-primary mx-auto mb-4" />
-                <h1 className="text-2xl font-bold">Lab Staff Portal</h1>
+                <h1 className="text-2xl font-bold">Staff Portal</h1>
                 <p className="text-muted-foreground mt-2">
-                  Access the laboratory management system
+                  Access the medical results management system
                 </p>
               </div>
 
@@ -154,16 +154,17 @@ export default function AuthPage() {
         <div className="hidden lg:flex flex-1 bg-primary items-center justify-center p-12">
           <div className="max-w-lg text-white">
             <h2 className="text-3xl font-bold mb-6">
-              Welcome to the Lab Staff Portal
+              Welcome to the Staff Portal
             </h2>
             <div className="space-y-4 text-primary-foreground/90">
               <p>
-                Access and manage patient test results, generate access codes, and maintain
-                laboratory records through our HIPAA-compliant system.
+                Access and manage patient data, verify payments, generate access codes, and maintain
+                medical records through our HIPAA-compliant system.
               </p>
               <ul className="list-disc list-inside space-y-2">
                 <li>Secure role-based access control</li>
-                <li>Real-time test result management</li>
+                <li>Patient registration and management</li>
+                <li>Payment verification system</li>
                 <li>Comprehensive audit logging</li>
                 <li>End-to-end data encryption</li>
               </ul>
