@@ -4,6 +4,11 @@ import { BrandLogo } from "@/components/brand/logo";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 import { NotificationPopover } from "@/components/notifications/notification-popover";
 import { cn } from "@/lib/utils";
 import { 
@@ -22,12 +27,20 @@ import {
   Shield,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function EdecLayout({ children }: { children: React.ReactNode }) {
   const [, navigate] = useLocation();
   const { user, logoutMutation } = useAuth();
   const isMobile = useIsMobile();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {
@@ -37,43 +50,39 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
   const navigation = [
     { 
-      title: "Dashboard Overview", 
+      name: "Dashboard Overview", 
       href: "/edec/dashboard", 
       icon: LayoutDashboard,
     },
     { 
-      title: "Patient Management", 
+      name: "Patient Management", 
       href: "/edec/patients", 
       icon: Users,
     },
     { 
-      title: "Test Requests", 
+      name: "Test Requests", 
       href: "/edec/test-requests", 
       icon: ClipboardCheck 
     },
     { 
-      title: "Patient Registration", 
+      name: "Patient Registration", 
       href: "/edec/register-patient", 
       icon: UserPlus 
     },
     { 
-      title: "Payment Verification", 
+      name: "Payment Verification", 
       href: "/edec/verify-payment", 
       icon: CreditCard 
     },
     { 
-      title: "Profile", 
+      name: "Profile", 
       href: "/edec/profile", 
       icon: User 
     },
     { 
-      title: "Settings", 
+      name: "Settings", 
       href: "/edec/settings", 
       icon: Settings 
     },
@@ -82,107 +91,123 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      {/* Sidebar */}
-      <aside 
-        className={cn(
-          "fixed inset-y-0 left-0 z-20 w-64 border-r bg-white transition-all duration-300 ease-in-out lg:static",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:w-20 lg:translate-x-0"
-        )}
-      >
-        <div className="flex h-16 items-center justify-between border-b px-4">
-          {sidebarOpen ? (
-            <Link href="/edec/dashboard">
-              <div className="flex items-center space-x-2">
-                <div className="rounded-md bg-primary p-1.5">
-                  <Shield className="h-5 w-5 text-white" />
-                </div>
-                <span className="text-lg font-semibold">Lab Portal</span>
-              </div>
-            </Link>
-          ) : (
-            <Link href="/edec/dashboard">
-              <div className="flex items-center justify-center">
-                <div className="rounded-md bg-primary p-1.5">
-                  <Shield className="h-5 w-5 text-white" />
-                </div>
-              </div>
-            </Link>
-          )}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="hidden lg:flex"
-            onClick={toggleSidebar}
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-        </div>
-        
-        <nav className="space-y-1 px-3 py-4">
-          {navigation.map((item) => {
-            const isActive = location === item.href;
-            return (
-              <Link key={item.href} href={item.href}>
-                <Button
-                  variant={isActive ? "secondary" : "ghost"}
-                  className={cn(
-                    "w-full justify-start",
-                    !sidebarOpen && "justify-center p-2"
-                  )}
-                >
-                  <item.icon className={cn("h-5 w-5", sidebarOpen && "mr-3")} />
-                  {sidebarOpen && <span>{item.title}</span>}
-                </Button>
-              </Link>
-            );
-          })}
-        </nav>
-      </aside>
-      
-      {/* Main Content */}
-      <div className="flex flex-1 flex-col">
-        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-white px-4 md:px-6">
-          <div className="flex items-center">
+    <div className="flex flex-col h-screen">
+      {/* Header */}
+      <header className="bg-white border-b h-16 flex-shrink-0 z-20">
+        <div className="h-full px-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
             <Button
               variant="ghost"
               size="icon"
-              className="mr-2 lg:hidden"
-              onClick={toggleSidebar}
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="lg:hidden"
             >
               <Menu className="h-5 w-5" />
             </Button>
-            <div className="font-medium">
-              <span className="hidden md:inline">Welcome, </span>
-              {user?.username}
-            </div>
+            <Link href="/edec/dashboard" className="flex items-center">
+              <BrandLogo showText={true} variant="default" />
+              <span className="ml-2 font-semibold text-primary">EDEC Portal</span>
+            </Link>
           </div>
-          
+
           <div className="flex items-center gap-4">
             <NotificationPopover />
-            <Separator orientation="vertical" className="h-8" />
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleLogout}
-              disabled={logoutMutation.isPending}
-            >
-              <LogOut className="h-5 w-5" />
-              <span className="sr-only">Log out</span>
-            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  {user?.username}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Account</DropdownMenuLabel>
+                <DropdownMenuItem asChild>
+                  <Link href="/edec/profile">Profile Settings</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  disabled={logoutMutation.isPending}
+                  className="text-red-600"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-        </header>
-        
-        <main className="flex-1 overflow-x-hidden p-4 md:p-6">
-          {children}
-        </main>
+        </div>
+      </header>
+
+      {/* Main Content with Resizable Sidebar */}
+      <div className="flex-1 flex overflow-hidden">
+        <ResizablePanelGroup direction="horizontal">
+          {/* Sidebar */}
+          <ResizablePanel
+            defaultSize={20}
+            minSize={15}
+            maxSize={25}
+            className={cn(
+              "bg-white border-r",
+              !isSidebarOpen && "hidden lg:block"
+            )}
+          >
+            <nav className="h-full py-4">
+              <div className="space-y-1 px-2">
+                {navigation.map((item) => {
+                  const isActive = location === item.href;
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : "text-gray-700 hover:bg-gray-50"
+                      )}
+                    >
+                      <item.icon className="h-5 w-5" />
+                      {item.name}
+                    </Link>
+                  );
+                })}
+              </div>
+            </nav>
+          </ResizablePanel>
+
+          <ResizableHandle withHandle className="bg-gray-200 hover:bg-gray-300 transition-colors" />
+
+          {/* Main Content */}
+          <ResizablePanel defaultSize={80}>
+            <main className="h-[calc(100vh-4rem)] overflow-auto p-6 bg-gray-50">
+              <div className="max-w-7xl mx-auto">
+                {children}
+              </div>
+            </main>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </div>
-      
+
+      {/* Footer */}
+      <footer className="bg-white border-t h-12 flex-shrink-0">
+        <div className="max-w-7xl mx-auto px-4 h-full">
+          <div className="flex items-center justify-between h-full">
+            <div className="text-sm text-gray-600">
+              Copyright © 2025 T-TECH SOLUTION®. ALL RIGHTS RESERVED.
+            </div>
+            <div className="text-sm text-gray-600">
+              {user?.username} • EDEC Portal
+            </div>
+          </div>
+        </div>
+      </footer>
+
       {/* Mobile sidebar overlay */}
-      {sidebarOpen && isMobile && (
+      {isSidebarOpen && isMobile && (
         <div
           className="fixed inset-0 z-10 bg-black/50 lg:hidden"
-          onClick={toggleSidebar}
+          onClick={() => setIsSidebarOpen(false)}
         />
       )}
     </div>
