@@ -124,7 +124,12 @@ export default function VerifyPayment() {
             title: "Payment Verified",
             message: `Payment for patient ID: ${data.patientId} (Ref: ${data.referenceNumber}) has been verified`,
             type: "PAYMENT_VERIFICATION",
-            recipientId: "STAFF" // This will be filtered by the backend to appropriate staff
+            recipientId: "STAFF", // This will be filtered by the backend to appropriate staff
+            metadata: {
+              patientId: data.patientId,
+              referenceNumber: data.referenceNumber,
+              amount: data.amount
+            }
           })
         });
       } catch (error) {

@@ -1112,11 +1112,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const { title, message, type, recipientId } = z.object({
+      const { title, message, type, recipientId, metadata } = z.object({
         title: z.string(),
         message: z.string(),
         type: z.string(),
-        recipientId: z.string()
+        recipientId: z.string(),
+        metadata: z.record(z.unknown()).optional()
       }).parse(req.body);
       
       let recipients: string[] = [];

@@ -81,7 +81,12 @@ export default function RegisterPatient() {
             title: "New Patient Registration",
             message: `Patient ${data.firstName} ${data.lastName} (ID: ${data.patientId}) has been registered`,
             type: "PATIENT_REGISTRATION",
-            recipientId: "STAFF" // This will be filtered by the backend to appropriate staff
+            recipientId: "STAFF", // This will be filtered by the backend to appropriate staff
+            metadata: {
+              patientId: data.patientId,
+              firstName: data.firstName,
+              lastName: data.lastName
+            }
           })
         });
       } catch (error) {
