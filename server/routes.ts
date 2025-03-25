@@ -711,7 +711,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create new patient (EDEC role)
   app.post("/api/patients", async (req, res) => {
     if (!req.isAuthenticated() || 
-        (req.user?.role !== 'EDEC' && !req.user?.isAdmin)) {
+        (req.user?.role !== 'edec' && !req.user?.isAdmin)) {
       return res.status(403).json({ message: "Unauthorized - EDEC or admin access required" });
     }
 
@@ -753,7 +753,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all patients (EDEC, Admin)
   app.get("/api/patients", async (req, res) => {
     if (!req.isAuthenticated() || 
-        (req.user?.role !== 'EDEC' && !req.user?.isAdmin)) {
+        (req.user?.role !== 'edec' && !req.user?.isAdmin)) {
       return res.status(403).json({ message: "Unauthorized - EDEC or admin access required" });
     }
 
@@ -769,7 +769,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get patient by ID
   app.get("/api/patients/:id", async (req, res) => {
     if (!req.isAuthenticated() || 
-        (req.user?.role !== 'EDEC' && !req.user?.isAdmin)) {
+        (req.user?.role !== 'edec' && !req.user?.isAdmin)) {
       return res.status(403).json({ message: "Unauthorized - EDEC or admin access required" });
     }
 
@@ -796,7 +796,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update patient
   app.patch("/api/patients/:id", async (req, res) => {
     if (!req.isAuthenticated() || 
-        (req.user?.role !== 'EDEC' && !req.user?.isAdmin)) {
+        (req.user?.role !== 'edec' && !req.user?.isAdmin)) {
       return res.status(403).json({ message: "Unauthorized - EDEC or admin access required" });
     }
 
@@ -859,7 +859,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Generate access code for a patient
   app.post("/api/patients/:id/access-code", async (req, res) => {
     if (!req.isAuthenticated() || 
-        (req.user?.role !== 'EDEC' && !req.user?.isAdmin)) {
+        (req.user?.role !== 'edec' && !req.user?.isAdmin)) {
       return res.status(403).json({ message: "Unauthorized - EDEC or admin access required" });
     }
 
@@ -1071,7 +1071,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register a payment (EDEC role)
   app.post("/api/payments", async (req, res) => {
     if (!req.isAuthenticated() || 
-        (req.user?.role !== 'EDEC' && !req.user?.isAdmin)) {
+        (req.user?.role !== 'edec' && !req.user?.isAdmin)) {
       return res.status(403).json({ message: "Unauthorized - EDEC or admin access required" });
     }
 
@@ -1123,7 +1123,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all payments for a patient
   app.get("/api/patients/:patientId/payments", async (req, res) => {
     if (!req.isAuthenticated() || 
-        (req.user?.role !== 'EDEC' && !req.user?.isAdmin)) {
+        (req.user?.role !== 'edec' && !req.user?.isAdmin)) {
       return res.status(403).json({ message: "Unauthorized - EDEC or admin access required" });
     }
 
