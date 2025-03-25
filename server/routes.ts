@@ -955,6 +955,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // EDEC dashboard statistics
+  app.get("/api/edec/stats", async (req, res) => {
+    if (!req.isAuthenticated() || 
+        (req.user?.role !== 'edec' && !req.user?.isAdmin)) {
+      return res.status(403).json({ message: "Unauthorized - EDEC or admin access required" });
+    }
+
+    try {
+      // Get all patients
+      const patients = await storage.getAllPatients();
+      
+      // Get all payments
+      const allPayments = [];
+      for (const patient of patients) {
+        const payments = await storage.getPaymentsByPatientId(patient.patientId);
+        allPayments.push(...payments);
+      }
+      
+      // Count verified payments
+      const verifiedPayments = allPayments.filter(payment => payment.status === 'verified');
+      
+      // Get recent activity (last 24 hours)
+      const twentyFourHoursAgo = new Date();
+      twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+      
+      // Get recent audit logs
+      const allAuditLogs = await storage.getAuditLogs();
+      const recentLogs = allAuditLogs.filter(log => 
+        new Date(log.timestamp) > twentyFourHoursAgo
+      );
+      
+      // Format recent activity
+      const recentActivity = recentLogs.map(log => {
+        let activityType = 'other';
+        let description = 'Unknown activity';
+        
+        if (log.action === 'create_patient') {
+          activityType = 'registration';
+          description = `Patient ${log.details?.patientId || 'unknown'} registered`;
+        } else if (log.action === 'verify_payment') {
+          activityType = 'payment';
+          description = `Payment for ${log.details?.patientId || 'unknown'} verified`;
+        } else if (log.action === 'generate_access_code') {
+          activityType = 'test';
+          description = `Access code generated for ${log.details?.patientId || 'unknown'}`;
+        }
+        
+        return {
+          type: activityType,
+          description,
+          timestamp: log.timestamp
+        };
+      }).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 10); // Limit to 10 most recent activities
+      
+      // Calculate registration trend
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      const newRegistrations = patients.filter(p => new Date(p.registrationDate) > weekAgo).length;
+      
+      // Return stats
+      res.json({
+        patientCount: patients.length,
+        paymentCount: verifiedPayments.length,
+        recentActivity,
+        registrationTrend: {
+          weeklyNew: newRegistrations,
+          percentChange: patients.length > 0 ? (newRegistrations / patients.length) * 100 : 0
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching EDEC stats:', error);
+      res.status(500).json({ message: "Failed to fetch EDEC statistics" });
+    }
+  });
+  
   // Update payment settings (Admin only)
   app.post("/api/payment-settings", async (req, res) => {
     if (!req.isAuthenticated() || !req.user?.isAdmin) {
