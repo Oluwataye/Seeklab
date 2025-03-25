@@ -36,16 +36,16 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
     {
       title: "Patient Management",
       links: [
-        { title: "Register Patient", href: "/edec/register-patient", icon: UserPlus },
-        { title: "Verify Payment", href: "/edec/verify-payment", icon: CreditCard },
+        { title: "Dashboard", href: "/edec/dashboard", icon: ClipboardList },
+        { title: "Patient Registration", href: "/edec/register-patient", icon: UserPlus },
         { title: "Manage Patients", href: "/edec/patients", icon: Users },
       ],
     },
     {
-      title: "Test Management",
+      title: "Payment Management",
       links: [
-        { title: "Test Requests", href: "/edec/test-requests", icon: ClipboardList },
-        { title: "Test Results", href: "/edec/test-results", icon: FileCheck },
+        { title: "Payment Verification", href: "/edec/verify-payment", icon: CreditCard },
+        { title: "Test Requests", href: "/edec/test-requests", icon: FileCheck },
       ],
     },
     {
