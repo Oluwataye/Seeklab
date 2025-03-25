@@ -55,7 +55,7 @@ export default function UserManagement() {
       username: "",
       email: "",
       password: "",
-      role: "technician",
+      role: "edec",
     },
   });
   
@@ -66,7 +66,7 @@ export default function UserManagement() {
     defaultValues: {
       username: "",
       email: "",
-      role: "technician",
+      role: "edec",
     },
   });
 

@@ -22,15 +22,6 @@ import ResultTemplates from "@/pages/admin/result-templates";
 import LogoSettings from "@/pages/admin/logo-settings";
 import TestTypes from "@/pages/admin/test-types";
 import PaymentSettings from "@/pages/admin/payment-settings";
-import TechnicianDashboard from "@/pages/lab/dashboard";
-import TestResults from "@/pages/lab/results";
-import QualityControl from "@/pages/lab/quality";
-import LabReports from "@/pages/lab/reports";
-import LabSettings from "@/pages/lab/settings";
-import TechnicianProfilePage from "@/pages/lab/profile";
-import MockGenerator from "@/pages/lab/mock-generator";
-import ScientistDashboard from "@/pages/lab/scientist-dashboard";
-import ReviewResultsPage from "@/pages/lab/review";
 import PsychologistDashboard from "@/pages/psychologist/dashboard";
 import AssessmentsPage from "@/pages/psychologist/assessments";
 import PatientsPage from "@/pages/psychologist/patients";
@@ -54,60 +45,6 @@ function Router() {
       <Route path="/results" component={Results} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/dashboard" component={StaffDashboard} />
-
-      {/* Lab Technician Routes */}
-      <ProtectedRoute 
-        path="/lab/dashboard" 
-        component={TechnicianDashboard}
-        requireLabStaff={true}
-      />
-      <ProtectedRoute 
-        path="/lab/results" 
-        component={TestResults}
-        requireLabStaff={true}
-      />
-      <ProtectedRoute 
-        path="/lab/quality" 
-        component={QualityControl}
-        requireLabStaff={true}
-      />
-      <ProtectedRoute 
-        path="/lab/reports" 
-        component={LabReports}
-        requireLabStaff={true}
-      />
-      <ProtectedRoute 
-        path="/lab/settings" 
-        component={LabSettings}
-        requireLabStaff={true}
-      />
-      <ProtectedRoute 
-        path="/lab/profile" 
-        component={TechnicianProfilePage}
-        requireLabStaff={true}
-      />
-      <ProtectedRoute 
-        path="/lab/mock-generator" 
-        component={MockGenerator}
-        requireLabStaff={true}
-      />
-      
-      {/* Lab Scientist Routes */}
-      <ProtectedRoute 
-        path="/lab/scientist-dashboard" 
-        component={ScientistDashboard}
-        requireSpecificRole="lab_scientist"
-      />
-      <ProtectedRoute 
-        path="/lab/review" 
-        component={ReviewResultsPage}
-        requireSpecificRole="lab_scientist"
-      />
-      <ProtectedRoute 
-        path="/lab/scientist-profile" 
-        component={TechnicianProfilePage}
-        requireSpecificRole="lab_scientist"
-      />
 
       {/* Admin Routes */}
       <ProtectedRoute 
@@ -153,6 +90,11 @@ function Router() {
       <ProtectedRoute 
         path="/admin/test-types" 
         component={TestTypes}
+        requireAdmin={true}
+      />
+      <ProtectedRoute 
+        path="/admin/payment-settings" 
+        component={PaymentSettings}
         requireAdmin={true}
       />
 
@@ -203,11 +145,6 @@ function Router() {
         path="/edec/verify-payment" 
         component={VerifyPayment}
         requireSpecificRole="edec"
-      />
-      <ProtectedRoute 
-        path="/admin/payment-settings" 
-        component={PaymentSettings}
-        requireAdmin={true}
       />
 
       {/* 404 Route */}

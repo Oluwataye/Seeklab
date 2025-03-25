@@ -58,12 +58,10 @@ export default function AuthPage() {
     if (user) {
       if (user.isAdmin) {
         navigate("/admin");
-      } else if (user.role === "technician") {
-        navigate("/lab/dashboard");
-      } else if (user.role === "lab_scientist") {
-        navigate("/lab/scientist-dashboard");
       } else if (user.role === "psychologist") {
         navigate("/psychologist/dashboard");
+      } else if (user.role === "edec") {
+        navigate("/edec");
       } else {
         navigate("/dashboard");
       }

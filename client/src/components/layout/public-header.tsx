@@ -25,7 +25,7 @@ export function PublicHeader() {
           </nav>
         </div>
         <Link href="/auth" className="text-sm text-primary hover:underline">
-          Lab Staff Login
+          Staff Login
         </Link>
       </div>
     </header>

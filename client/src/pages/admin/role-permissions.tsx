@@ -24,18 +24,6 @@ const predefinedRoles = [
     locked: true,
   },
   {
-    name: "Lab Scientist",
-    description: "Can manage test results and patient records",
-    permissions: ["create_test", "view_results", "edit_templates"],
-    locked: true,
-  },
-  {
-    name: "Lab Technician",
-    description: "Basic test result submission",
-    permissions: ["create_test", "view_results"],
-    locked: true,
-  },
-  {
     name: "Psychologist",
     description: "View-only access to test results",
     permissions: ["view_results"],
