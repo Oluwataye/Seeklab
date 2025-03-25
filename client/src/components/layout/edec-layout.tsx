@@ -118,9 +118,11 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
                     <h3 className="px-4 text-xs font-medium text-muted-foreground">
                       {group.title}
                     </h3>
-                    {group.links.map((link) => (
-                      <Link key={link.href} href={link.href}>
-                        {({ isActive }) => (
+                    {group.links.map((link) => {
+                      const [location] = useLocation();
+                      const isActive = location === link.href;
+                      return (
+                        <Link key={link.href} href={link.href}>
                           <Button
                             variant={isActive ? "secondary" : "ghost"}
                             className="w-full justify-start gap-2"
@@ -128,9 +130,9 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
                             <link.icon className="h-4 w-4" />
                             {link.title}
                           </Button>
-                        )}
-                      </Link>
-                    ))}
+                        </Link>
+                      );
+                    })}
                   </div>
                 ))}
               </nav>
