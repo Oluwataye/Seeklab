@@ -130,8 +130,7 @@ export default function EdecDashboard() {
                   {/* Success rate - could be calculated from API data */}
                   <Progress 
                     value={75} 
-                    className="h-2 mt-3" 
-                    indicatorColor="bg-green-500"
+                    className="h-2 mt-3 [&>div]:bg-green-500"
                   />
                   <div className="text-xs text-muted-foreground mt-1">
                     75% verification rate

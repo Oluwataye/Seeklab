@@ -31,6 +31,8 @@ import PsychologistProfilePage from "@/pages/psychologist/profile";
 import RegisterPatient from "@/pages/edec/register-patient";
 import VerifyPayment from "@/pages/edec/verify-payment";
 import EdecDashboard from "@/pages/edec/dashboard";
+import EdecPatients from "@/pages/edec/patients";
+import TestRequests from "@/pages/edec/test-requests";
 import { ProtectedRoute } from "./lib/protected-route";
 
 function Router() {
@@ -137,6 +139,11 @@ function Router() {
         requireSpecificRole="edec"
       />
       <ProtectedRoute 
+        path="/edec/dashboard" 
+        component={EdecDashboard}
+        requireSpecificRole="edec"
+      />
+      <ProtectedRoute 
         path="/edec/register-patient" 
         component={RegisterPatient}
         requireSpecificRole="edec"
@@ -144,6 +151,16 @@ function Router() {
       <ProtectedRoute 
         path="/edec/verify-payment" 
         component={VerifyPayment}
+        requireSpecificRole="edec"
+      />
+      <ProtectedRoute 
+        path="/edec/patients" 
+        component={EdecPatients}
+        requireSpecificRole="edec"
+      />
+      <ProtectedRoute 
+        path="/edec/test-requests" 
+        component={TestRequests}
         requireSpecificRole="edec"
       />
 
