@@ -10,17 +10,30 @@ import {
   UserPlus, 
   CreditCard, 
   ClipboardList, 
-  Users, 
-  TrendingUp, 
+  Users,  
   ArrowUpRight, 
   BarChart4, 
   CircleDollarSign, 
   Activity,
+  Clock,
+  FileText,
+  Bell,
   CalendarRange
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
+import { Separator } from "@/components/ui/separator";
+import { 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer, 
+  BarChart, 
+  Bar 
+} from "recharts";
 
 export default function EdecDashboard() {
   const { data: stats, isLoading } = useQuery({
@@ -46,22 +59,17 @@ export default function EdecDashboard() {
 
   return (
     <EdecLayout>
-      <div className="container mx-auto p-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold mb-1">EDEC Dashboard</h1>
-            <p className="text-muted-foreground">
-              Manage patient registrations and payment verification
-            </p>
-          </div>
-          <div className="flex gap-3 mt-4 md:mt-0">
-            <Button asChild variant="outline" size="sm">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-semibold">Dashboard Overview</h1>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" asChild>
               <Link href="/edec/register-patient">
                 <UserPlus className="mr-2 h-4 w-4" />
-                New Patient
+                Register Patient
               </Link>
             </Button>
-            <Button asChild size="sm">
+            <Button size="sm" asChild>
               <Link href="/edec/verify-payment">
                 <CreditCard className="mr-2 h-4 w-4" />
                 Verify Payment
@@ -70,8 +78,8 @@ export default function EdecDashboard() {
           </div>
         </div>
 
-        {/* Status overview cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* Status cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="hover:shadow-md transition-shadow">
             <CardHeader className="pb-2">
               <div className="flex justify-between items-center">
@@ -167,6 +175,40 @@ export default function EdecDashboard() {
                     <Badge className="bg-blue-50 text-blue-700 font-normal">
                       <ClipboardList className="mr-1 h-3 w-3" />
                       Standard Rate
+                    </Badge>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="pb-2">
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-primary" />
+                  Pending Requests
+                </CardTitle>
+                <Badge variant="outline" className="ml-auto">
+                  Current
+                </Badge>
+              </div>
+              <CardDescription>Test requests awaiting action</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="flex items-center justify-center h-12">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <div className="flex flex-col">
+                  <div className="text-3xl font-bold">
+                    {stats?.pendingRequests || 0}
+                  </div>
+                  <div className="flex items-center mt-2">
+                    <Badge className="bg-amber-50 text-amber-700 font-normal">
+                      <FileText className="mr-1 h-3 w-3" />
+                      Needs Attention
                     </Badge>
                   </div>
                 </div>
