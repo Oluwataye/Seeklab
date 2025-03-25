@@ -122,9 +122,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Protected Staff Routes
   app.post("/api/results", async (req, res) => {
-    if (!req.isAuthenticated() || !req.user?.isLabStaff) {
-      return res.status(403).json({ message: "Unauthorized" });
-    }
+    // Lab staff check removed
+    return res.status(403).json({ message: "Unauthorized - This endpoint has been deprecated" });
+    
 
     try {
       const resultData = insertResultSchema.parse(req.body);
