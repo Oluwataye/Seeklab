@@ -1072,17 +1072,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Payment verification endpoint
   app.post("/api/payments/verify", async (req, res) => {
     if (!req.isAuthenticated() || 
-        (req.user?.role !== 'EDEC' && !req.user?.isAdmin)) {
+        (req.user?.role !== 'edec' && !req.user?.isAdmin)) {
       return res.status(403).json({ message: "Unauthorized - EDEC or admin access required" });
     }
 
     try {
-      const { referenceNumber } = z.object({
+      const { patientId, referenceNumber } = z.object({
+        patientId: z.string(),
         referenceNumber: z.string()
       }).parse(req.body);
       
-      // Find the payment by reference number
-      const payments = await storage.getAllResults(); // We'll need to add a method to get payment by reference
+      // Find all payments for this patient
+      const payments = await storage.getPaymentsByPatientId(patientId);
       const payment = payments.find(p => p.referenceNumber === referenceNumber);
       
       if (!payment) {
@@ -1096,7 +1097,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Error verifying payment:', error);
-      res.status(400).json({ message: "Invalid reference number" });
+      res.status(400).json({ message: "Invalid reference number or patient ID" });
     }
   });
 
