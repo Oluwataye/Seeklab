@@ -10,6 +10,7 @@ import AuthPage from "@/pages/auth-page";
 import AboutPage from "@/pages/about";
 import ContactPage from "@/pages/contact";
 import PrivacyPage from "@/pages/privacy";
+import PaymentPage from "@/pages/payment";
 import StaffDashboard from "@/pages/staff-dashboard";
 import AdminDashboard from "@/pages/admin/dashboard";
 import UserManagement from "@/pages/admin/user-management";
@@ -20,6 +21,7 @@ import ProfileSettings from "@/pages/admin/profile-settings";
 import ResultTemplates from "@/pages/admin/result-templates";
 import LogoSettings from "@/pages/admin/logo-settings";
 import TestTypes from "@/pages/admin/test-types";
+import PaymentSettings from "@/pages/admin/payment-settings";
 import TechnicianDashboard from "@/pages/lab/dashboard";
 import TestResults from "@/pages/lab/results";
 import QualityControl from "@/pages/lab/quality";
@@ -35,6 +37,8 @@ import PatientsPage from "@/pages/psychologist/patients";
 import ReportsPage from "@/pages/psychologist/reports";
 import PsychologistSettingsPage from "@/pages/psychologist/settings";
 import PsychologistProfilePage from "@/pages/psychologist/profile";
+import RegisterPatient from "@/pages/edec/register-patient";
+import VerifyPayment from "@/pages/edec/verify-payment";
 import { ProtectedRoute } from "./lib/protected-route";
 
 function Router() {
@@ -45,6 +49,7 @@ function Router() {
       <Route path="/about" component={AboutPage} />
       <Route path="/contact" component={ContactPage} />
       <Route path="/privacy" component={PrivacyPage} />
+      <Route path="/payment" component={PaymentPage} />
       <Route path="/results" component={Results} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/dashboard" component={StaffDashboard} />
@@ -180,6 +185,23 @@ function Router() {
         path="/psychologist/profile" 
         component={PsychologistProfilePage}
         requireSpecificRole="psychologist"
+      />
+      
+      {/* EDEC Routes */}
+      <ProtectedRoute 
+        path="/edec/register-patient" 
+        component={RegisterPatient}
+        requireSpecificRole="edec"
+      />
+      <ProtectedRoute 
+        path="/edec/verify-payment" 
+        component={VerifyPayment}
+        requireSpecificRole="edec"
+      />
+      <ProtectedRoute 
+        path="/admin/payment-settings" 
+        component={PaymentSettings}
+        requireAdmin={true}
       />
 
       {/* 404 Route */}

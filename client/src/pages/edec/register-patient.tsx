@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2, UserPlus, Users } from "lucide-react";
-import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import { EdecLayout } from "@/components/layout/edec-layout";
 
 const patientSchema = z.object({
   // Personal details
@@ -97,7 +97,7 @@ export default function RegisterPatient() {
   };
 
   return (
-    <DashboardLayout>
+    <EdecLayout>
       <div className="container mx-auto p-6">
         <h1 className="text-3xl font-bold mb-2">Patient Registration</h1>
         <p className="text-muted-foreground mb-8">
@@ -355,6 +355,6 @@ export default function RegisterPatient() {
           </Card>
         )}
       </div>
-    </DashboardLayout>
+    </EdecLayout>
   );
 }
