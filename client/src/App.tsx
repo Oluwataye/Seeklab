@@ -33,6 +33,8 @@ import VerifyPayment from "@/pages/edec/verify-payment";
 import EdecDashboard from "@/pages/edec/dashboard";
 import EdecPatients from "@/pages/edec/patients";
 import TestRequests from "@/pages/edec/test-requests";
+import EdecProfilePage from "@/pages/edec/profile";
+import EdecSettingsPage from "@/pages/edec/settings";
 import { ProtectedRoute } from "./lib/protected-route";
 
 function Router() {
@@ -161,6 +163,16 @@ function Router() {
       <ProtectedRoute 
         path="/edec/test-requests" 
         component={TestRequests}
+        requireSpecificRole="edec"
+      />
+      <ProtectedRoute 
+        path="/edec/profile" 
+        component={EdecProfilePage}
+        requireSpecificRole="edec"
+      />
+      <ProtectedRoute 
+        path="/edec/settings" 
+        component={EdecSettingsPage}
         requireSpecificRole="edec"
       />
 
