@@ -1087,6 +1087,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // --- Notifications API ---
+  
+  // Get current user's notifications
+  app.get("/api/notifications", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      // Get notifications for the current user
+      const notifications = await storage.getNotifications(req.user.id.toString());
+      res.json(notifications);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+
+  // Create a new notification
+  app.post("/api/notifications", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const { title, message, type, recipientId } = z.object({
+        title: z.string(),
+        message: z.string(),
+        type: z.string(),
+        recipientId: z.string()
+      }).parse(req.body);
+      
+      let recipients: string[] = [];
+      
+      // If recipientId is "STAFF", send to all staff users
+      if (recipientId === "STAFF") {
+        const users = await storage.getAllUsers();
+        recipients = users
+          .filter(user => user.role === 'edec' || user.role === 'admin')
+          .map(user => user.id.toString());
+      } else {
+        recipients = [recipientId];
+      }
+      
+      // Create notifications for all recipients
+      const notifications = [];
+      for (const recipient of recipients) {
+        const notification = await storage.createNotification({
+          title,
+          message,
+          type,
+          recipientId: recipient,
+          isRead: false,
+        });
+        notifications.push(notification);
+      }
+      
+      res.status(201).json(notifications);
+    } catch (error) {
+      console.error('Error creating notification:', error);
+      res.status(400).json({ message: "Invalid notification data" });
+    }
+  });
+
+  // Mark notification as read
+  app.post("/api/notifications/:id/read", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const { id } = req.params;
+      await storage.markNotificationAsRead(parseInt(id));
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      res.status(500).json({ message: "Failed to mark notification as read" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -67,14 +67,31 @@ export default function RegisterPatient() {
       });
       return response;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       toast({
         title: "Patient Registered",
         description: `Successfully registered ${data.firstName} ${data.lastName} with ID: ${data.patientId}`,
       });
+      
+      // Create notification for all EDEC staff
+      try {
+        await apiRequest('/api/notifications', {
+          method: 'POST',
+          body: JSON.stringify({
+            title: "New Patient Registration",
+            message: `Patient ${data.firstName} ${data.lastName} (ID: ${data.patientId}) has been registered`,
+            type: "PATIENT_REGISTRATION",
+            recipientId: "STAFF" // This will be filtered by the backend to appropriate staff
+          })
+        });
+      } catch (error) {
+        console.error("Failed to create notification:", error);
+      }
+      
       setRegisteredPatient(data);
       setIsSuccess(true);
       queryClient.invalidateQueries({ queryKey: ['/api/patients'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
       form.reset();
     },
     onError: (error: Error) => {

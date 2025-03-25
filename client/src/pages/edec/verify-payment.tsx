@@ -110,14 +110,31 @@ export default function VerifyPayment() {
       });
       return response;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       toast({
         title: "Payment Verified",
         description: `Payment has been successfully verified`,
       });
+      
+      // Create notification for payment verification
+      try {
+        await apiRequest('/api/notifications', {
+          method: 'POST',
+          body: JSON.stringify({
+            title: "Payment Verified",
+            message: `Payment for patient ID: ${data.patientId} (Ref: ${data.referenceNumber}) has been verified`,
+            type: "PAYMENT_VERIFICATION",
+            recipientId: "STAFF" // This will be filtered by the backend to appropriate staff
+          })
+        });
+      } catch (error) {
+        console.error("Failed to create notification:", error);
+      }
+      
       setVerifiedPayment(data);
       setIsVerified(true);
       queryClient.invalidateQueries({ queryKey: ['/api/payments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
     },
     onError: (error: Error) => {
       toast({

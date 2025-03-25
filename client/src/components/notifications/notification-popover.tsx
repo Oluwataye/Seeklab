@@ -38,6 +38,10 @@ export function NotificationPopover() {
     switch (type) {
       case 'USER_REGISTRATION':
         return '👤';
+      case 'PATIENT_REGISTRATION':
+        return '🏥';
+      case 'PAYMENT_VERIFICATION':
+        return '💰';
       case 'CODE_EXPIRY':
         return '⚠️';
       case 'SYSTEM_UPDATE':
