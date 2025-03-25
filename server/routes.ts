@@ -869,7 +869,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get recent audit logs
       const allAuditLogs = await storage.getAuditLogs();
       const recentLogs = allAuditLogs.filter(log => 
-        new Date(log.timestamp) > twentyFourHoursAgo
+        new Date(log.createdAt) > twentyFourHoursAgo
       );
       
       // Format recent activity
@@ -891,7 +891,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return {
           type: activityType,
           description,
-          timestamp: log.timestamp
+          timestamp: log.createdAt
         };
       }).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
       .slice(0, 10); // Limit to 10 most recent activities
@@ -899,7 +899,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Calculate registration trend
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
-      const newRegistrations = patients.filter(p => new Date(p.registrationDate) > weekAgo).length;
+      const newRegistrations = patients.filter(p => new Date(p.createdAt) > weekAgo).length;
       
       // Return stats
       res.json({

@@ -192,6 +192,7 @@ export const insertNotificationSchema = createInsertSchema(notifications).pick({
   title: true,
   message: true,
   recipientId: true,
+  isRead: true,
   metadata: true,
 });
 
