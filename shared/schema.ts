@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, boolean, jsonb, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, boolean, jsonb, varchar, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -9,8 +9,27 @@ export const users = pgTable("users", {
   isLabStaff: boolean("is_lab_staff").notNull().default(false),
   isAdmin: boolean("is_admin").notNull().default(false),
   email: text("email"),
-  role: text("role").notNull().default("technician"),
+  role: text("role").notNull().default("EDEC"),
   lastLogin: timestamp("last_login"),
+});
+
+export const patients = pgTable("patients", {
+  id: serial("id").primaryKey(),
+  patientId: text("patient_id").notNull().unique(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  dateOfBirth: timestamp("date_of_birth").notNull(),
+  contactNumber: text("contact_number").notNull(),
+  contactAddress: text("contact_address").notNull(),
+  email: text("email"),
+  // Next of kin details
+  kinFirstName: text("kin_first_name").notNull(),
+  kinLastName: text("kin_last_name").notNull(),
+  kinContactNumber: text("kin_contact_number").notNull(),
+  kinContactAddress: text("kin_contact_address").notNull(),
+  kinEmail: text("kin_email"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export const resultTemplates = pgTable("result_templates", {
@@ -51,6 +70,8 @@ export const results = pgTable("results", {
   reportUrl: text("report_url"),
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  accessCount: integer("access_count").notNull().default(0),
+  isPaid: boolean("is_paid").notNull().default(false),
 });
 
 export const roles = pgTable("roles", {
@@ -93,6 +114,31 @@ export const testTypes = pgTable("test_types", {
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const payments = pgTable("payments", {
+  id: serial("id").primaryKey(),
+  patientId: text("patient_id").notNull(),
+  amount: integer("amount").notNull(),
+  currency: text("currency").notNull().default("NGN"),
+  paymentMethod: text("payment_method").notNull(),
+  referenceNumber: text("reference_number").notNull().unique(),
+  status: text("status").notNull(),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  completedAt: timestamp("completed_at"),
+});
+
+export const paymentSettings = pgTable("payment_settings", {
+  id: serial("id").primaryKey(),
+  accessCodePrice: integer("access_code_price").notNull().default(1000),
+  currency: text("currency").notNull().default("NGN"),
+  bankName: text("bank_name").notNull(),
+  accountName: text("account_name").notNull(),
+  accountNumber: text("account_number").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  updatedBy: text("updated_by").notNull(),
 });
 
 export const settings = pgTable("settings", {
@@ -161,6 +207,42 @@ export const insertSettingSchema = createInsertSchema(settings).pick({
   value: true,
 });
 
+export const insertPatientSchema = createInsertSchema(patients).pick({
+  patientId: true,
+  firstName: true,
+  lastName: true,
+  dateOfBirth: true,
+  contactNumber: true,
+  contactAddress: true,
+  email: true,
+  kinFirstName: true,
+  kinLastName: true,
+  kinContactNumber: true,
+  kinContactAddress: true,
+  kinEmail: true,
+});
+
+export const insertPaymentSchema = createInsertSchema(payments).pick({
+  patientId: true,
+  amount: true,
+  currency: true,
+  paymentMethod: true,
+  referenceNumber: true,
+  status: true,
+  metadata: true,
+  completedAt: true,
+});
+
+export const insertPaymentSettingSchema = createInsertSchema(paymentSettings).pick({
+  accessCodePrice: true,
+  currency: true,
+  bankName: true,
+  accountName: true,
+  accountNumber: true,
+  isActive: true,
+  updatedBy: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type Role = typeof roles.$inferSelect;
@@ -177,3 +259,9 @@ export type TestType = typeof testTypes.$inferSelect;
 export type InsertTestType = z.infer<typeof insertTestTypeSchema>;
 export type Setting = typeof settings.$inferSelect;
 export type InsertSetting = z.infer<typeof insertSettingSchema>;
+export type Patient = typeof patients.$inferSelect;
+export type InsertPatient = z.infer<typeof insertPatientSchema>;
+export type Payment = typeof payments.$inferSelect;
+export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+export type PaymentSetting = typeof paymentSettings.$inferSelect;
+export type InsertPaymentSetting = z.infer<typeof insertPaymentSettingSchema>;
