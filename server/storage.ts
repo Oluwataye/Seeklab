@@ -15,36 +15,67 @@ export interface IStorage {
   getAllUsers(): Promise<User[]>;
   updateUser(id: number, data: Partial<User>): Promise<User>;
   deleteUser(id: number): Promise<void>;
+  
+  // Results
   getResultByCode(code: string): Promise<Result | undefined>;
   createResult(result: InsertResult): Promise<Result>;
   getAllResults(): Promise<Result[]>;
   updateResult(id: number, data: Partial<Result>): Promise<Result>;
+  incrementResultAccessCount(id: number): Promise<Result>;
+  
   // Role management
   getAllRoles(): Promise<Role[]>;
   getRoleById(id: number): Promise<Role | undefined>;
   createRole(role: InsertRole): Promise<Role>;
   updateRole(id: number, data: Partial<Role>): Promise<Role>;
   deleteRole(id: number): Promise<void>;
+  
   // Audit logs
   createAuditLog(log: InsertAuditLog): Promise<AuditLog>;
   getAuditLogs(): Promise<AuditLog[]>;
   sessionStore: session.Store;
+  
   // Notifications
   createNotification(notification: InsertNotification): Promise<Notification>;
   getNotifications(userId: string): Promise<Notification[]>;
   markNotificationAsRead(id: number): Promise<void>;
   deleteNotification(id: number): Promise<void>;
+  
   // Test types
   getAllTestTypes(): Promise<TestType[]>;
   getTestTypeById(id: number): Promise<TestType | undefined>;
   createTestType(testType: InsertTestType): Promise<TestType>;
   updateTestType(id: number, data: Partial<TestType>): Promise<TestType>;
   deleteTestType(id: number): Promise<void>;
+  
   // Settings
   getSetting(key: string): Promise<Setting | undefined>;
   createOrUpdateSetting(key: string, value: any): Promise<Setting>;
   getLogoSettings(): Promise<{ imageUrl: string; name: string; tagline: string }>;
   updateLogoSettings(settings: { imageUrl?: string; name?: string; tagline?: string }): Promise<Setting>;
+  
+  // Patient management
+  createPatient(patient: InsertPatient): Promise<Patient>;
+  getPatientById(id: number): Promise<Patient | undefined>;
+  getPatientByPatientId(patientId: string): Promise<Patient | undefined>;
+  getAllPatients(): Promise<Patient[]>;
+  updatePatient(id: number, data: Partial<Patient>): Promise<Patient>;
+  
+  // Payment management
+  createPayment(payment: InsertPayment): Promise<Payment>;
+  getPaymentById(id: number): Promise<Payment | undefined>;
+  getPaymentsByPatientId(patientId: string): Promise<Payment[]>;
+  updatePayment(id: number, data: Partial<Payment>): Promise<Payment>;
+  
+  // Payment settings
+  getPaymentSettings(): Promise<PaymentSetting | undefined>;
+  updatePaymentSettings(data: Partial<InsertPaymentSetting>): Promise<PaymentSetting>;
+  
+  // Generate unique patient ID
+  generateUniquePatientId(): Promise<string>;
+  
+  // Generate access code for patient results
+  generateAccessCode(patientId: string): Promise<string>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -142,6 +173,29 @@ export class DatabaseStorage implements IStorage {
       return result;
     } catch (error) {
       console.error('Error updating result:', error);
+      throw error;
+    }
+  }
+  
+  async incrementResultAccessCount(id: number): Promise<Result> {
+    try {
+      const [result] = await db.select().from(results).where(eq(results.id, id));
+      
+      if (!result) {
+        throw new Error(`Result with ID ${id} not found`);
+      }
+      
+      const [updatedResult] = await db
+        .update(results)
+        .set({ 
+          accessCount: (result.accessCount || 0) + 1 
+        })
+        .where(eq(results.id, id))
+        .returning();
+        
+      return updatedResult;
+    } catch (error) {
+      console.error('Error incrementing result access count:', error);
       throw error;
     }
   }
@@ -406,6 +460,218 @@ export class DatabaseStorage implements IStorage {
       console.error('Error updating logo settings:', error);
       throw error;
     }
+  }
+  
+  // Patient management methods
+  async createPatient(insertPatient: InsertPatient): Promise<Patient> {
+    try {
+      const [patient] = await db.insert(patients).values(insertPatient).returning();
+      return patient;
+    } catch (error) {
+      console.error('Error creating patient:', error);
+      throw error;
+    }
+  }
+  
+  async getPatientById(id: number): Promise<Patient | undefined> {
+    try {
+      const [patient] = await db.select().from(patients).where(eq(patients.id, id));
+      return patient;
+    } catch (error) {
+      console.error('Error fetching patient by id:', error);
+      return undefined;
+    }
+  }
+  
+  async getPatientByPatientId(patientId: string): Promise<Patient | undefined> {
+    try {
+      const [patient] = await db.select().from(patients).where(eq(patients.patientId, patientId));
+      return patient;
+    } catch (error) {
+      console.error('Error fetching patient by patient ID:', error);
+      return undefined;
+    }
+  }
+  
+  async getAllPatients(): Promise<Patient[]> {
+    try {
+      return await db.select().from(patients).orderBy(desc(patients.createdAt));
+    } catch (error) {
+      console.error('Error fetching all patients:', error);
+      return [];
+    }
+  }
+  
+  async updatePatient(id: number, data: Partial<Patient>): Promise<Patient> {
+    try {
+      const updatedData = {
+        ...data,
+        updatedAt: new Date()
+      };
+      
+      const [patient] = await db
+        .update(patients)
+        .set(updatedData)
+        .where(eq(patients.id, id))
+        .returning();
+      return patient;
+    } catch (error) {
+      console.error('Error updating patient:', error);
+      throw error;
+    }
+  }
+  
+  // Payment management methods
+  async createPayment(insertPayment: InsertPayment): Promise<Payment> {
+    try {
+      const [payment] = await db.insert(payments).values(insertPayment).returning();
+      return payment;
+    } catch (error) {
+      console.error('Error creating payment:', error);
+      throw error;
+    }
+  }
+  
+  async getPaymentById(id: number): Promise<Payment | undefined> {
+    try {
+      const [payment] = await db.select().from(payments).where(eq(payments.id, id));
+      return payment;
+    } catch (error) {
+      console.error('Error fetching payment by id:', error);
+      return undefined;
+    }
+  }
+  
+  async getPaymentsByPatientId(patientId: string): Promise<Payment[]> {
+    try {
+      return await db
+        .select()
+        .from(payments)
+        .where(eq(payments.patientId, patientId))
+        .orderBy(desc(payments.createdAt));
+    } catch (error) {
+      console.error('Error fetching payments by patient ID:', error);
+      return [];
+    }
+  }
+  
+  async updatePayment(id: number, data: Partial<Payment>): Promise<Payment> {
+    try {
+      const [payment] = await db
+        .update(payments)
+        .set(data)
+        .where(eq(payments.id, id))
+        .returning();
+      return payment;
+    } catch (error) {
+      console.error('Error updating payment:', error);
+      throw error;
+    }
+  }
+  
+  // Payment settings methods
+  async getPaymentSettings(): Promise<PaymentSetting | undefined> {
+    try {
+      const [setting] = await db
+        .select()
+        .from(paymentSettings)
+        .where(eq(paymentSettings.isActive, true))
+        .limit(1);
+      return setting;
+    } catch (error) {
+      console.error('Error fetching payment settings:', error);
+      return undefined;
+    }
+  }
+  
+  async updatePaymentSettings(data: Partial<InsertPaymentSetting>): Promise<PaymentSetting> {
+    try {
+      // Check if there are any existing settings
+      const [existingSetting] = await db.select().from(paymentSettings).limit(1);
+      
+      if (existingSetting) {
+        // Update the existing settings
+        const [updatedSetting] = await db
+          .update(paymentSettings)
+          .set({
+            ...data,
+            updatedAt: new Date()
+          })
+          .where(eq(paymentSettings.id, existingSetting.id))
+          .returning();
+        return updatedSetting;
+      } else {
+        // Create new settings if none exist
+        if (!data.bankName || !data.accountName || !data.accountNumber || !data.updatedBy) {
+          throw new Error('Required payment settings fields are missing');
+        }
+        
+        const [newSetting] = await db
+          .insert(paymentSettings)
+          .values({
+            accessCodePrice: data.accessCodePrice || 1000,
+            currency: data.currency || 'NGN',
+            bankName: data.bankName,
+            accountName: data.accountName,
+            accountNumber: data.accountNumber,
+            isActive: data.isActive !== undefined ? data.isActive : true,
+            updatedBy: data.updatedBy
+          })
+          .returning();
+        return newSetting;
+      }
+    } catch (error) {
+      console.error('Error updating payment settings:', error);
+      throw error;
+    }
+  }
+  
+  // Utility methods
+  async generateUniquePatientId(): Promise<string> {
+    // Generate a 4-digit number for patient ID
+    const min = 1000;
+    const max = 9999;
+    let patientIdNum = Math.floor(min + Math.random() * (max - min));
+    let patientId = patientIdNum.toString();
+    
+    // Check if this ID already exists
+    let existingPatient = await this.getPatientByPatientId(patientId);
+    
+    // Keep trying until we find an unused ID
+    while (existingPatient) {
+      patientIdNum = Math.floor(min + Math.random() * (max - min));
+      patientId = patientIdNum.toString();
+      existingPatient = await this.getPatientByPatientId(patientId);
+    }
+    
+    return patientId;
+  }
+  
+  async generateAccessCode(patientId: string): Promise<string> {
+    // Generate an 8-character alphanumeric code
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const codeLength = 8;
+    
+    let accessCode = '';
+    for (let i = 0; i < codeLength; i++) {
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      accessCode += characters.charAt(randomIndex);
+    }
+    
+    // Check if this code already exists in results
+    let existingResult = await this.getResultByCode(accessCode);
+    
+    // Keep trying until we find an unused code
+    while (existingResult) {
+      accessCode = '';
+      for (let i = 0; i < codeLength; i++) {
+        const randomIndex = Math.floor(Math.random() * characters.length);
+        accessCode += characters.charAt(randomIndex);
+      }
+      existingResult = await this.getResultByCode(accessCode);
+    }
+    
+    return accessCode;
   }
 }
 

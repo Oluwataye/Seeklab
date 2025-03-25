@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
-import { insertResultSchema, insertTestTypeSchema } from "@shared/schema";
+import { insertResultSchema, insertTestTypeSchema, insertPatientSchema, insertPaymentSchema, insertPaymentSettingSchema } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
 import path from "path";
@@ -701,6 +701,426 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting test type:', error);
       res.status(500).json({ message: "Failed to delete test type" });
+    }
+  });
+
+  //
+  // PATIENT MANAGEMENT ENDPOINTS
+  //
+  
+  // Create new patient (EDEC role)
+  app.post("/api/patients", async (req, res) => {
+    if (!req.isAuthenticated() || 
+        (req.user?.role !== 'EDEC' && !req.user?.isAdmin)) {
+      return res.status(403).json({ message: "Unauthorized - EDEC or admin access required" });
+    }
+
+    try {
+      // Generate a unique patient ID
+      const patientId = await storage.generateUniquePatientId();
+      
+      // Parse and validate the patient data
+      const patientData = insertPatientSchema.parse({
+        ...req.body,
+        patientId
+      });
+      
+      // Create the patient
+      const patient = await storage.createPatient(patientData);
+      
+      // Create audit log for this action
+      if (req.user?.id) {
+        await storage.createAuditLog({
+          userId: req.user.id.toString(),
+          action: "create_patient",
+          entityType: "patient",
+          entityId: patient.id.toString(),
+          details: { 
+            patientId: patient.patientId,
+            name: `${patient.firstName} ${patient.lastName}`
+          },
+          ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+        });
+      }
+      
+      res.status(201).json(patient);
+    } catch (error) {
+      console.error('Error creating patient:', error);
+      res.status(400).json({ message: "Invalid patient data" });
+    }
+  });
+  
+  // Get all patients (EDEC, Admin)
+  app.get("/api/patients", async (req, res) => {
+    if (!req.isAuthenticated() || 
+        (req.user?.role !== 'EDEC' && !req.user?.isAdmin)) {
+      return res.status(403).json({ message: "Unauthorized - EDEC or admin access required" });
+    }
+
+    try {
+      const patients = await storage.getAllPatients();
+      res.json(patients);
+    } catch (error) {
+      console.error('Error fetching patients:', error);
+      res.status(500).json({ message: "Failed to fetch patients" });
+    }
+  });
+  
+  // Get patient by ID
+  app.get("/api/patients/:id", async (req, res) => {
+    if (!req.isAuthenticated() || 
+        (req.user?.role !== 'EDEC' && !req.user?.isAdmin)) {
+      return res.status(403).json({ message: "Unauthorized - EDEC or admin access required" });
+    }
+
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid patient ID" });
+      }
+      
+      const patient = await storage.getPatientById(id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: "Patient not found" });
+      }
+      
+      res.json(patient);
+    } catch (error) {
+      console.error('Error fetching patient:', error);
+      res.status(500).json({ message: "Failed to fetch patient" });
+    }
+  });
+  
+  // Update patient
+  app.patch("/api/patients/:id", async (req, res) => {
+    if (!req.isAuthenticated() || 
+        (req.user?.role !== 'EDEC' && !req.user?.isAdmin)) {
+      return res.status(403).json({ message: "Unauthorized - EDEC or admin access required" });
+    }
+
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid patient ID" });
+      }
+      
+      // Get current patient to ensure it exists
+      const existingPatient = await storage.getPatientById(id);
+      
+      if (!existingPatient) {
+        return res.status(404).json({ message: "Patient not found" });
+      }
+      
+      // Validate update data - excluding patientId which shouldn't be changed
+      const updateSchema = z.object({
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        dateOfBirth: z.date().optional(),
+        contactNumber: z.string().optional(),
+        contactAddress: z.string().optional(),
+        email: z.string().email().optional().nullable(),
+        kinFirstName: z.string().optional(),
+        kinLastName: z.string().optional(),
+        kinContactNumber: z.string().optional(),
+        kinContactAddress: z.string().optional(),
+        kinEmail: z.string().email().optional().nullable()
+      });
+      
+      const updateData = updateSchema.parse(req.body);
+      
+      // Update the patient
+      const updatedPatient = await storage.updatePatient(id, updateData);
+      
+      // Create audit log for this action
+      if (req.user?.id) {
+        await storage.createAuditLog({
+          userId: req.user.id.toString(),
+          action: "update_patient",
+          entityType: "patient",
+          entityId: id.toString(),
+          details: { 
+            patientId: existingPatient.patientId,
+            fields: Object.keys(updateData)
+          },
+          ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+        });
+      }
+      
+      res.json(updatedPatient);
+    } catch (error) {
+      console.error('Error updating patient:', error);
+      res.status(400).json({ message: "Invalid patient data" });
+    }
+  });
+  
+  // Generate access code for a patient
+  app.post("/api/patients/:id/access-code", async (req, res) => {
+    if (!req.isAuthenticated() || 
+        (req.user?.role !== 'EDEC' && !req.user?.isAdmin)) {
+      return res.status(403).json({ message: "Unauthorized - EDEC or admin access required" });
+    }
+
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid patient ID" });
+      }
+      
+      // Get the patient
+      const patient = await storage.getPatientById(id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: "Patient not found" });
+      }
+      
+      // Generate an access code for the patient
+      const accessCode = await storage.generateAccessCode(patient.patientId);
+      
+      // Generate expiry date (30 days from now)
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 30);
+      
+      // Get test type
+      const { testType } = z.object({
+        testType: z.string()
+      }).parse(req.body);
+      
+      // Create a new result entry with this access code
+      const result = await storage.createResult({
+        accessCode,
+        patientId: patient.patientId,
+        testType,
+        testDate: new Date(),
+        expiresAt,
+        resultData: null,
+        reportUrl: null
+      });
+      
+      // Create audit log for this action
+      if (req.user?.id) {
+        await storage.createAuditLog({
+          userId: req.user.id.toString(),
+          action: "generate_access_code",
+          entityType: "result",
+          entityId: result.id.toString(),
+          details: { 
+            patientId: patient.patientId,
+            accessCode,
+            testType
+          },
+          ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+        });
+      }
+      
+      res.status(201).json({ 
+        accessCode,
+        patientId: patient.patientId,
+        expiresAt,
+        resultId: result.id
+      });
+    } catch (error) {
+      console.error('Error generating access code:', error);
+      res.status(400).json({ message: "Invalid request" });
+    }
+  });
+  
+  //
+  // PAYMENT MANAGEMENT ENDPOINTS
+  //
+  
+  // Get payment settings (public)
+  app.get("/api/payment-settings", async (req, res) => {
+    try {
+      const settings = await storage.getPaymentSettings();
+      
+      if (!settings) {
+        return res.status(404).json({ message: "Payment settings not configured" });
+      }
+      
+      // Return only necessary details for public use
+      res.json({
+        accessCodePrice: settings.accessCodePrice,
+        currency: settings.currency,
+        bankName: settings.bankName,
+        accountName: settings.accountName,
+        accountNumber: settings.accountNumber
+      });
+    } catch (error) {
+      console.error('Error fetching payment settings:', error);
+      res.status(500).json({ message: "Failed to fetch payment settings" });
+    }
+  });
+  
+  // Update payment settings (Admin only)
+  app.post("/api/payment-settings", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user?.isAdmin) {
+      return res.status(403).json({ message: "Unauthorized - Admin access required" });
+    }
+
+    try {
+      const settingsData = insertPaymentSettingSchema.parse({
+        ...req.body,
+        updatedBy: req.user.id.toString()
+      });
+      
+      const settings = await storage.updatePaymentSettings(settingsData);
+      
+      // Create audit log for this action
+      if (req.user?.id) {
+        await storage.createAuditLog({
+          userId: req.user.id.toString(),
+          action: "update_payment_settings",
+          entityType: "payment_settings",
+          entityId: settings.id.toString(),
+          details: { 
+            accessCodePrice: settings.accessCodePrice,
+            currency: settings.currency,
+            bankName: settings.bankName
+          },
+          ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+        });
+      }
+      
+      res.json(settings);
+    } catch (error) {
+      console.error('Error updating payment settings:', error);
+      res.status(400).json({ message: "Invalid payment settings data" });
+    }
+  });
+  
+  // Register a payment (EDEC role)
+  app.post("/api/payments", async (req, res) => {
+    if (!req.isAuthenticated() || 
+        (req.user?.role !== 'EDEC' && !req.user?.isAdmin)) {
+      return res.status(403).json({ message: "Unauthorized - EDEC or admin access required" });
+    }
+
+    try {
+      // Generate a reference number for the payment
+      const referenceNumber = `PAY-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      
+      const paymentData = insertPaymentSchema.parse({
+        ...req.body,
+        referenceNumber,
+        completedAt: new Date()
+      });
+      
+      // Create the payment
+      const payment = await storage.createPayment(paymentData);
+      
+      // If this is for a result access code payment, update the result
+      if (paymentData.metadata && paymentData.metadata.resultId) {
+        const resultId = parseInt(paymentData.metadata.resultId as string);
+        if (!isNaN(resultId)) {
+          await storage.updateResult(resultId, { isPaid: true });
+        }
+      }
+      
+      // Create audit log for this action
+      if (req.user?.id) {
+        await storage.createAuditLog({
+          userId: req.user.id.toString(),
+          action: "register_payment",
+          entityType: "payment",
+          entityId: payment.id.toString(),
+          details: { 
+            patientId: payment.patientId,
+            amount: payment.amount,
+            paymentMethod: payment.paymentMethod,
+            referenceNumber
+          },
+          ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+        });
+      }
+      
+      res.status(201).json(payment);
+    } catch (error) {
+      console.error('Error creating payment:', error);
+      res.status(400).json({ message: "Invalid payment data" });
+    }
+  });
+  
+  // Get all payments for a patient
+  app.get("/api/patients/:patientId/payments", async (req, res) => {
+    if (!req.isAuthenticated() || 
+        (req.user?.role !== 'EDEC' && !req.user?.isAdmin)) {
+      return res.status(403).json({ message: "Unauthorized - EDEC or admin access required" });
+    }
+
+    try {
+      const { patientId } = req.params;
+      
+      // Validate patient exists
+      const patient = await storage.getPatientByPatientId(patientId);
+      
+      if (!patient) {
+        return res.status(404).json({ message: "Patient not found" });
+      }
+      
+      const payments = await storage.getPaymentsByPatientId(patientId);
+      res.json(payments);
+    } catch (error) {
+      console.error('Error fetching patient payments:', error);
+      res.status(500).json({ message: "Failed to fetch payments" });
+    }
+  });
+  
+  // Payment verification endpoint
+  app.post("/api/payments/verify", async (req, res) => {
+    if (!req.isAuthenticated() || 
+        (req.user?.role !== 'EDEC' && !req.user?.isAdmin)) {
+      return res.status(403).json({ message: "Unauthorized - EDEC or admin access required" });
+    }
+
+    try {
+      const { referenceNumber } = z.object({
+        referenceNumber: z.string()
+      }).parse(req.body);
+      
+      // Find the payment by reference number
+      const payments = await storage.getAllResults(); // We'll need to add a method to get payment by reference
+      const payment = payments.find(p => p.referenceNumber === referenceNumber);
+      
+      if (!payment) {
+        return res.status(404).json({ message: "Payment not found" });
+      }
+      
+      // Return payment details
+      res.json({
+        verified: true,
+        payment
+      });
+    } catch (error) {
+      console.error('Error verifying payment:', error);
+      res.status(400).json({ message: "Invalid reference number" });
+    }
+  });
+
+  // Public payment page (no authentication required)
+  app.get("/api/payment-page", async (req, res) => {
+    try {
+      const settings = await storage.getPaymentSettings();
+      
+      if (!settings) {
+        return res.status(404).json({ message: "Payment settings not configured" });
+      }
+      
+      // Return only necessary details for public use, with limited bank account info
+      res.json({
+        accessCodePrice: settings.accessCodePrice,
+        currency: settings.currency,
+        bankName: settings.bankName,
+        accountName: settings.accountName,
+        accountNumber: settings.accountNumber.replace(/(\d{4})(\d+)(\d{4})/, '$1****$3'), // Mask middle digits
+        paymentInstructions: "Please make payment using any of the methods below and contact our staff to verify your payment."
+      });
+    } catch (error) {
+      console.error('Error fetching payment page data:', error);
+      res.status(500).json({ message: "Failed to fetch payment information" });
     }
   });
 
