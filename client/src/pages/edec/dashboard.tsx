@@ -365,101 +365,26 @@ export default function EdecDashboard() {
           </Card>
         </div>
 
-        {/* Quick action cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <UserPlus className="h-5 w-5 text-primary" />
-                <CardTitle>Patient Management</CardTitle>
-              </div>
-              <CardDescription>
-                Register patients and manage their information
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4">
-              <div className="flex items-start space-x-4">
-                <div className="bg-primary/10 rounded-full p-2 text-primary">
-                  <UserPlus className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="font-medium">Patient Registration</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Register new patients with personal and next of kin details
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-4">
-                <div className="bg-primary/10 rounded-full p-2 text-primary">
-                  <Users className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="font-medium">Manage Patients</h3>
-                  <p className="text-sm text-muted-foreground">
-                    View and manage existing patient records
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-between border-t pt-4">
-              <Button variant="outline" asChild>
-                <Link href="/edec/patients">View Patients</Link>
-              </Button>
-              <Button asChild>
-                <Link href="/edec/register-patient">
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Register Patient
-                </Link>
-              </Button>
-            </CardFooter>
-          </Card>
-          
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5 text-primary" />
-                <CardTitle>Payment Management</CardTitle>
-              </div>
-              <CardDescription>
-                Verify payments and manage access codes
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4">
-              <div className="flex items-start space-x-4">
-                <div className="bg-primary/10 rounded-full p-2 text-primary">
-                  <CreditCard className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="font-medium">Payment Verification</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Verify bank transfers and card payments for access codes
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-4">
-                <div className="bg-primary/10 rounded-full p-2 text-primary">
-                  <ClipboardList className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="font-medium">Test Requests</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Manage pending and completed test requests
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-between border-t pt-4">
-              <Button variant="outline" asChild>
-                <Link href="/edec/test-requests">Test Requests</Link>
-              </Button>
-              <Button asChild>
-                <Link href="/edec/verify-payment">
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  Verify Payment
-                </Link>
-              </Button>
-            </CardFooter>
-          </Card>
+        {/* Quick links */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Button size="lg" className="flex items-center justify-center gap-2 h-20" asChild>
+            <Link href="/edec/register-patient">
+              <UserPlus className="h-5 w-5" />
+              Register Patient
+            </Link>
+          </Button>
+          <Button size="lg" className="flex items-center justify-center gap-2 h-20" asChild>
+            <Link href="/edec/verify-payment">
+              <CreditCard className="h-5 w-5" />
+              Verify Payment  
+            </Link>
+          </Button>
+          <Button size="lg" className="flex items-center justify-center gap-2 h-20" asChild>
+            <Link href="/edec/test-requests">
+              <ClipboardList className="h-5 w-5" />
+              Test Requests
+            </Link>
+          </Button>
         </div>
       </div>
     </EdecLayout>
