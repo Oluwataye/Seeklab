@@ -140,108 +140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Mock test result generation endpoint for lab technicians
-  app.post("/api/results/generate-mock", async (req, res) => {
-    if (!req.isAuthenticated() || !req.user?.isLabStaff) {
-      return res.status(403).json({ message: "Unauthorized" });
-    }
-
-    try {
-      // Generate a random 8-character alphanumeric code
-      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      let accessCode = '';
-      for (let i = 0; i < 8; i++) {
-        accessCode += characters.charAt(Math.floor(Math.random() * characters.length));
-      }
-      
-      // Get current date and expiration date (30 days from now)
-      const now = new Date();
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 30);
-      
-      // Generate a fake patient ID
-      const patientId = `P${Math.floor(10000 + Math.random() * 90000)}`;
-      
-      // Create a mock result based on the test type
-      const testType = req.body.testType || "Comprehensive Panel";
-      
-      // Default mock result data
-      let resultData = {
-        templateId: 1,
-        templateName: testType,
-        timestamp: now.toISOString(),
-        values: {}
-      };
-      
-      // Different result data based on test type
-      if (testType === "Blood Panel") {
-        resultData.values = {
-          "Hemoglobin": `${(13 + Math.random() * 2).toFixed(1)} g/dL`,
-          "White Blood Cells": `${(4 + Math.random() * 7).toFixed(1)} 10^3/µL`,
-          "Platelets": `${Math.floor(150 + Math.random() * 300)} 10^3/µL`,
-          "Red Blood Cells": `${(4 + Math.random()).toFixed(2)} 10^6/µL`,
-        };
-      } else if (testType === "Lipid Panel") {
-        resultData.values = {
-          "Total Cholesterol": `${Math.floor(150 + Math.random() * 100)} mg/dL`,
-          "HDL Cholesterol": `${Math.floor(40 + Math.random() * 30)} mg/dL`,
-          "LDL Cholesterol": `${Math.floor(80 + Math.random() * 70)} mg/dL`,
-          "Triglycerides": `${Math.floor(100 + Math.random() * 100)} mg/dL`,
-        };
-      } else if (testType === "Drug Test") {
-        resultData.values = {
-          "Amphetamines": "Negative",
-          "Barbiturates": "Negative",
-          "Benzodiazepines": "Negative",
-          "Cocaine": "Negative",
-          "Opiates": "Negative",
-          "PCP": "Negative",
-        };
-      } else {
-        // Comprehensive panel
-        resultData.values = {
-          "Glucose": `${Math.floor(70 + Math.random() * 50)} mg/dL`,
-          "Creatinine": `${(0.6 + Math.random()).toFixed(1)} mg/dL`,
-          "Sodium": `${Math.floor(135 + Math.random() * 10)} mmol/L`,
-          "Potassium": `${(3.5 + Math.random()).toFixed(1)} mmol/L`,
-        };
-      }
-      
-      // Create a mock result with the generated data
-      const mockResult = {
-        accessCode,
-        patientId,
-        testType,
-        testDate: now,
-        resultData,
-        reportUrl: "https://example.com/reports/mock-report.pdf", // Mock report URL to satisfy not-null constraint
-        expiresAt,
-      };
-      
-      const result = await storage.createResult(mockResult);
-      
-      // Create audit log for this action
-      if (req.user?.id) {
-        await storage.createAuditLog({
-          userId: req.user.id.toString(),
-          action: "create_mock_result",
-          entityType: "result",
-          entityId: result.id.toString(),
-          details: { 
-            accessCode: result.accessCode,
-            testType: result.testType,
-            patientId: result.patientId
-          },
-          ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
-        });
-      }
-      
-      res.status(201).json(result);
-    } catch (error) {
-      console.error('Error generating mock result:', error);
-      res.status(500).json({ message: "Failed to generate mock result" });
-    }
-  });
+  // Mock result generation endpoint removed (lab functionality removed)
 
   app.get("/api/results", async (req, res) => {
     console.log('GET /api/results - Auth check:', { 
@@ -299,14 +198,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Result not found" });
       }
       
-      // Technicians can only input/update results that haven't been approved yet
-      if (req.user?.role === 'technician' && 
-          result.scientistReview && 
-          result.scientistReview.approved) {
-        return res.status(403).json({ 
-          message: "Cannot modify approved results. Only scientists or admins can update approved results." 
-        });
-      }
+      // Lab staff checks removed
       
       // Update the result
       const updatedResult = await storage.updateResult(resultId, {
