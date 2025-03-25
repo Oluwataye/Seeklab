@@ -39,6 +39,7 @@ import PsychologistSettingsPage from "@/pages/psychologist/settings";
 import PsychologistProfilePage from "@/pages/psychologist/profile";
 import RegisterPatient from "@/pages/edec/register-patient";
 import VerifyPayment from "@/pages/edec/verify-payment";
+import EdecDashboard from "@/pages/edec/dashboard";
 import { ProtectedRoute } from "./lib/protected-route";
 
 function Router() {
@@ -188,6 +189,11 @@ function Router() {
       />
       
       {/* EDEC Routes */}
+      <ProtectedRoute 
+        path="/edec" 
+        component={EdecDashboard}
+        requireSpecificRole="edec"
+      />
       <ProtectedRoute 
         path="/edec/register-patient" 
         component={RegisterPatient}

@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
   component: () => React.JSX.Element;
   requireAdmin?: boolean;
   requireLabStaff?: boolean;
-  requireSpecificRole?: 'admin' | 'lab_scientist' | 'technician' | 'psychologist';
+  requireSpecificRole?: 'admin' | 'lab_scientist' | 'technician' | 'psychologist' | 'edec';
 }
 
 export function ProtectedRoute({
