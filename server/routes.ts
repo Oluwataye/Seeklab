@@ -251,19 +251,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       isAdmin: req.user?.isAdmin
     });
     
-    // Check if the user is authenticated and has lab staff or admin role
+    // Check if the user is authenticated
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "Unauthorized - Not authenticated" });
     }
     
-    // For scientists and admins allow access to all results
-    if (req.user?.role === 'lab_scientist' || req.user?.isAdmin) {
-      const results = await storage.getAllResults();
-      return res.json(results);
-    }
-    
-    // Allow technicians if they have isLabStaff property
-    if (req.user?.isLabStaff) {
+    // Only allow admins and EDEC users to access results
+    if (req.user?.isAdmin || req.user?.role === 'edec') {
       const results = await storage.getAllResults();
       return res.json(results);
     }
@@ -276,8 +270,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Scientific review endpoint for lab scientists
   // PATCH endpoint for updating result data
   app.patch("/api/results/:id", async (req, res) => {
-    if (!req.isAuthenticated() || (!req.user?.isLabStaff && !req.user?.isAdmin)) {
-      return res.status(403).json({ message: "Unauthorized - Lab staff or admin access required" });
+    if (!req.isAuthenticated() || (!req.user?.isAdmin && req.user?.role !== 'edec')) {
+      return res.status(403).json({ message: "Unauthorized - Admin or EDEC access required" });
     }
 
     try {
@@ -342,8 +336,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/results/:id/review", async (req, res) => {
-    if (!req.isAuthenticated() || req.user?.role !== 'lab_scientist') {
-      return res.status(403).json({ message: "Unauthorized - Scientific review requires lab scientist role" });
+    if (!req.isAuthenticated() || !req.user?.isAdmin) {
+      return res.status(403).json({ message: "Unauthorized - Result review requires admin role" });
     }
 
     try {
