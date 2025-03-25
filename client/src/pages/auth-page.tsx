@@ -90,154 +90,64 @@ export default function AuthPage() {
                 </p>
               </div>
 
-              <Tabs defaultValue="login" className="space-y-6">
-                <TabsList className="grid grid-cols-2">
-                  <TabsTrigger value="login">Login</TabsTrigger>
-                  <TabsTrigger value="register">Register</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="login">
-                  <Form {...loginForm}>
-                    <form
-                      onSubmit={loginForm.handleSubmit((data) => loginMutation.mutate(data))}
-                      className="space-y-4"
+              <div className="space-y-6">
+                <Form {...loginForm}>
+                  <form
+                    onSubmit={loginForm.handleSubmit((data) => loginMutation.mutate(data))}
+                    className="space-y-4"
+                  >
+                    <div className="text-center mb-6">
+                      <h2 className="text-xl font-medium">Login to your account</h2>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Staff accounts are created by administrators
+                      </p>
+                    </div>
+                    <FormField
+                      control={loginForm.control}
+                      name="username"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Username</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                              <Input {...field} className="pl-10" placeholder="Enter your username" />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={loginForm.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Password</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground z-10" />
+                              <PasswordInput 
+                                {...field} 
+                                className="pl-10"
+                                placeholder="Enter your password" 
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button
+                      type="submit"
+                      className="w-full bg-primary hover:bg-primary/90"
+                      disabled={loginMutation.isPending}
                     >
-                      <FormField
-                        control={loginForm.control}
-                        name="username"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Username</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                                <Input {...field} className="pl-10" placeholder="Enter your username" />
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={loginForm.control}
-                        name="password"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Password</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground z-10" />
-                                <PasswordInput 
-                                  {...field} 
-                                  className="pl-10"
-                                  placeholder="Enter your password" 
-                                />
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <Button
-                        type="submit"
-                        className="w-full bg-primary hover:bg-primary/90"
-                        disabled={loginMutation.isPending}
-                      >
-                        {loginMutation.isPending ? "Logging in..." : "Login to Portal"}
-                      </Button>
-                    </form>
-                  </Form>
-                </TabsContent>
-
-                <TabsContent value="register">
-                  <Form {...registerForm}>
-                    <form
-                      onSubmit={registerForm.handleSubmit((data) => registerMutation.mutate(data))}
-                      className="space-y-4"
-                    >
-                      <FormField
-                        control={registerForm.control}
-                        name="username"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Username</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                                <Input {...field} className="pl-10" placeholder="Choose a username" />
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={registerForm.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                                <Input {...field} className="pl-10" placeholder="Enter your email" type="email" />
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={registerForm.control}
-                        name="password"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Password</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground z-10" />
-                                <PasswordInput 
-                                  {...field} 
-                                  className="pl-10"
-                                  placeholder="Create a password" 
-                                />
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={registerForm.control}
-                        name="confirmPassword"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Confirm Password</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground z-10" />
-                                <PasswordInput 
-                                  {...field} 
-                                  className="pl-10"
-                                  placeholder="Confirm your password" 
-                                />
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <Button
-                        type="submit"
-                        className="w-full bg-primary hover:bg-primary/90"
-                        disabled={registerMutation.isPending}
-                      >
-                        {registerMutation.isPending ? "Creating Account..." : "Create Account"}
-                      </Button>
-                    </form>
-                  </Form>
-                </TabsContent>
-              </Tabs>
+                      {loginMutation.isPending ? "Logging in..." : "Login to Portal"}
+                    </Button>
+                  </form>
+                </Form>
+              </div>
             </CardContent>
           </Card>
         </div>

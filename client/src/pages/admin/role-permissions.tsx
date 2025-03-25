@@ -41,6 +41,12 @@ const predefinedRoles = [
     permissions: ["view_results"],
     locked: true,
   },
+  {
+    name: "EDEC",
+    description: "Electronic Data Entry Clerk for patient registration and payment verification",
+    permissions: ["register_patients", "verify_payments", "manage_payments"],
+    locked: true,
+  },
 ];
 
 const availablePermissions = [
@@ -51,6 +57,9 @@ const availablePermissions = [
   { id: "manage_users", label: "Manage Users" },
   { id: "view_audit_logs", label: "View Audit Logs" },
   { id: "generate_codes", label: "Generate Access Codes" },
+  { id: "register_patients", label: "Register Patients" },
+  { id: "verify_payments", label: "Verify Payments" },
+  { id: "manage_payments", label: "Manage Payment Settings" },
 ];
 
 interface CustomRole {
