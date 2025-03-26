@@ -77,11 +77,6 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
       icon: CreditCard 
     },
     { 
-      name: "Profile", 
-      href: "/edec/profile", 
-      icon: User 
-    },
-    { 
       name: "Settings", 
       href: "/edec/settings", 
       icon: Settings 
