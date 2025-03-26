@@ -41,8 +41,33 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Bell, Shield } from "lucide-react";
+import { 
+  Loader2, 
+  Bell, 
+  Shield, 
+  Upload, 
+  User, 
+  Mail, 
+  Phone, 
+  MapPin, 
+  Building 
+} from "lucide-react";
 import { PasswordInput } from "@/components/ui/password-input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Textarea } from "@/components/ui/textarea";
+
+// Profile form schema
+const profileSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  email: z.string().email("Please enter a valid email address"),
+  fullName: z.string().optional(),
+  bio: z.string().max(500, "Bio must be less than 500 characters").optional(),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  department: z.string().optional(),
+  position: z.string().optional(),
+  employeeId: z.string().optional(),
+});
 
 // Settings form schema
 const settingsFormSchema = z.object({
@@ -93,6 +118,24 @@ type SecurityFormValues = z.infer<typeof securityFormSchema>;
 export default function EdecSettingsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  
+  // Profile form
+  const profileForm = useForm<z.infer<typeof profileSchema>>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      username: user?.username || "",
+      email: user?.email || "",
+      fullName: "",
+      bio: "",
+      phone: "",
+      address: "",
+      department: "Electronic Data Entry",
+      position: "Data Entry Clerk",
+      employeeId: "",
+    },
+  });
   
   // Settings form
   const settingsForm = useForm<SettingsFormValues>({
@@ -205,7 +248,93 @@ export default function EdecSettingsPage() {
     },
   });
 
+  // Update profile mutation
+  const updateProfileMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof profileSchema>) => {
+      return apiRequest(
+        "POST",
+        "/api/user/profile",
+        data
+      );
+    },
+    onSuccess: () => {
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been updated successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update profile",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Upload avatar mutation
+  const uploadAvatarMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("avatar", file);
+      
+      return apiRequest(
+        "POST",
+        "/api/user/avatar",
+        formData
+      );
+    },
+    onSuccess: () => {
+      toast({
+        title: "Avatar Updated",
+        description: "Your profile picture has been updated successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update avatar",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Handle avatar file change
+  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    setAvatarFile(file);
+    
+    // Create preview URL
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setAvatarPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+  
+  // Handle avatar upload
+  const handleAvatarUpload = () => {
+    if (avatarFile) {
+      uploadAvatarMutation.mutate(avatarFile);
+    }
+  };
+  
+  // Generate initials for avatar fallback
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map(part => part.charAt(0))
+      .join("")
+      .toUpperCase();
+  };
+  
   // Form submission handlers
+  function onSubmitProfile(data: z.infer<typeof profileSchema>) {
+    updateProfileMutation.mutate(data);
+  }
+  
   function onSubmitSettings(data: SettingsFormValues) {
     updateSettingsMutation.mutate(data);
   }
@@ -230,6 +359,7 @@ export default function EdecSettingsPage() {
         
         <Tabs defaultValue="general" className="space-y-4">
           <TabsList>
+            <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="password">Password</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>

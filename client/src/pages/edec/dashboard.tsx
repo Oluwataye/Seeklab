@@ -62,20 +62,6 @@ export default function EdecDashboard() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold">Dashboard Overview</h1>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/edec/register-patient">
-                <UserPlus className="mr-2 h-4 w-4" />
-                Register Patient
-              </Link>
-            </Button>
-            <Button size="sm" asChild>
-              <Link href="/edec/verify-payment">
-                <CreditCard className="mr-2 h-4 w-4" />
-                Verify Payment
-              </Link>
-            </Button>
-          </div>
         </div>
 
         {/* Status cards */}
@@ -352,40 +338,11 @@ export default function EdecDashboard() {
                 </div>
               )}
             </CardContent>
-            <CardFooter className="border-t py-3">
-              <div className="flex w-full gap-2">
-                <Button variant="outline" size="sm" className="flex-1">
-                  <Link href="/edec/patients">View Patients</Link>
-                </Button>
-                <Button size="sm" className="flex-1">
-                  <Link href="/edec/verify-payment">Verify Payment</Link>
-                </Button>
-              </div>
-            </CardFooter>
+
           </Card>
         </div>
 
-        {/* Quick links */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Button size="lg" className="flex items-center justify-center gap-2 h-20" asChild>
-            <Link href="/edec/register-patient">
-              <UserPlus className="h-5 w-5" />
-              Register Patient
-            </Link>
-          </Button>
-          <Button size="lg" className="flex items-center justify-center gap-2 h-20" asChild>
-            <Link href="/edec/verify-payment">
-              <CreditCard className="h-5 w-5" />
-              Verify Payment  
-            </Link>
-          </Button>
-          <Button size="lg" className="flex items-center justify-center gap-2 h-20" asChild>
-            <Link href="/edec/test-requests">
-              <ClipboardList className="h-5 w-5" />
-              Test Requests
-            </Link>
-          </Button>
-        </div>
+
       </div>
     </EdecLayout>
   );

@@ -117,7 +117,7 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>Account</DropdownMenuLabel>
                 <DropdownMenuItem asChild>
-                  <Link href="/edec/profile">Profile Settings</Link>
+                  <Link href="/edec/settings">Account Settings</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
