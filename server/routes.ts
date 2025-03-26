@@ -656,6 +656,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Search for a patient by patient ID (EDEC, Admin)
+  app.post("/api/patients/search", async (req, res) => {
+    if (!req.isAuthenticated() || 
+        (req.user?.role !== 'edec' && !req.user?.isAdmin)) {
+      return res.status(403).json({ message: "Unauthorized - EDEC or admin access required" });
+    }
+
+    try {
+      const { patientId } = req.body;
+      
+      if (!patientId) {
+        return res.status(400).json({ message: "Patient ID is required" });
+      }
+      
+      const patient = await storage.getPatientByPatientId(patientId);
+      
+      if (!patient) {
+        return res.status(404).json({ message: "Patient not found" });
+      }
+      
+      res.json(patient);
+    } catch (error) {
+      console.error('Error searching for patient:', error);
+      res.status(500).json({ message: "Failed to search for patient" });
+    }
+  });
+  
   // Get patient by ID
   app.get("/api/patients/:id", async (req, res) => {
     if (!req.isAuthenticated() || 
