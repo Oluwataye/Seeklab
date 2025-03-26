@@ -45,7 +45,7 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {
       onSuccess: () => {
-        navigate("/login");
+        navigate("/auth");
       },
     });
   };
