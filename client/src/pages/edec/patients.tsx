@@ -502,11 +502,11 @@ export default function PatientsPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Account Name:</span>
-                    <span>{(currentPaymentSettings as any).accountName}</span>
+                    <span>{currentPaymentSettings.accountName}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Account Number:</span>
-                    <span className="font-medium">{(currentPaymentSettings as any).accountNumber}</span>
+                    <span className="font-medium">{currentPaymentSettings.accountNumber}</span>
                   </div>
                 </div>
               </div>
