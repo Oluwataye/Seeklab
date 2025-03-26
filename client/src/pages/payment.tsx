@@ -162,15 +162,15 @@ export default function PaymentPage() {
                     <div className="space-y-4">
                       <div>
                         <h3 className="text-sm font-medium">Bank Name</h3>
-                        <p className="text-lg">{paymentSettings.bankName}</p>
+                        <p className="text-lg">{settings.bankName}</p>
                       </div>
                       <div>
                         <h3 className="text-sm font-medium">Account Name</h3>
-                        <p className="text-lg">{paymentSettings.accountName}</p>
+                        <p className="text-lg">{settings.accountName}</p>
                       </div>
                       <div>
                         <h3 className="text-sm font-medium">Account Number</h3>
-                        <p className="text-lg font-mono">{paymentSettings.accountNumber}</p>
+                        <p className="text-lg font-mono">{settings.accountNumber}</p>
                       </div>
                       <Separator />
                       <Alert>
@@ -191,22 +191,200 @@ export default function PaymentPage() {
               </TabsContent>
 
               <TabsContent value="card" className="space-y-4">
-                <Card>
+                <Card className="bg-gray-900 text-white border-none">
                   <CardHeader>
-                    <CardTitle>Card Payment</CardTitle>
-                    <CardDescription>
-                      Make a secure payment using your Nigerian financial institution card
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <ArrowLeft className="h-5 w-5 cursor-pointer" 
+                          onClick={() => {}} />
+                        <CardTitle>Payment details</CardTitle>
+                      </div>
+                    </div>
+                    <CardDescription className="text-white/70">
+                      Update Payment Method
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Alert>
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertTitle>Card Payment</AlertTitle>
-                      <AlertDescription>
-                        To make a card payment, please visit our office or contact our support staff.
-                        We accept all major Nigerian bank cards.
-                      </AlertDescription>
-                    </Alert>
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="mb-3 font-medium">Card information</h3>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className={`flex items-center justify-between rounded-md p-3 ${paymentMethod === 'google' ? 'bg-gray-800' : 'bg-gray-800/50'}`}
+                              onClick={() => setPaymentMethod('google')}
+                              style={{ cursor: 'pointer' }}>
+                            <div className="flex items-center gap-2">
+                              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-white">
+                                <span className="text-xs font-semibold text-black">G</span>
+                              </div>
+                              <span>Google Pay</span>
+                            </div>
+                          </div>
+                          <div className={`flex items-center justify-between rounded-md p-3 ${paymentMethod === 'card' ? 'bg-gray-800' : 'bg-gray-800/50'}`}
+                              onClick={() => setPaymentMethod('card')}
+                              style={{ cursor: 'pointer' }}>
+                            <div className="flex items-center gap-2">
+                              <CreditCard className="h-5 w-5" />
+                              <span>Card</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <Form {...cardForm}>
+                        <form onSubmit={cardForm.handleSubmit(onSubmitCardPayment)} className="space-y-6">
+                          <FormField
+                            control={cardForm.control}
+                            name="cardNumber"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Card number</FormLabel>
+                                <FormControl>
+                                  <div className="relative">
+                                    <Input
+                                      {...field}
+                                      placeholder="1234 1234 1234 1234"
+                                      className="bg-gray-800 border-gray-700 text-white pr-12"
+                                    />
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                                      <span className="w-6 h-4 bg-red-500 rounded"></span>
+                                      <span className="w-6 h-4 bg-yellow-500 rounded"></span>
+                                      <span className="w-6 h-4 bg-blue-500 rounded"></span>
+                                    </div>
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              control={cardForm.control}
+                              name="expiryDate"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Expiry date</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      {...field}
+                                      placeholder="MM / YY"
+                                      className="bg-gray-800 border-gray-700 text-white"
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={cardForm.control}
+                              name="securityCode"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Security code</FormLabel>
+                                  <FormControl>
+                                    <div className="relative">
+                                      <Input
+                                        {...field}
+                                        type={showCvv ? "text" : "password"}
+                                        placeholder="CVC"
+                                        className="bg-gray-800 border-gray-700 text-white pr-10"
+                                      />
+                                      <div 
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
+                                        onClick={() => setShowCvv(!showCvv)}
+                                      >
+                                        {showCvv ? (
+                                          <EyeOff className="h-4 w-4 text-gray-400" />
+                                        ) : (
+                                          <Eye className="h-4 w-4 text-gray-400" />
+                                        )}
+                                      </div>
+                                    </div>
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          
+                          <div>
+                            <h3 className="mb-3 font-medium">Billing address</h3>
+                            <div className="space-y-4">
+                              <FormField
+                                control={cardForm.control}
+                                name="fullName"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Full name</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        {...field}
+                                        className="bg-gray-800 border-gray-700 text-white"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={cardForm.control}
+                                name="country"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Country or region</FormLabel>
+                                    <Select
+                                      onValueChange={field.onChange}
+                                      defaultValue={field.value}
+                                    >
+                                      <FormControl>
+                                        <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                                          <SelectValue placeholder="Select a country" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent className="bg-gray-800 border-gray-700 text-white">
+                                        <SelectItem value="nigeria">Nigeria</SelectItem>
+                                        <SelectItem value="ghana">Ghana</SelectItem>
+                                        <SelectItem value="kenya">Kenya</SelectItem>
+                                        <SelectItem value="southafrica">South Africa</SelectItem>
+                                        <SelectItem value="netherlands">Netherlands</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={cardForm.control}
+                                name="address"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Address</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        {...field}
+                                        className="bg-gray-800 border-gray-700 text-white"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </div>
+                          
+                          <Button
+                            type="submit"
+                            className="w-full bg-blue-600 hover:bg-blue-700"
+                            disabled={isSubmitting}
+                          >
+                            {isSubmitting ? "Processing..." : "Save payment method"}
+                          </Button>
+                        </form>
+                      </Form>
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -226,7 +404,7 @@ export default function PaymentPage() {
                   <div className="flex justify-between">
                     <span>Access Code Price:</span>
                     <span className="font-bold">
-                      {paymentSettings.currency} {paymentSettings.accessCodePrice.toLocaleString()}
+                      {settings.currency} {settings.accessCodePrice.toLocaleString()}
                     </span>
                   </div>
                   <Separator />
