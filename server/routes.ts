@@ -605,11 +605,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate a unique patient ID
       const patientId = await storage.generateUniquePatientId();
       
-      // Parse and validate the patient data
-      const patientData = insertPatientSchema.parse({
+      // Pre-process the date field before validation
+      const processedBody = {
         ...req.body,
-        patientId
-      });
+        patientId,
+        dateOfBirth: req.body.dateOfBirth ? new Date(req.body.dateOfBirth) : undefined
+      };
+      
+      // Parse and validate the patient data
+      const patientData = insertPatientSchema.parse(processedBody);
       
       // Create the patient
       const patient = await storage.createPatient(patientData);

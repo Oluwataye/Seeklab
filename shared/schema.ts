@@ -208,6 +208,7 @@ export const insertSettingSchema = createInsertSchema(settings).pick({
   value: true,
 });
 
+// Basic schema without date transformation - we'll handle that manually in the routes
 export const insertPatientSchema = createInsertSchema(patients)
   .pick({
     patientId: true,
@@ -222,16 +223,6 @@ export const insertPatientSchema = createInsertSchema(patients)
     kinContactNumber: true,
     kinContactAddress: true,
     kinEmail: true,
-  })
-  .transform((data) => {
-    // Convert dateOfBirth string to Date object if it's not already a Date
-    if (typeof data.dateOfBirth === 'string') {
-      return {
-        ...data,
-        dateOfBirth: new Date(data.dateOfBirth)
-      };
-    }
-    return data;
   });
 
 export const insertPaymentSchema = createInsertSchema(payments).pick({
