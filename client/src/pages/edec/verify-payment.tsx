@@ -72,23 +72,34 @@ export default function VerifyPayment() {
 
   const searchMutation = useMutation({
     mutationFn: async (data: PatientSearchFormValues) => {
-      const response = await apiRequest(`/api/patients/search`, {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest(
+        'POST',
+        `/api/patients/search`,
+        data
+      );
       return response;
     },
-    onSuccess: (data) => {
-      if (data) {
-        setSelectedPatient(data);
+    onSuccess: async (response) => {
+      try {
+        const patientData = await response.json();
+        if (patientData) {
+          setSelectedPatient(patientData);
+          toast({
+            title: "Patient Found",
+            description: `Found patient: ${patientData.firstName} ${patientData.lastName}`,
+          });
+        } else {
+          toast({
+            title: "Patient Not Found",
+            description: "No patient found with that ID",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error("Error parsing patient data:", error);
         toast({
-          title: "Patient Found",
-          description: `Found patient: ${data.firstName} ${data.lastName}`,
-        });
-      } else {
-        toast({
-          title: "Patient Not Found",
-          description: "No patient found with that ID",
+          title: "Error",
+          description: "Failed to process patient data",
           variant: "destructive",
         });
       }
@@ -104,42 +115,55 @@ export default function VerifyPayment() {
 
   const verifyMutation = useMutation({
     mutationFn: async (data: PaymentVerificationFormValues) => {
-      const response = await apiRequest('/api/payments/verify', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest(
+        'POST',
+        '/api/payments/verify',
+        data
+      );
       return response;
     },
-    onSuccess: async (data) => {
+    onSuccess: async (response) => {
       toast({
         title: "Payment Verified",
         description: `Payment has been successfully verified`,
       });
       
-      // Create notification for payment verification
       try {
-        await apiRequest('/api/notifications', {
-          method: 'POST',
-          body: JSON.stringify({
-            title: "Payment Verified",
-            message: `Payment for patient ID: ${data.patientId} (Ref: ${data.referenceNumber}) has been verified`,
-            type: "PAYMENT_VERIFICATION",
-            recipientId: "STAFF", // This will be filtered by the backend to appropriate staff
-            metadata: {
-              patientId: data.patientId,
-              referenceNumber: data.referenceNumber,
-              amount: data.amount
+        const responseData = await response.json();
+        
+        // Create notification for payment verification
+        try {
+          await apiRequest(
+            'POST',
+            '/api/notifications',
+            {
+              title: "Payment Verified",
+              message: `Payment for patient ID: ${responseData.patientId} (Ref: ${responseData.referenceNumber}) has been verified`,
+              type: "PAYMENT_VERIFICATION",
+              recipientId: "STAFF", // This will be filtered by the backend to appropriate staff
+              metadata: {
+                patientId: responseData.patientId,
+                referenceNumber: responseData.referenceNumber,
+                amount: responseData.amount
+              }
             }
-          })
-        });
+          );
+        } catch (error) {
+          console.error("Failed to create notification:", error);
+        }
+        
+        setVerifiedPayment(responseData);
+        setIsVerified(true);
+        queryClient.invalidateQueries({ queryKey: ['/api/payments'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
       } catch (error) {
-        console.error("Failed to create notification:", error);
+        console.error("Error parsing payment verification data:", error);
+        toast({
+          title: "Warning",
+          description: "Payment verified but could not process response data",
+          variant: "default",
+        });
       }
-      
-      setVerifiedPayment(data);
-      setIsVerified(true);
-      queryClient.invalidateQueries({ queryKey: ['/api/payments'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
     },
     onError: (error: Error) => {
       toast({
@@ -333,9 +357,15 @@ export default function VerifyPayment() {
                                       {payment.paymentMethod.replace('_', ' ')}
                                     </TableCell>
                                     <TableCell>
-                                      <Badge variant={payment.verified ? "success" : "secondary"}>
-                                        {payment.verified ? "Verified" : "Pending"}
-                                      </Badge>
+                                      {payment.verified ? (
+                                        <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-100">
+                                          Verified
+                                        </Badge>
+                                      ) : (
+                                        <Badge variant="secondary">
+                                          Pending
+                                        </Badge>
+                                      )}
                                     </TableCell>
                                   </TableRow>
                                 ))}
