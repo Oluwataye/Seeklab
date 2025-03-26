@@ -13,7 +13,8 @@ import {
   Users,  
   ArrowUpRight, 
   BarChart4, 
-  CircleDollarSign, 
+  CircleDollarSign,
+  Banknote, 
   Activity,
   Clock,
   FileText,
@@ -34,6 +35,27 @@ import {
   BarChart, 
   Bar 
 } from "recharts";
+
+// Custom Naira Icon component
+const NairaIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M6 4v16" />
+    <path d="M18 4v16" />
+    <path d="M4 8h16" />
+    <path d="M4 16h16" />
+  </svg>
+);
 
 export default function EdecDashboard() {
   const { data: stats, isLoading } = useQuery({
@@ -138,7 +160,7 @@ export default function EdecDashboard() {
             <CardHeader className="pb-2">
               <div className="flex justify-between items-center">
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <CircleDollarSign className="h-5 w-5 text-primary" />
+                  <NairaIcon className="h-5 w-5 text-primary" />
                   Access Code Price
                 </CardTitle>
                 <Badge variant="outline" className="ml-auto">
