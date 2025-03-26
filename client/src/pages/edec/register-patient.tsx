@@ -77,20 +77,32 @@ export default function RegisterPatient() {
 
   const registerMutation = useMutation<Patient, Error, PatientFormValues>({
     mutationFn: async (data: PatientFormValues) => {
-      // Format the date as ISO string which will be properly parsed by the server
-      const formattedDate = new Date(data.dateOfBirth).toISOString();
-      
-      const response = await apiRequest(
-        'POST',
-        '/api/patients',
-        {
+      try {
+        // Format the date as ISO string which will be properly parsed by the server
+        const formattedDate = new Date(data.dateOfBirth).toISOString();
+        
+        // Process empty email fields to be null instead of empty string
+        const processedData = {
           ...data,
-          dateOfBirth: formattedDate
-        }
-      );
-      
-      // Parse the JSON response
-      return response.json();
+          dateOfBirth: formattedDate,
+          email: data.email && data.email.trim() !== '' ? data.email : null,
+          kinEmail: data.kinEmail && data.kinEmail.trim() !== '' ? data.kinEmail : null
+        };
+        
+        console.log("Sending patient data:", processedData);
+        
+        const response = await apiRequest(
+          'POST',
+          '/api/patients',
+          processedData
+        );
+        
+        // Parse the JSON response
+        return response.json();
+      } catch (error) {
+        console.error("Registration error:", error);
+        throw error;
+      }
     },
     onSuccess: async (patientData: Patient) => {
       toast({
@@ -180,7 +192,7 @@ export default function RegisterPatient() {
                   </div>
                   <div>
                     <h3 className="font-medium">Date of Birth</h3>
-                    <p>{new Date(registeredPatient?.dateOfBirth).toLocaleDateString()}</p>
+                    <p>{registeredPatient?.dateOfBirth ? new Date(registeredPatient.dateOfBirth as string).toLocaleDateString() : ''}</p>
                   </div>
                 </div>
               </div>
