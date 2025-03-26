@@ -196,10 +196,11 @@ export default function PatientsPage() {
                             >
                               View
                             </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
+                            <Button
+                              variant="outline"
+                              size="sm"
                               onClick={() => handleGenerateAccessCode(patient.patientId)}
+                              title="Generate a new access code for this patient"
                             >
                               Generate Code
                             </Button>

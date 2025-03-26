@@ -17,7 +17,10 @@ import {
   LogOut,
   Menu,
   FileText,
-  TestTube
+  TestTube,
+  CreditCard,
+  UserPlus,
+  ClipboardList
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -36,6 +39,9 @@ const navigation = [
   { name: "User Management", href: "/admin/users", icon: Users },
   { name: "Role & Permissions", href: "/admin/roles", icon: Shield },
   { name: "Code Generator", href: "/admin/codes", icon: KeyRound },
+  { name: "Patient Management", href: "/edec/patients", icon: UserPlus },
+  { name: "Payment Settings", href: "/admin/payment-settings", icon: CreditCard },
+  { name: "Test Requests", href: "/edec/test-requests", icon: ClipboardList },
   { name: "Result Templates", href: "/admin/templates", icon: FileText },
   { name: "Test Types", href: "/admin/test-types", icon: TestTube },
   { name: "Audit Logs", href: "/admin/logs", icon: FileText },
