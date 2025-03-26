@@ -259,7 +259,7 @@ export default function PatientsPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleGenerateAccessCode(patient.patientId)}
+                              onClick={() => handleGenerateAccessCode(patient)}
                               title="Generate a new access code for this patient"
                             >
                               Generate Code
@@ -445,10 +445,14 @@ export default function PatientsPage() {
                   <div className="py-2">
                     <p className="mb-2">
                       Generate a new access code for this patient after payment verification.
-                      Current price: <span className="font-semibold">{paymentSettings?.currency} {paymentSettings?.accessCodePrice?.toLocaleString() || 0}</span>
+                      {paymentSettings && typeof paymentSettings === 'object' ? (
+                        <span className="font-semibold">Current price: {paymentSettings.currency || 'NGN'} {(paymentSettings.accessCodePrice || 0).toLocaleString()}</span>
+                      ) : (
+                        <span className="text-muted-foreground">Loading pricing information...</span>
+                      )}
                     </p>
                     <Button 
-                      onClick={() => handleGenerateAccessCode(selectedPatient.patientId)}
+                      onClick={() => handleGenerateAccessCode(selectedPatient)}
                     >
                       Generate Access Code
                     </Button>
@@ -463,6 +467,106 @@ export default function PatientsPage() {
               </DialogFooter>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Payment Required Dialog */}
+      <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Payment Required</DialogTitle>
+            <DialogDescription>
+              Payment verification is required before generating an access code
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <Alert>
+              <AlertTitle>Payment Required</AlertTitle>
+              <AlertDescription>
+                This patient needs to make payment before an access code can be generated.
+              </AlertDescription>
+            </Alert>
+            
+            {currentPaymentSettings && (
+              <div className="border rounded-lg p-4 space-y-2">
+                <p className="font-medium">Payment Details</p>
+                <div className="grid grid-cols-1 gap-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Amount:</span>
+                    <span className="font-medium">{(currentPaymentSettings as any).currency} {((currentPaymentSettings as any).accessCodePrice as number).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Bank Name:</span>
+                    <span>{(currentPaymentSettings as any).bankName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Account Name:</span>
+                    <span>{(currentPaymentSettings as any).accountName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Account Number:</span>
+                    <span className="font-medium">{currentPaymentSettings.accountNumber}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium">What would you like to do?</h4>
+              <div className="flex flex-col gap-2">
+                <Button onClick={handleRedirectToPaymentVerify}>
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  Verify Patient Payment
+                </Button>
+                <Button variant="outline" onClick={() => setIsPaymentDialogOpen(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Generated Access Code Dialog */}
+      <Dialog open={isAccessCodeDialogOpen} onOpenChange={setIsAccessCodeDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Access Code Generated</DialogTitle>
+            <DialogDescription>
+              The access code has been successfully generated
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <Alert className="bg-primary/10 border-primary/50">
+              <CheckCircle className="h-4 w-4" />
+              <AlertTitle>Success</AlertTitle>
+              <AlertDescription>
+                Access code has been generated successfully.
+              </AlertDescription>
+            </Alert>
+            
+            <div className="border rounded-lg p-4 space-y-2">
+              <p className="font-medium">Access Code Details</p>
+              <div className="grid grid-cols-1 gap-2">
+                <div className="flex justify-between items-center bg-muted p-3 rounded-md">
+                  <span className="text-xl font-mono tracking-wider">{accessCodeGenerated}</span>
+                </div>
+                
+                <p className="text-sm text-muted-foreground">
+                  This code can be used by the patient to access their test results.
+                  The code expires after 30 days.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAccessCodeDialogOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </EdecLayout>
