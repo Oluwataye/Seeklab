@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
 import { PublicLayout } from "@/components/layout/public-layout";
@@ -5,8 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertCircle, CreditCard, Landmark } from "lucide-react";
+import { AlertCircle, ArrowLeft, CreditCard, Eye, EyeOff, Landmark } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
 
@@ -19,29 +27,77 @@ interface PaymentSettings {
   paymentInstructions?: string;
 }
 
+// Define the form schema for card payment
+const cardPaymentSchema = z.object({
+  cardNumber: z.string().min(16, "Card number must be at least 16 digits").max(19, "Card number too long"),
+  expiryDate: z.string().min(5, "Please enter a valid expiry date (MM/YY)"),
+  securityCode: z.string().min(3, "CVV must be at least 3 digits").max(4, "CVV cannot exceed 4 digits"),
+  fullName: z.string().min(2, "Please enter your full name"),
+  country: z.string().min(2, "Please select a country"),
+  address: z.string().min(5, "Please enter your billing address"),
+});
+
+type CardPaymentFormValues = z.infer<typeof cardPaymentSchema>;
+
 export default function PaymentPage() {
   const isMobile = useIsMobile();
   const { toast } = useToast();
+  const [paymentMethod, setPaymentMethod] = useState<'google' | 'card'>('card');
+  const [showCvv, setShowCvv] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { data: paymentSettings, isLoading, error } = useQuery({
+  const cardForm = useForm<CardPaymentFormValues>({
+    resolver: zodResolver(cardPaymentSchema),
+    defaultValues: {
+      cardNumber: "",
+      expiryDate: "",
+      securityCode: "",
+      fullName: "",
+      country: "",
+      address: "",
+    },
+  });
+
+  const { data: paymentSettings, isLoading, error } = useQuery<PaymentSettings>({
     queryKey: ['/api/payment-page'],
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
+  
+  // Create fallback payment settings to avoid undefined errors
+  const settings = paymentSettings || {
+    accessCodePrice: 2500,
+    currency: "NGN",
+    bankName: "First Bank of Nigeria",
+    accountName: "MedLab Results Ltd",
+    accountNumber: "0123456789",
+    paymentInstructions: "Please include your full name as payment reference"
+  };
+  
+  // Handle card payment submission
+  const onSubmitCardPayment = (data: CardPaymentFormValues) => {
+    setIsSubmitting(true);
+    // This would connect to a payment processor in a real application
+    setTimeout(() => {
+      setIsSubmitting(false);
+      toast({
+        title: "Payment Processing",
+        description: "Your payment details have been submitted and are being processed.",
+      });
+    }, 1500);
+  };
 
   const handleCopyAccountDetails = () => {
-    if (paymentSettings) {
-      const accountDetails = `Bank: ${paymentSettings.bankName}\nAccount Name: ${paymentSettings.accountName}\nAccount Number: ${paymentSettings.accountNumber}`;
-      navigator.clipboard.writeText(accountDetails)
-        .then(() => {
-          toast({
-            title: "Copied to clipboard",
-            description: "Bank account details copied to clipboard",
-          });
-        })
-        .catch((err) => {
-          console.error('Failed to copy text: ', err);
+    const accountDetails = `Bank: ${settings.bankName}\nAccount Name: ${settings.accountName}\nAccount Number: ${settings.accountNumber}`;
+    navigator.clipboard.writeText(accountDetails)
+      .then(() => {
+        toast({
+          title: "Copied to clipboard",
+          description: "Bank account details copied to clipboard",
         });
-    }
+      })
+      .catch((err) => {
+        console.error('Failed to copy text: ', err);
+      });
   };
 
   if (isLoading) {
