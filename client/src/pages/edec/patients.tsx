@@ -446,7 +446,7 @@ export default function PatientsPage() {
                     <p className="mb-2">
                       Generate a new access code for this patient after payment verification.
                       {paymentSettings && typeof paymentSettings === 'object' ? (
-                        <span className="font-semibold">Current price: {paymentSettings.currency || 'NGN'} {(paymentSettings.accessCodePrice || 0).toLocaleString()}</span>
+                        <span className="font-semibold">Current price: {(paymentSettings as PaymentSettingsType).currency || 'NGN'} {((paymentSettings as PaymentSettingsType).accessCodePrice || 0).toLocaleString()}</span>
                       ) : (
                         <span className="text-muted-foreground">Loading pricing information...</span>
                       )}
@@ -494,11 +494,11 @@ export default function PatientsPage() {
                 <div className="grid grid-cols-1 gap-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Amount:</span>
-                    <span className="font-medium">{(currentPaymentSettings as any).currency} {((currentPaymentSettings as any).accessCodePrice as number).toLocaleString()}</span>
+                    <span className="font-medium">{currentPaymentSettings.currency} {currentPaymentSettings.accessCodePrice.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Bank Name:</span>
-                    <span>{(currentPaymentSettings as any).bankName}</span>
+                    <span>{currentPaymentSettings.bankName}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Account Name:</span>
@@ -506,7 +506,7 @@ export default function PatientsPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Account Number:</span>
-                    <span className="font-medium">{currentPaymentSettings.accountNumber}</span>
+                    <span className="font-medium">{(currentPaymentSettings as any).accountNumber}</span>
                   </div>
                 </div>
               </div>
