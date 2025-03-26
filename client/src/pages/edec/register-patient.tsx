@@ -58,13 +58,14 @@ export default function RegisterPatient() {
 
   const registerMutation = useMutation({
     mutationFn: async (data: PatientFormValues) => {
-      const response = await apiRequest('/api/patients', {
-        method: 'POST',
-        body: JSON.stringify({
+      const response = await apiRequest(
+        'POST',
+        '/api/patients',
+        {
           ...data,
           dateOfBirth: new Date(data.dateOfBirth)
-        })
-      });
+        }
+      );
       return response;
     },
     onSuccess: async (data) => {
@@ -75,9 +76,10 @@ export default function RegisterPatient() {
       
       // Create notification for all EDEC staff
       try {
-        await apiRequest('/api/notifications', {
-          method: 'POST',
-          body: JSON.stringify({
+        await apiRequest(
+          'POST',
+          '/api/notifications',
+          {
             title: "New Patient Registration",
             message: `Patient ${data.firstName} ${data.lastName} (ID: ${data.patientId}) has been registered`,
             type: "PATIENT_REGISTRATION",
@@ -87,8 +89,8 @@ export default function RegisterPatient() {
               firstName: data.firstName,
               lastName: data.lastName
             }
-          })
-        });
+          }
+        );
       } catch (error) {
         console.error("Failed to create notification:", error);
       }
