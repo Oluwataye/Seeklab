@@ -16,7 +16,9 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Copy,
+  CheckCheck
 } from "lucide-react";
 import { Link } from "wouter";
 import {
@@ -32,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 
 interface Result {
   id: number;
@@ -54,11 +57,54 @@ interface Result {
 export default function TestRequestsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [currentPatientId, setCurrentPatientId] = useState<string | null>(null);
+  const { toast } = useToast();
   
   const { data: results, isLoading } = useQuery({
     queryKey: ['/api/results'],
     queryFn: getQueryFn({ on401: "throw" }),
   });
+  
+  // Navigate to patient details
+  const viewPatientDetails = (patientId: string) => {
+    setCurrentPatientId(patientId);
+    // This would typically navigate to a patient details page
+    // For now, we'll show a toast notification
+    toast({
+      title: "Patient Details",
+      description: `Redirecting to details for patient ${patientId}`,
+    });
+    
+    // Simulate navigation delay (would be replaced with actual navigation)
+    setTimeout(() => {
+      window.location.href = `/edec/patients?patientId=${patientId}`;
+    }, 1000);
+  };
+  
+  const handleCopyAccessCode = (code: string) => {
+    navigator.clipboard.writeText(code)
+      .then(() => {
+        setCopiedCode(code);
+        toast({
+          title: "Access Code Copied",
+          description: "The access code has been copied to your clipboard",
+        });
+        
+        // Reset the copied state after 2 seconds
+        setTimeout(() => {
+          setCopiedCode(null);
+        }, 2000);
+      })
+      .catch(err => {
+        console.error("Failed to copy access code:", err);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to copy access code to clipboard",
+        });
+      });
+  };
 
   const filteredResults = React.useMemo(() => {
     if (!results) return [];
@@ -252,11 +298,23 @@ export default function TestRequestsPage() {
                                   View Result
                                 </Link>
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                Copy Access Code
+                              <DropdownMenuItem onSelect={() => handleCopyAccessCode(result.accessCode)}>
+                                <div className="flex items-center">
+                                  {copiedCode === result.accessCode ? 
+                                    <CheckCheck className="mr-2 h-4 w-4 text-green-600" /> : 
+                                    <Copy className="mr-2 h-4 w-4" />
+                                  }
+                                  Copy Access Code
+                                </div>
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                View Patient Details
+                              <DropdownMenuItem onSelect={() => viewPatientDetails(result.patientId)}>
+                                <div className="flex items-center">
+                                  {currentPatientId === result.patientId ? 
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 
+                                    <UserPlus className="mr-2 h-4 w-4" />
+                                  }
+                                  View Patient Details
+                                </div>
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
