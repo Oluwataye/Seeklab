@@ -35,8 +35,17 @@ export function ProtectedRoute({
     );
   }
 
-  // Check for admin routes
-  if (requireAdmin && !user.isAdmin) {
+  // Admin users have access to everything
+  if (user.isAdmin) {
+    return (
+      <Route path={path}>
+        <Component />
+      </Route>
+    );
+  }
+
+  // Check for admin routes (only if user is not already admin)
+  if (requireAdmin) {
     return (
       <Route path={path}>
         <Redirect to="/" />
@@ -44,20 +53,13 @@ export function ProtectedRoute({
     );
   }
 
-  // Lab staff routes were removed
-
   // Check for specific role routes
   if (requireSpecificRole && user.role !== requireSpecificRole) {
-    // Allow admin to access EDEC routes
-    if (requireSpecificRole === 'edec' && user.isAdmin) {
-      // Admin can access EDEC routes
-    } else {
-      return (
-        <Route path={path}>
-          <Redirect to="/" />
-        </Route>
-      );
-    }
+    return (
+      <Route path={path}>
+        <Redirect to="/" />
+      </Route>
+    );
   }
 
   return (
