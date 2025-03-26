@@ -13,6 +13,25 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2, UserPlus, Users } from "lucide-react";
 import { EdecLayout } from "@/components/layout/edec-layout";
 
+// Define types
+interface Patient {
+  id: number;
+  patientId: string;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  contactNumber: string;
+  contactAddress: string;
+  email: string | null;
+  kinFirstName: string;
+  kinLastName: string;
+  kinContactNumber: string;
+  kinContactAddress: string;
+  kinEmail: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 const patientSchema = z.object({
   // Personal details
   firstName: z.string().min(2, "First name must be at least 2 characters").max(50),
@@ -37,7 +56,7 @@ type PatientFormValues = z.infer<typeof patientSchema>;
 export default function RegisterPatient() {
   const { toast } = useToast();
   const [isSuccess, setIsSuccess] = React.useState(false);
-  const [registeredPatient, setRegisteredPatient] = React.useState<any>(null);
+  const [registeredPatient, setRegisteredPatient] = React.useState<Patient | null>(null);
 
   const form = useForm<PatientFormValues>({
     resolver: zodResolver(patientSchema),
@@ -56,22 +75,27 @@ export default function RegisterPatient() {
     }
   });
 
-  const registerMutation = useMutation({
+  const registerMutation = useMutation<Patient, Error, PatientFormValues>({
     mutationFn: async (data: PatientFormValues) => {
+      // Format the date as ISO string which will be properly parsed by the server
+      const formattedDate = new Date(data.dateOfBirth).toISOString();
+      
       const response = await apiRequest(
         'POST',
         '/api/patients',
         {
           ...data,
-          dateOfBirth: new Date(data.dateOfBirth)
+          dateOfBirth: formattedDate
         }
       );
-      return response;
+      
+      // Parse the JSON response
+      return response.json();
     },
-    onSuccess: async (data) => {
+    onSuccess: async (patientData: Patient) => {
       toast({
         title: "Patient Registered",
-        description: `Successfully registered ${data.firstName} ${data.lastName} with ID: ${data.patientId}`,
+        description: `Successfully registered ${patientData.firstName} ${patientData.lastName} with ID: ${patientData.patientId}`,
       });
       
       // Create notification for all EDEC staff
@@ -81,13 +105,13 @@ export default function RegisterPatient() {
           '/api/notifications',
           {
             title: "New Patient Registration",
-            message: `Patient ${data.firstName} ${data.lastName} (ID: ${data.patientId}) has been registered`,
+            message: `Patient ${patientData.firstName} ${patientData.lastName} (ID: ${patientData.patientId}) has been registered`,
             type: "PATIENT_REGISTRATION",
             recipientId: "STAFF", // This will be filtered by the backend to appropriate staff
             metadata: {
-              patientId: data.patientId,
-              firstName: data.firstName,
-              lastName: data.lastName
+              patientId: patientData.patientId,
+              firstName: patientData.firstName,
+              lastName: patientData.lastName
             }
           }
         );
@@ -95,7 +119,7 @@ export default function RegisterPatient() {
         console.error("Failed to create notification:", error);
       }
       
-      setRegisteredPatient(data);
+      setRegisteredPatient(patientData);
       setIsSuccess(true);
       queryClient.invalidateQueries({ queryKey: ['/api/patients'] });
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
