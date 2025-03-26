@@ -892,23 +892,6 @@ export default function EdecSettingsPage() {
                     />
                     
                     <Separator />
-                    
-                    <div className="space-y-2">
-                      <h3 className="text-lg font-medium">Data Privacy</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Manage your data privacy settings and account information
-                      </p>
-                      
-                      <div className="pt-4">
-                        <Button variant="outline" className="mr-2">
-                          Download My Data
-                        </Button>
-                        <Button variant="destructive">
-                          Delete Account
-                        </Button>
-                      </div>
-                    </div>
-                    
                     <Button type="submit" disabled={updateSecurityMutation.isPending}>
                       {updateSecurityMutation.isPending && (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
