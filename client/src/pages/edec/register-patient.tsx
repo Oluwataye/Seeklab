@@ -78,13 +78,10 @@ export default function RegisterPatient() {
   const registerMutation = useMutation<Patient, Error, PatientFormValues>({
     mutationFn: async (data: PatientFormValues) => {
       try {
-        // Format the date as ISO string which will be properly parsed by the server
-        const formattedDate = new Date(data.dateOfBirth).toISOString();
-        
         // Process empty email fields to be null instead of empty string
+        // The dateOfBirth will be converted to a Date object by the server's schema transform
         const processedData = {
           ...data,
-          dateOfBirth: formattedDate,
           email: data.email && data.email.trim() !== '' ? data.email : null,
           kinEmail: data.kinEmail && data.kinEmail.trim() !== '' ? data.kinEmail : null
         };

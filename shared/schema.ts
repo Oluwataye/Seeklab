@@ -208,20 +208,31 @@ export const insertSettingSchema = createInsertSchema(settings).pick({
   value: true,
 });
 
-export const insertPatientSchema = createInsertSchema(patients).pick({
-  patientId: true,
-  firstName: true,
-  lastName: true,
-  dateOfBirth: true,
-  contactNumber: true,
-  contactAddress: true,
-  email: true,
-  kinFirstName: true,
-  kinLastName: true,
-  kinContactNumber: true,
-  kinContactAddress: true,
-  kinEmail: true,
-});
+export const insertPatientSchema = createInsertSchema(patients)
+  .pick({
+    patientId: true,
+    firstName: true,
+    lastName: true,
+    dateOfBirth: true,
+    contactNumber: true,
+    contactAddress: true,
+    email: true,
+    kinFirstName: true,
+    kinLastName: true,
+    kinContactNumber: true,
+    kinContactAddress: true,
+    kinEmail: true,
+  })
+  .transform((data) => {
+    // Convert dateOfBirth string to Date object if it's not already a Date
+    if (typeof data.dateOfBirth === 'string') {
+      return {
+        ...data,
+        dateOfBirth: new Date(data.dateOfBirth)
+      };
+    }
+    return data;
+  });
 
 export const insertPaymentSchema = createInsertSchema(payments).pick({
   patientId: true,
