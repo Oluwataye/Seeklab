@@ -48,11 +48,16 @@ export function ProtectedRoute({
 
   // Check for specific role routes
   if (requireSpecificRole && user.role !== requireSpecificRole) {
-    return (
-      <Route path={path}>
-        <Redirect to="/" />
-      </Route>
-    );
+    // Allow admin to access EDEC routes
+    if (requireSpecificRole === 'edec' && user.isAdmin) {
+      // Admin can access EDEC routes
+    } else {
+      return (
+        <Route path={path}>
+          <Redirect to="/" />
+        </Route>
+      );
+    }
   }
 
   return (
