@@ -746,7 +746,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Generate access code for a patient
+  // Check payment status before generating access code
+  app.get("/api/patients/:id/access-code-payment", async (req, res) => {
+    if (!req.isAuthenticated() || 
+        (req.user?.role !== 'edec' && !req.user?.isAdmin)) {
+      return res.status(403).json({ message: "Unauthorized - EDEC or admin access required" });
+    }
+
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid patient ID" });
+      }
+      
+      // Get the patient
+      const patient = await storage.getPatientById(id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: "Patient not found" });
+      }
+      
+      // Get payment settings
+      const settings = await storage.getPaymentSettings();
+      if (!settings) {
+        return res.status(500).json({ message: "Payment settings not configured" });
+      }
+      
+      // Check for existing payments for this patient
+      const payments = await storage.getPaymentsByPatientId(patient.patientId);
+      const verifiedPayment = payments.find(p => p.status === 'verified');
+      
+      res.status(200).json({ 
+        patient,
+        paymentRequired: !verifiedPayment,
+        paymentSettings: {
+          accessCodePrice: settings.accessCodePrice,
+          currency: settings.currency,
+          bankName: settings.bankName,
+          accountName: settings.accountName,
+          accountNumber: settings.accountNumber
+        }
+      });
+    } catch (error) {
+      console.error('Error checking payment status:', error);
+      res.status(500).json({ message: "Failed to check payment status" });
+    }
+  });
+
+  // Generate access code for a patient (requires payment verification)
   app.post("/api/patients/:id/access-code", async (req, res) => {
     if (!req.isAuthenticated() || 
         (req.user?.role !== 'edec' && !req.user?.isAdmin)) {
@@ -765,6 +813,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!patient) {
         return res.status(404).json({ message: "Patient not found" });
+      }
+      
+      // Check for verified payment if user is not admin
+      if (!req.user?.isAdmin) {
+        const payments = await storage.getPaymentsByPatientId(patient.patientId);
+        const verifiedPayment = payments.find(p => p.status === 'verified');
+        
+        if (!verifiedPayment) {
+          return res.status(402).json({ 
+            message: "Payment required",
+            patientId: patient.patientId
+          });
+        }
       }
       
       // Generate an access code for the patient
@@ -787,7 +848,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         testDate: new Date(),
         expiresAt,
         resultData: null,
-        reportUrl: null
+        reportUrl: null,
+        isPaid: true, // Mark as paid since payment was verified
       });
       
       // Create audit log for this action

@@ -163,6 +163,7 @@ export const insertResultSchema = createInsertSchema(results).pick({
   resultData: true,
   reportUrl: true,
   expiresAt: true,
+  isPaid: true,
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({

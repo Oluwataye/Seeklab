@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, Search, UserPlus, ChevronRight, FileText, Calendar, Phone, Mail, Clock, CircleDollarSign } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Loader2, Search, UserPlus, ChevronRight, FileText, Calendar, Phone, Mail, Clock, CircleDollarSign, CheckCircle, ExternalLink } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 
@@ -32,24 +33,40 @@ interface Patient {
   updatedAt: string;
 }
 
+interface PaymentSettingsType {
+  accessCodePrice: number;
+  currency: string;
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+}
+
 export default function PatientsPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [isAccessCodeDialogOpen, setIsAccessCodeDialogOpen] = useState(false);
+  const [paymentRequired, setPaymentRequired] = useState(false);
+  const [accessCodeGenerated, setAccessCodeGenerated] = useState("");
+  const [currentPaymentSettings, setCurrentPaymentSettings] = useState<PaymentSettingsType | null>(null);
   
+  // Get all patients
   const { data: patients, isLoading } = useQuery({
     queryKey: ['/api/patients'],
     queryFn: getQueryFn({ on401: "throw" }),
   });
 
+  // Get payment settings
   const { data: paymentSettings } = useQuery({
     queryKey: ['/api/payment-settings'],
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
 
+  // Filter patients based on search term
   const filteredPatients = React.useMemo(() => {
-    if (!patients) return [];
+    if (!patients || !Array.isArray(patients)) return [];
     
     return patients.filter((patient: Patient) => {
       const searchLower = searchTerm.toLowerCase();
@@ -63,36 +80,79 @@ export default function PatientsPage() {
     });
   }, [patients, searchTerm]);
 
-  const handleGenerateAccessCode = async (patientId: string) => {
+  // Handle access code generation with payment check
+  const handleGenerateAccessCode = async (patient: Patient) => {
     try {
-      const response = await apiRequest(`/api/patients/${patientId}/access-code`, {
-        method: 'POST',
-      });
+      // First check payment status
+      const checkResponse = await fetch(`/api/patients/${patient.id}/access-code-payment`);
       
-      if (response.ok) {
-        const data = await response.json();
-        toast({
-          title: "Access Code Generated",
-          description: `The access code ${data.accessCode} was generated successfully`,
+      if (checkResponse.ok) {
+        const checkData = await checkResponse.json();
+        
+        // If payment is required, show payment instructions
+        if (checkData.paymentRequired) {
+          setSelectedPatient(patient);
+          setPaymentRequired(true);
+          setCurrentPaymentSettings(checkData.paymentSettings);
+          setIsPaymentDialogOpen(true);
+          return;
+        }
+        
+        // If payment is verified or user is admin, proceed with access code generation
+        const response = await fetch(`/api/patients/${patient.id}/access-code`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            testType: 'General Assessment'
+          }),
         });
+        
+        if (response.ok) {
+          const data = await response.json();
+          toast({
+            title: "Access Code Generated",
+            description: `The access code ${data.accessCode} was generated successfully`,
+          });
+          
+          // Show access code to the user
+          setSelectedPatient(patient);
+          setAccessCodeGenerated(data.accessCode);
+          setIsAccessCodeDialogOpen(true);
+        } else {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to generate access code");
+        }
       } else {
-        throw new Error("Failed to generate access code");
+        throw new Error("Failed to check payment status");
       }
     } catch (error) {
       console.error("Error generating access code:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to generate access code. Try again later.",
+        description: error instanceof Error ? error.message : "Failed to generate access code. Try again later.",
       });
     }
   };
 
+  // View patient details
   const handleViewPatient = (patient: Patient) => {
     setSelectedPatient(patient);
     setIsViewDialogOpen(true);
   };
   
+  // Redirect to payment verification page
+  const handleRedirectToPaymentVerify = () => {
+    if (selectedPatient) {
+      setIsPaymentDialogOpen(false);
+      // Navigate to payment verification page
+      window.location.href = `/edec/verify-payment?patientId=${selectedPatient.patientId}`;
+    }
+  };
+  
+  // Format date for display
   function formatDate(dateString: string) {
     return new Date(dateString).toLocaleDateString();
   }
