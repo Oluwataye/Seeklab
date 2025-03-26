@@ -63,12 +63,31 @@ export default function VerifyPayment() {
     }
   }, [selectedPatient, verificationForm]);
 
+  // Define payment settings interface
+  interface PaymentSettings {
+    accessCodePrice: number;
+    currency: string;
+    bankName: string;
+    accountName: string;
+    accountNumber: string;
+    paymentInstructions?: string;
+  }
+
   // Get payment settings for reference
-  const { data: paymentSettings } = useQuery({
+  const { data: paymentSettings } = useQuery<PaymentSettings>({
     queryKey: ['/api/payment-settings'],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: true,
   });
+  
+  // Fallback empty object with default values for safe rendering
+  const settings = paymentSettings || {
+    accessCodePrice: 0,
+    currency: 'USD',
+    bankName: '',
+    accountName: '',
+    accountNumber: '',
+  };
 
   const searchMutation = useMutation({
     mutationFn: async (data: PatientSearchFormValues) => {
@@ -222,7 +241,7 @@ export default function VerifyPayment() {
                   </div>
                   <div>
                     <h3 className="font-medium">Amount</h3>
-                    <p>{verifiedPayment?.amount.toLocaleString()} {paymentSettings?.currency}</p>
+                    <p>{verifiedPayment?.amount.toLocaleString()} {settings.currency}</p>
                   </div>
                 </div>
                 
@@ -351,7 +370,7 @@ export default function VerifyPayment() {
                                       {new Date(payment.paymentDate).toLocaleDateString()}
                                     </TableCell>
                                     <TableCell>
-                                      {payment.amount.toLocaleString()} {paymentSettings?.currency}
+                                      {payment.amount.toLocaleString()} {settings.currency}
                                     </TableCell>
                                     <TableCell className="capitalize">
                                       {payment.paymentMethod.replace('_', ' ')}
@@ -401,7 +420,7 @@ export default function VerifyPayment() {
                                       <Input type="number" {...field} />
                                     </FormControl>
                                     <FormDescription>
-                                      Standard access code price: {paymentSettings?.accessCodePrice} {paymentSettings?.currency}
+                                      Standard access code price: {settings.accessCodePrice} {settings.currency}
                                     </FormDescription>
                                     <FormMessage />
                                   </FormItem>
@@ -517,7 +536,7 @@ export default function VerifyPayment() {
                     <div>
                       <h3 className="text-sm font-medium">Access Code Price</h3>
                       <p className="text-lg">
-                        {paymentSettings?.currency} {paymentSettings?.accessCodePrice?.toLocaleString()}
+                        {settings.currency} {settings.accessCodePrice.toLocaleString()}
                       </p>
                     </div>
                     
@@ -528,13 +547,13 @@ export default function VerifyPayment() {
                       <p className="text-xs text-muted-foreground">Verify these details with incoming payments</p>
                       <div className="mt-2 space-y-1">
                         <p className="text-sm">
-                          <span className="font-medium">Bank:</span> {paymentSettings?.bankName}
+                          <span className="font-medium">Bank:</span> {settings.bankName}
                         </p>
                         <p className="text-sm">
-                          <span className="font-medium">Account Name:</span> {paymentSettings?.accountName}
+                          <span className="font-medium">Account Name:</span> {settings.accountName}
                         </p>
                         <p className="text-sm font-mono">
-                          <span className="font-medium font-sans">Account Number:</span> {paymentSettings?.accountNumber}
+                          <span className="font-medium font-sans">Account Number:</span> {settings.accountNumber}
                         </p>
                       </div>
                     </div>
