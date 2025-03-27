@@ -37,7 +37,7 @@ export default function AdminVerifyPayment() {
   const [selectedPatient, setSelectedPatient] = React.useState<any>(null);
   const [isVerified, setIsVerified] = React.useState(false);
   const [verifiedPayment, setVerifiedPayment] = React.useState<any>(null);
-
+  
   const searchForm = useForm<PatientSearchFormValues>({
     resolver: zodResolver(patientSearchSchema),
     defaultValues: {
@@ -55,13 +55,6 @@ export default function AdminVerifyPayment() {
       verificationNotes: "",
     }
   });
-
-  // Update verification form when patient is selected
-  React.useEffect(() => {
-    if (selectedPatient) {
-      verificationForm.setValue("patientId", selectedPatient.patientId);
-    }
-  }, [selectedPatient, verificationForm]);
 
   // Define payment settings interface
   interface PaymentSettings {
@@ -192,6 +185,25 @@ export default function AdminVerifyPayment() {
       });
     },
   });
+
+  // Handle direct access with query parameters
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const patientId = params.get('patientId');
+    
+    if (patientId) {
+      searchForm.setValue('patientId', patientId);
+      // Auto-submit the search when there's a patientId in URL
+      searchMutation.mutate({ patientId });
+    }
+  }, [searchForm, searchMutation]);
+
+  // Update verification form when patient is selected
+  React.useEffect(() => {
+    if (selectedPatient) {
+      verificationForm.setValue("patientId", selectedPatient.patientId);
+    }
+  }, [selectedPatient, verificationForm]);
 
   function onSearchSubmit(data: PatientSearchFormValues) {
     searchMutation.mutate(data);
@@ -469,21 +481,23 @@ export default function AdminVerifyPayment() {
                                         {settings.currency}
                                       </span>
                                       <Input 
-                                        type="number"
                                         {...field}
+                                        type="number"
+                                        min={0}
+                                        step={1}
                                         className="rounded-l-none"
-                                        defaultValue={settings.accessCodePrice}
+                                        placeholder="Enter payment amount"
                                       />
                                     </div>
                                   </FormControl>
                                   <FormDescription>
-                                    Standard price: {settings.currency} {settings.accessCodePrice.toLocaleString()}
+                                    Standard access code price: {settings.accessCodePrice.toLocaleString()} {settings.currency}
                                   </FormDescription>
                                   <FormMessage />
                                 </FormItem>
                               )}
                             />
-                            
+
                             {/* Reference Number */}
                             <FormField
                               control={verificationForm.control}
@@ -494,19 +508,18 @@ export default function AdminVerifyPayment() {
                                   <FormControl>
                                     <Input 
                                       {...field} 
-                                      placeholder="Enter payment reference/transaction ID"
-                                      className="font-mono"
+                                      placeholder="Enter payment reference number"
                                     />
                                   </FormControl>
                                   <FormDescription>
-                                    Enter the transaction reference number or bank transfer reference
+                                    For bank transfers, enter the bank reference. For card payments, enter the transaction ID.
                                   </FormDescription>
                                   <FormMessage />
                                 </FormItem>
                               )}
                             />
-                            
-                            {/* Verification Notes */}
+
+                            {/* Notes */}
                             <FormField
                               control={verificationForm.control}
                               name="verificationNotes"
@@ -561,49 +574,31 @@ export default function AdminVerifyPayment() {
               <Card>
                 <CardHeader>
                   <CardTitle>Payment Information</CardTitle>
-                  <CardDescription>
-                    Current payment settings and verification process
-                  </CardDescription>
+                  <CardDescription>Bank details for verification</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-sm font-medium">Access Code Price</h3>
-                      <p className="text-xl font-bold">{settings.currency} {settings.accessCodePrice.toLocaleString()}</p>
-                    </div>
-                    
-                    <Separator />
-                    
-                    <div>
-                      <h3 className="text-sm font-medium">Bank Information</h3>
-                      <div className="space-y-2 mt-2">
-                        <div>
-                          <p className="text-xs text-muted-foreground">Bank Name</p>
-                          <p>{settings.bankName}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">Account Name</p>
-                          <p>{settings.accountName}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">Account Number</p>
-                          <p className="font-mono">{settings.accountNumber}</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <Separator />
-                    
-                    <div>
-                      <h3 className="text-sm font-medium mb-2">Verification Process</h3>
-                      <ol className="list-decimal list-inside space-y-1 text-sm">
-                        <li>Confirm payment details with bank statement</li>
-                        <li>Enter correct amount and reference number</li>
-                        <li>Verify the payment to activate access code</li>
-                        <li>Provide receipt to patient if needed</li>
-                      </ol>
-                    </div>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-medium">Bank Name</h3>
+                    <p className="font-medium">{settings.bankName}</p>
                   </div>
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-medium">Account Name</h3>
+                    <p className="font-medium">{settings.accountName}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-medium">Account Number</h3>
+                    <p className="font-mono font-medium">{settings.accountNumber}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-medium">Standard Price</h3>
+                    <p className="font-medium">{settings.accessCodePrice.toLocaleString()} {settings.currency}</p>
+                  </div>
+                  {settings.paymentInstructions && (
+                    <div className="space-y-2 mt-4 pt-4 border-t">
+                      <h3 className="text-sm font-medium">Payment Instructions</h3>
+                      <p className="text-sm text-muted-foreground">{settings.paymentInstructions}</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>

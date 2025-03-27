@@ -107,6 +107,16 @@ function Router() {
         component={AdminVerifyPayment}
         requireAdmin={true}
       />
+      <ProtectedRoute 
+        path="/admin/patients" 
+        component={EdecPatients} /* Reusing EDEC's patient component for now */
+        requireAdmin={true}
+      />
+      <ProtectedRoute 
+        path="/admin/test-requests" 
+        component={TestRequests} /* Reusing EDEC's test requests component for now */
+        requireAdmin={true}
+      />
 
       {/* Psychologist Routes */}
       <ProtectedRoute 
