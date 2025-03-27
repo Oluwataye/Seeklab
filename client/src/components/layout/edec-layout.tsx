@@ -73,7 +73,7 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
     },
     { 
       name: "Payment Verification", 
-      href: "/edec/verify-payment", 
+      href: "/verify-payment", 
       icon: CreditCard 
     },
     { 
