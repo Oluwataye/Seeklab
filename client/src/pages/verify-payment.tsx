@@ -535,67 +535,74 @@ export default function VerifyPaymentPage() {
                             />
 
                             {/* Card Payment Section - Only visible when card payment is selected */}
-                            {verificationForm.watch("paymentMethod") === "card_payment" && (
-                              <div className="space-y-6 border border-input rounded-lg p-4 bg-black/5 dark:bg-white/5">
-                                <h3 className="text-lg font-medium mb-2">Card Payment Details</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  {/* Card Number */}
-                                  <div className="space-y-2">
-                                    <FormLabel htmlFor="cardNumber">Card Number</FormLabel>
-                                    <Input
-                                      id="cardNumber"
-                                      placeholder="•••• •••• •••• ••••"
-                                      className="font-mono"
-                                    />
-                                    <p className="text-xs text-muted-foreground">
-                                      This is a verification-only form. No real payment is processed.
-                                    </p>
-                                  </div>
+                            <FormField
+                              control={verificationForm.control}
+                              name="paymentMethod"
+                              render={({ field }) => {
+                                const isCardPayment = field.value === "card_payment";
+                                return isCardPayment ? (
+                                  <div className="space-y-6 border border-input rounded-lg p-4 bg-black/5 dark:bg-white/5 mt-4">
+                                    <h3 className="text-lg font-medium mb-2">Card Payment Details</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                      {/* Card Number */}
+                                      <div className="space-y-2">
+                                        <FormLabel htmlFor="cardNumber">Card Number</FormLabel>
+                                        <Input
+                                          id="cardNumber"
+                                          placeholder="•••• •••• •••• ••••"
+                                          className="font-mono"
+                                        />
+                                        <p className="text-xs text-muted-foreground">
+                                          This is a verification-only form. No real payment is processed.
+                                        </p>
+                                      </div>
 
-                                  {/* Card Holder */}
-                                  <div className="space-y-2">
-                                    <FormLabel htmlFor="cardHolder">Card Holder</FormLabel>
-                                    <Input
-                                      id="cardHolder"
-                                      placeholder="Name on card"
-                                    />
-                                  </div>
+                                      {/* Card Holder */}
+                                      <div className="space-y-2">
+                                        <FormLabel htmlFor="cardHolder">Card Holder</FormLabel>
+                                        <Input
+                                          id="cardHolder"
+                                          placeholder="Name on card"
+                                        />
+                                      </div>
 
-                                  {/* Expiry Date */}
-                                  <div className="space-y-2">
-                                    <FormLabel htmlFor="expiryDate">Expiry Date</FormLabel>
-                                    <Input
-                                      id="expiryDate"
-                                      placeholder="MM/YY"
-                                      className="font-mono"
-                                    />
-                                  </div>
+                                      {/* Expiry Date */}
+                                      <div className="space-y-2">
+                                        <FormLabel htmlFor="expiryDate">Expiry Date</FormLabel>
+                                        <Input
+                                          id="expiryDate"
+                                          placeholder="MM/YY"
+                                          className="font-mono"
+                                        />
+                                      </div>
 
-                                  {/* CVV */}
-                                  <div className="space-y-2">
-                                    <FormLabel htmlFor="cvv">CVV</FormLabel>
-                                    <Input
-                                      id="cvv"
-                                      placeholder="•••"
-                                      className="font-mono"
-                                      maxLength={4}
-                                    />
+                                      {/* CVV */}
+                                      <div className="space-y-2">
+                                        <FormLabel htmlFor="cvv">CVV</FormLabel>
+                                        <Input
+                                          id="cvv"
+                                          placeholder="•••"
+                                          className="font-mono"
+                                          maxLength={4}
+                                        />
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="flex items-center justify-between text-sm mt-4">
+                                      <div className="flex items-center space-x-2 text-muted-foreground">
+                                        <CreditCard className="h-4 w-4" />
+                                        <span>Card data stored for verification only</span>
+                                      </div>
+                                      <div className="flex space-x-1">
+                                        <div className="h-6 w-10 bg-gray-800 rounded"></div>
+                                        <div className="h-6 w-10 bg-blue-600 rounded"></div>
+                                        <div className="h-6 w-10 bg-red-600 rounded"></div>
+                                      </div>
+                                    </div>
                                   </div>
-                                </div>
-                                
-                                <div className="flex items-center justify-between text-sm mt-4">
-                                  <div className="flex items-center space-x-2 text-muted-foreground">
-                                    <CreditCard className="h-4 w-4" />
-                                    <span>Card data stored for verification only</span>
-                                  </div>
-                                  <div className="flex space-x-1">
-                                    <div className="h-6 w-10 bg-gray-800 rounded"></div>
-                                    <div className="h-6 w-10 bg-blue-600 rounded"></div>
-                                    <div className="h-6 w-10 bg-red-600 rounded"></div>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
+                                ) : null;
+                              }}
+                            />
 
                             {/* Notes */}
                             <FormField
