@@ -195,16 +195,23 @@ export default function VerifyPaymentPage() {
   });
 
   // Handle direct access with query parameters
+  // Use a ref to track if we've already processed this patientId
+  const processedPatientIdRef = React.useRef<string | null>(null);
+  
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const patientId = params.get('patientId');
     
-    if (patientId) {
+    if (patientId && patientId !== processedPatientIdRef.current) {
       searchForm.setValue('patientId', patientId);
-      // Auto-submit the search when there's a patientId in URL
-      searchMutation.mutate({ patientId });
+      
+      // Only search if we haven't already found a patient with this ID
+      if (!selectedPatient || selectedPatient.patientId !== patientId) {
+        processedPatientIdRef.current = patientId;
+        searchMutation.mutate({ patientId: patientId });
+      }
     }
-  }, [searchForm, searchMutation]);
+  }, [searchForm, selectedPatient, searchMutation]);
 
   // Update verification form when patient is selected
   React.useEffect(() => {
