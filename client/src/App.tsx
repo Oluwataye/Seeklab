@@ -22,7 +22,7 @@ import ResultTemplates from "@/pages/admin/result-templates";
 import LogoSettings from "@/pages/admin/logo-settings";
 import TestTypes from "@/pages/admin/test-types";
 import PaymentSettings from "@/pages/admin/payment-settings";
-import AdminVerifyPayment from "@/pages/admin/verify-payment";
+// Removed admin verify payment import
 import PsychologistDashboard from "@/pages/psychologist/dashboard";
 import AssessmentsPage from "@/pages/psychologist/assessments";
 import PatientsPage from "@/pages/psychologist/patients";
@@ -30,7 +30,7 @@ import ReportsPage from "@/pages/psychologist/reports";
 import PsychologistSettingsPage from "@/pages/psychologist/settings";
 import PsychologistProfilePage from "@/pages/psychologist/profile";
 import RegisterPatient from "@/pages/edec/register-patient";
-import VerifyPayment from "@/pages/edec/verify-payment";
+// Removed EDEC verify payment import
 import EdecDashboard from "@/pages/edec/dashboard";
 import EdecPatients from "@/pages/edec/patients";
 import TestRequests from "@/pages/edec/test-requests";
@@ -103,11 +103,7 @@ function Router() {
         component={PaymentSettings}
         requireAdmin={true}
       />
-      <ProtectedRoute 
-        path="/admin/verify-payment" 
-        component={AdminVerifyPayment}
-        requireAdmin={true}
-      />
+      {/* Removed admin-specific verify-payment route */}
       <ProtectedRoute 
         path="/admin/patients" 
         component={EdecPatients} /* Reusing EDEC's patient component for now */
@@ -120,9 +116,10 @@ function Router() {
       />
 
       {/* Centralized Verification Page (accessible by all authenticated users) */}
-      <Route 
+      <ProtectedRoute 
         path="/verify-payment"
         component={VerifyPaymentPage}
+        requireAuth={true}
       />
 
       {/* Psychologist Routes */}
@@ -173,11 +170,7 @@ function Router() {
         component={RegisterPatient}
         requireSpecificRole="edec"
       />
-      <ProtectedRoute 
-        path="/edec/verify-payment" 
-        component={VerifyPayment}
-        requireSpecificRole="edec"
-      />
+      {/* Removed EDEC-specific verify-payment route */}
       <ProtectedRoute 
         path="/edec/patients" 
         component={EdecPatients}
