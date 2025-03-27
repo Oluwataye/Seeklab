@@ -36,6 +36,7 @@ import EdecPatients from "@/pages/edec/patients";
 import TestRequests from "@/pages/edec/test-requests";
 import EdecProfilePage from "@/pages/edec/profile";
 import EdecSettingsPage from "@/pages/edec/settings";
+import VerifyPaymentPage from "@/pages/verify-payment";
 import { ProtectedRoute } from "./lib/protected-route";
 
 function Router() {
@@ -116,6 +117,12 @@ function Router() {
         path="/admin/test-requests" 
         component={TestRequests} /* Reusing EDEC's test requests component for now */
         requireAdmin={true}
+      />
+
+      {/* Centralized Verification Page (accessible by all authenticated users) */}
+      <Route 
+        path="/verify-payment"
+        component={VerifyPaymentPage}
       />
 
       {/* Psychologist Routes */}
