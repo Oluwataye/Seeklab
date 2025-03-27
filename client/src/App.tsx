@@ -22,6 +22,7 @@ import ResultTemplates from "@/pages/admin/result-templates";
 import LogoSettings from "@/pages/admin/logo-settings";
 import TestTypes from "@/pages/admin/test-types";
 import PaymentSettings from "@/pages/admin/payment-settings";
+import AdminVerifyPayment from "@/pages/admin/verify-payment";
 import PsychologistDashboard from "@/pages/psychologist/dashboard";
 import AssessmentsPage from "@/pages/psychologist/assessments";
 import PatientsPage from "@/pages/psychologist/patients";
@@ -99,6 +100,11 @@ function Router() {
       <ProtectedRoute 
         path="/admin/payment-settings" 
         component={PaymentSettings}
+        requireAdmin={true}
+      />
+      <ProtectedRoute 
+        path="/admin/verify-payment" 
+        component={AdminVerifyPayment}
         requireAdmin={true}
       />
 

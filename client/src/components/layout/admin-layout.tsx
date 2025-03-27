@@ -20,7 +20,8 @@ import {
   TestTube,
   CreditCard,
   UserPlus,
-  ClipboardList
+  ClipboardList,
+  CheckCircle2
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -41,6 +42,7 @@ const navigation = [
   { name: "Code Generator", href: "/admin/codes", icon: KeyRound },
   { name: "Patient Management", href: "/edec/patients", icon: UserPlus },
   { name: "Payment Settings", href: "/admin/payment-settings", icon: CreditCard },
+  { name: "Verify Payment", href: "/admin/verify-payment", icon: CheckCircle2 },
   { name: "Test Requests", href: "/edec/test-requests", icon: ClipboardList },
   { name: "Result Templates", href: "/admin/templates", icon: FileText },
   { name: "Test Types", href: "/admin/test-types", icon: TestTube },
