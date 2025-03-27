@@ -143,12 +143,12 @@ export default function PatientsPage() {
     setIsViewDialogOpen(true);
   };
   
-  // Redirect to payment verification page
+  // Redirect to centralized payment verification page
   const handleRedirectToPaymentVerify = () => {
     if (selectedPatient) {
       setIsPaymentDialogOpen(false);
-      // Navigate to payment verification page
-      window.location.href = `/edec/verify-payment?patientId=${selectedPatient.patientId}`;
+      // Navigate to the centralized payment verification page
+      window.location.href = `/verify-payment?patientId=${selectedPatient.patientId}`;
     }
   };
   
@@ -299,7 +299,7 @@ export default function PatientsPage() {
               <h3 className="font-medium mb-1">Verify Payment</h3>
               <p className="text-sm text-muted-foreground mb-4">Process payment verification</p>
               <Button asChild variant="outline" size="sm">
-                <Link href="/edec/verify-payment">Verify</Link>
+                <Link href="/verify-payment">Verify</Link>
               </Button>
             </div>
             

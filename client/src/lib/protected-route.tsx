@@ -7,6 +7,7 @@ interface ProtectedRouteProps {
   component: () => React.JSX.Element;
   requireAdmin?: boolean;
   requireSpecificRole?: 'admin' | 'psychologist' | 'edec';
+  requireAuth?: boolean;
 }
 
 export function ProtectedRoute({
@@ -14,6 +15,7 @@ export function ProtectedRoute({
   component: Component,
   requireAdmin = false,
   requireSpecificRole,
+  requireAuth = false,
 }: ProtectedRouteProps) {
   const { user, isLoading } = useAuth();
 
