@@ -23,6 +23,7 @@ import LogoSettings from "@/pages/admin/logo-settings";
 import TestTypes from "@/pages/admin/test-types";
 import PaymentSettings from "@/pages/admin/payment-settings";
 import AdminTestRequests from "@/pages/admin/test-requests";
+import AdminPatients from "@/pages/admin/patients";
 // Removed admin verify payment import
 import PsychologistDashboard from "@/pages/psychologist/dashboard";
 import AssessmentsPage from "@/pages/psychologist/assessments";
@@ -107,7 +108,7 @@ function Router() {
       {/* Removed admin-specific verify-payment route */}
       <ProtectedRoute 
         path="/admin/patients" 
-        component={EdecPatients} /* Reusing EDEC's patient component for now */
+        component={AdminPatients}
         requireAdmin={true}
       />
       <ProtectedRoute 
