@@ -22,6 +22,7 @@ import ResultTemplates from "@/pages/admin/result-templates";
 import LogoSettings from "@/pages/admin/logo-settings";
 import TestTypes from "@/pages/admin/test-types";
 import PaymentSettings from "@/pages/admin/payment-settings";
+import AdminTestRequests from "@/pages/admin/test-requests";
 // Removed admin verify payment import
 import PsychologistDashboard from "@/pages/psychologist/dashboard";
 import AssessmentsPage from "@/pages/psychologist/assessments";
@@ -111,7 +112,7 @@ function Router() {
       />
       <ProtectedRoute 
         path="/admin/test-requests" 
-        component={TestRequests} /* Reusing EDEC's test requests component for now */
+        component={AdminTestRequests}
         requireAdmin={true}
       />
 
