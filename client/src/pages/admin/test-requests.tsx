@@ -29,8 +29,8 @@ import { useToast } from "@/hooks/use-toast";
 export default function AdminTestRequests() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = React.useState("");
-  const [statusFilter, setStatusFilter] = React.useState<string | null>(null);
-  const [testTypeFilter, setTestTypeFilter] = React.useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = React.useState<string>("all");
+  const [testTypeFilter, setTestTypeFilter] = React.useState<string>("all");
   const [currentTab, setCurrentTab] = React.useState("all");
 
   // Fetch test requests
@@ -53,8 +53,8 @@ export default function AdminTestRequests() {
   // Reset all filters
   const resetFilters = () => {
     setSearchTerm("");
-    setStatusFilter(null);
-    setTestTypeFilter(null);
+    setStatusFilter("all");
+    setTestTypeFilter("all");
   };
 
   // Filter and sort test requests
@@ -70,10 +70,10 @@ export default function AdminTestRequests() {
           request.requestId?.toLowerCase().includes(searchTerm.toLowerCase());
         
         // Status filter
-        const statusMatch = !statusFilter || request.status === statusFilter;
+        const statusMatch = !statusFilter || statusFilter === "all" || request.status === statusFilter;
         
         // Test type filter
-        const testTypeMatch = !testTypeFilter || request.testTypeId === parseInt(testTypeFilter);
+        const testTypeMatch = !testTypeFilter || testTypeFilter === "all" || request.testTypeId === parseInt(testTypeFilter);
         
         // Tab filter
         const tabMatch = 
@@ -187,12 +187,12 @@ export default function AdminTestRequests() {
                   
                   <div className="space-y-2">
                     <Label htmlFor="status-filter">Status</Label>
-                    <Select value={statusFilter || ""} onValueChange={setStatusFilter}>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
                       <SelectTrigger id="status-filter">
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Statuses</SelectItem>
+                        <SelectItem value="all">All Statuses</SelectItem>
                         <SelectItem value="pending">Pending</SelectItem>
                         <SelectItem value="in-progress">In Progress</SelectItem>
                         <SelectItem value="completed">Completed</SelectItem>
@@ -202,12 +202,12 @@ export default function AdminTestRequests() {
                   
                   <div className="space-y-2">
                     <Label htmlFor="test-type-filter">Test Type</Label>
-                    <Select value={testTypeFilter || ""} onValueChange={setTestTypeFilter}>
+                    <Select value={testTypeFilter} onValueChange={setTestTypeFilter}>
                       <SelectTrigger id="test-type-filter">
                         <SelectValue placeholder="Select test type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Test Types</SelectItem>
+                        <SelectItem value="all">All Test Types</SelectItem>
                         {testTypes?.map((type: any) => (
                           <SelectItem key={type.id} value={type.id.toString()}>
                             {type.name}
