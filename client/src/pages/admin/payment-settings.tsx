@@ -5,12 +5,31 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { getQueryFn, apiRequest, queryClient } from "@/lib/queryClient";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Loader2, CheckCircle } from "lucide-react";
+import { Loader2, CheckCircle, CreditCard, BanknoteIcon, ShieldAlert } from "lucide-react";
+
+interface PaymentSettingsData {
+  id?: number;
+  accessCodePrice: number;
+  currency: string;
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  isActive: boolean;
+  enableOpay?: boolean;
+  opayPublicKey?: string;
+  opaySecretKey?: string;
+  opayMerchantId?: string;
+  updatedAt?: string;
+  updatedBy?: string;
+  createdAt?: string;
+}
 
 const paymentSettingsSchema = z.object({
   accessCodePrice: z.coerce.number()
@@ -30,6 +49,10 @@ const paymentSettingsSchema = z.object({
     .min(10, "Account number must be at least 10 characters")
     .max(20, "Account number cannot exceed 20 characters"),
   isActive: z.boolean().default(true),
+  enableOpay: z.boolean().default(false),
+  opayPublicKey: z.string().optional(),
+  opaySecretKey: z.string().optional(),
+  opayMerchantId: z.string().optional(),
 });
 
 type PaymentSettingsFormValues = z.infer<typeof paymentSettingsSchema>;
@@ -37,7 +60,7 @@ type PaymentSettingsFormValues = z.infer<typeof paymentSettingsSchema>;
 export default function PaymentSettings() {
   const { toast } = useToast();
 
-  const { data: paymentSettings, isLoading } = useQuery({
+  const { data: paymentSettings, isLoading } = useQuery<PaymentSettingsData>({
     queryKey: ['/api/payment-settings'],
     queryFn: getQueryFn({ on401: "throw" }),
   });
@@ -51,6 +74,10 @@ export default function PaymentSettings() {
       accountName: "",
       accountNumber: "",
       isActive: true,
+      enableOpay: false,
+      opayPublicKey: "",
+      opaySecretKey: "",
+      opayMerchantId: "",
     },
   });
 
@@ -64,16 +91,30 @@ export default function PaymentSettings() {
         accountName: paymentSettings.accountName,
         accountNumber: paymentSettings.accountNumber,
         isActive: paymentSettings.isActive,
+        enableOpay: paymentSettings.enableOpay || false,
+        opayPublicKey: paymentSettings.opayPublicKey || "",
+        opaySecretKey: paymentSettings.opaySecretKey || "",
+        opayMerchantId: paymentSettings.opayMerchantId || "",
       });
     }
   }, [paymentSettings, form]);
 
   const updateMutation = useMutation({
     mutationFn: async (data: PaymentSettingsFormValues) => {
-      return apiRequest('/api/payment-settings', {
+      const response = await fetch('/api/payment-settings', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(data),
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update payment settings');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -156,65 +197,167 @@ export default function PaymentSettings() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 gap-6">
-                    <FormField
-                      control={form.control}
-                      name="bankName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Bank Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter bank name" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            The name of the bank for transfer payments
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  <Tabs defaultValue="bank" className="w-full mt-8">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="bank" className="flex items-center">
+                        <BanknoteIcon className="mr-2 h-4 w-4" />
+                        Bank Transfer
+                      </TabsTrigger>
+                      <TabsTrigger value="opay" className="flex items-center">
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        OPay Integration
+                      </TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="bank" className="pt-4">
+                      <div className="grid grid-cols-1 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="bankName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Bank Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Enter bank name" {...field} />
+                              </FormControl>
+                              <FormDescription>
+                                The name of the bank for transfer payments
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      control={form.control}
-                      name="accountName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Account Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter account name" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            The name on the bank account
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                        <FormField
+                          control={form.control}
+                          name="accountName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Account Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Enter account name" {...field} />
+                              </FormControl>
+                              <FormDescription>
+                                The name on the bank account
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                    <FormField
-                      control={form.control}
-                      name="accountNumber"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Account Number</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter account number" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            The bank account number for transfers
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                        <FormField
+                          control={form.control}
+                          name="accountNumber"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Account Number</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Enter account number" {...field} />
+                              </FormControl>
+                              <FormDescription>
+                                The bank account number for transfers
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="opay" className="pt-4">
+                      <div className="mb-6">
+                        <FormField
+                          control={form.control}
+                          name="enableOpay"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                              <div className="space-y-0.5">
+                                <FormLabel className="text-base">Enable OPay Payments</FormLabel>
+                                <FormDescription>
+                                  Allow patients to pay directly through OPay payment gateway
+                                </FormDescription>
+                              </div>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="opayMerchantId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>OPay Merchant ID</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Enter OPay Merchant ID" {...field} />
+                              </FormControl>
+                              <FormDescription>
+                                The merchant ID provided by OPay
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                        <FormField
+                          control={form.control}
+                          name="opayPublicKey"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>OPay Public Key</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Enter OPay Public Key"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                Public API key from OPay dashboard
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="opaySecretKey"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>OPay Secret Key</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="password"
+                                  placeholder="Enter OPay Secret Key"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormDescription className="flex items-center">
+                                <ShieldAlert className="h-4 w-4 mr-1" /> Keep this key secure
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </TabsContent>
+                  </Tabs>
 
                   <Button
                     type="submit"
                     disabled={updateMutation.isPending}
-                    className="flex items-center"
+                    className="flex items-center mt-8"
                   >
                     {updateMutation.isPending ? (
                       <>

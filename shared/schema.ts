@@ -124,9 +124,13 @@ export const payments = pgTable("payments", {
   paymentMethod: text("payment_method").notNull(),
   referenceNumber: text("reference_number").notNull().unique(),
   status: text("status").notNull(),
+  transactionId: text("transaction_id"),
   metadata: jsonb("metadata").$type<Record<string, unknown>>(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   completedAt: timestamp("completed_at"),
+  paymentReference: text("payment_reference").unique(),
+  expiresAt: timestamp("expires_at"),
+  verificationStatus: text("verification_status").default("pending"),
 });
 
 export const paymentSettings = pgTable("payment_settings", {
@@ -137,6 +141,10 @@ export const paymentSettings = pgTable("payment_settings", {
   accountName: text("account_name").notNull(),
   accountNumber: text("account_number").notNull(),
   isActive: boolean("is_active").notNull().default(true),
+  enableOpay: boolean("enable_opay").notNull().default(false),
+  opayPublicKey: text("opay_public_key"),
+  opaySecretKey: text("opay_secret_key"),
+  opayMerchantId: text("opay_merchant_id"),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   updatedBy: text("updated_by").notNull(),
 });
@@ -233,8 +241,12 @@ export const insertPaymentSchema = createInsertSchema(payments).pick({
   paymentMethod: true,
   referenceNumber: true,
   status: true,
+  transactionId: true,
   metadata: true,
   completedAt: true,
+  paymentReference: true,
+  expiresAt: true,
+  verificationStatus: true,
 });
 
 export const insertPaymentSettingSchema = createInsertSchema(paymentSettings).pick({
@@ -244,6 +256,10 @@ export const insertPaymentSettingSchema = createInsertSchema(paymentSettings).pi
   accountName: true,
   accountNumber: true,
   isActive: true,
+  enableOpay: true,
+  opayPublicKey: true,
+  opaySecretKey: true,
+  opayMerchantId: true,
   updatedBy: true,
 });
 

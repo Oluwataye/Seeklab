@@ -65,11 +65,18 @@ export interface IStorage {
   createPayment(payment: InsertPayment): Promise<Payment>;
   getPaymentById(id: number): Promise<Payment | undefined>;
   getPaymentsByPatientId(patientId: string): Promise<Payment[]>;
+  getAllPayments(): Promise<Payment[]>;
   updatePayment(id: number, data: Partial<Payment>): Promise<Payment>;
   
   // Payment settings
   getPaymentSettings(): Promise<PaymentSetting | undefined>;
   updatePaymentSettings(data: Partial<InsertPaymentSetting>): Promise<PaymentSetting>;
+  getOpayCredentials(): Promise<{
+    publicKey: string;
+    secretKey: string;
+    merchantId: string;
+    isEnabled: boolean;
+  }>;
   
   // Generate unique patient ID
   generateUniquePatientId(): Promise<string>;
@@ -555,6 +562,18 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
+  async getAllPayments(): Promise<Payment[]> {
+    try {
+      return await db
+        .select()
+        .from(payments)
+        .orderBy(desc(payments.createdAt));
+    } catch (error) {
+      console.error('Error fetching all payments:', error);
+      return [];
+    }
+  }
+  
   async updatePayment(id: number, data: Partial<Payment>): Promise<Payment> {
     try {
       const [payment] = await db
@@ -623,6 +642,31 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error updating payment settings:', error);
       throw error;
+    }
+  }
+  
+  async getOpayCredentials(): Promise<{
+    publicKey: string;
+    secretKey: string;
+    merchantId: string;
+    isEnabled: boolean;
+  }> {
+    try {
+      const settings = await this.getPaymentSettings();
+      return {
+        publicKey: settings?.opayPublicKey || '',
+        secretKey: settings?.opaySecretKey || '',
+        merchantId: settings?.opayMerchantId || '',
+        isEnabled: settings?.enableOpay || false
+      };
+    } catch (error) {
+      console.error('Error fetching OPay credentials:', error);
+      return {
+        publicKey: '',
+        secretKey: '',
+        merchantId: '',
+        isEnabled: false
+      };
     }
   }
   

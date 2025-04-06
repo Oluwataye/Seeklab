@@ -2,7 +2,14 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
-import { insertResultSchema, insertTestTypeSchema, insertPatientSchema, insertPaymentSchema, insertPaymentSettingSchema } from "@shared/schema";
+import { 
+  insertResultSchema, 
+  insertTestTypeSchema, 
+  insertPatientSchema, 
+  insertPaymentSchema, 
+  insertPaymentSettingSchema,
+  Payment
+} from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
 import path from "path";
@@ -920,14 +927,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Payment settings not configured" });
       }
       
-      // Return only necessary details for public use
-      res.json({
-        accessCodePrice: settings.accessCodePrice,
-        currency: settings.currency,
-        bankName: settings.bankName,
-        accountName: settings.accountName,
-        accountNumber: settings.accountNumber
-      });
+      // Check if the request is from an authenticated admin
+      const isAdmin = req.isAuthenticated() && req.user?.isAdmin;
+      
+      if (isAdmin) {
+        // Return full settings for admin users including OPay credentials
+        res.json(settings);
+      } else {
+        // Return only necessary details for public use (omit sensitive OPay keys)
+        res.json({
+          accessCodePrice: settings.accessCodePrice,
+          currency: settings.currency,
+          bankName: settings.bankName,
+          accountName: settings.accountName,
+          accountNumber: settings.accountNumber,
+          enableOpay: settings.enableOpay || false,
+          // Omit secret keys for security reasons
+        });
+      }
     } catch (error) {
       console.error('Error fetching payment settings:', error);
       res.status(500).json({ message: "Failed to fetch payment settings" });
@@ -1034,7 +1051,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           details: { 
             accessCodePrice: settings.accessCodePrice,
             currency: settings.currency,
-            bankName: settings.bankName
+            bankName: settings.bankName,
+            enableOpay: settings.enableOpay 
+            // Omit sensitive OPay keys from audit log
           },
           ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
         });
@@ -1172,11 +1191,286 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bankName: settings.bankName,
         accountName: settings.accountName,
         accountNumber: settings.accountNumber.replace(/(\d{4})(\d+)(\d{4})/, '$1****$3'), // Mask middle digits
+        enableOpay: settings.enableOpay || false,
         paymentInstructions: "Please make payment using any of the methods below and contact our staff to verify your payment."
       });
     } catch (error) {
       console.error('Error fetching payment page data:', error);
       res.status(500).json({ message: "Failed to fetch payment information" });
+    }
+  });
+  
+  // OPay payment initialization (no authentication required)
+  app.post("/api/opay/initialize", async (req, res) => {
+    try {
+      const { patientId, amount, email, phone, callbackUrl } = z.object({
+        patientId: z.string(),
+        amount: z.number(),
+        email: z.string().email().optional(),
+        phone: z.string().optional(),
+        callbackUrl: z.string().optional(),
+      }).parse(req.body);
+      
+      // Get patient
+      const patient = await storage.getPatientByPatientId(patientId);
+      if (!patient) {
+        return res.status(404).json({ message: "Patient not found" });
+      }
+      
+      // Get payment settings
+      const settings = await storage.getPaymentSettings();
+      if (!settings) {
+        return res.status(404).json({ message: "Payment settings not configured" });
+      }
+      
+      // Check if OPay is enabled
+      if (!settings.enableOpay) {
+        return res.status(400).json({ message: "OPay payments are not enabled" });
+      }
+      
+      // Get OPay credentials
+      const opayCredentials = await storage.getOpayCredentials();
+      if (!opayCredentials.isEnabled) {
+        return res.status(400).json({ message: "OPay integration is not properly configured" });
+      }
+      
+      // Generate a unique reference for this payment
+      const reference = `OPAY-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+      
+      try {
+        // Import the OPay utility functions
+        const { initializeOpayPayment } = require('./opay');
+        
+        // Initialize OPay payment
+        const opayResponse = await initializeOpayPayment({
+          amount, 
+          currency: settings.currency,
+          reference,
+          callbackUrl: callbackUrl || `${req.protocol}://${req.get('host')}/api/opay/webhook`,
+          metadata: {
+            patientId,
+            email: email || '',
+            phone: phone || ''
+          }
+        });
+        
+        // Create a pending payment record
+        await storage.createPayment({
+          patientId,
+          amount,
+          paymentMethod: 'opay',
+          status: 'pending',
+          referenceNumber: reference,
+          transactionId: opayResponse.data?.orderNo || '',
+          metadata: {
+            opayResponse: JSON.stringify(opayResponse),
+            email,
+            phone
+          }
+        });
+        
+        // Return initialization response
+        res.status(200).json({
+          success: true,
+          reference,
+          opayData: opayResponse.data,
+          redirectUrl: opayResponse.data?.cashierUrl || ''
+        });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('OPay payment initialization error:', error);
+        res.status(500).json({ 
+          message: "Failed to initialize OPay payment", 
+          error: errorMessage 
+        });
+      }
+    } catch (error) {
+      console.error('Error in OPay payment initialization:', error);
+      res.status(400).json({ message: "Invalid request data" });
+    }
+  });
+  
+  // OPay webhook receiver - Process payment notifications
+  app.post("/api/opay/webhook", async (req, res) => {
+    try {
+      // Import the OPay utility functions
+      const { verifyOpaySignature, opayWebhookSchema } = require('./opay');
+      
+      // Get settings for the secret key
+      const opayCredentials = await storage.getOpayCredentials();
+      
+      // Parse and validate the webhook payload
+      const webhookData = opayWebhookSchema.parse(req.body);
+      
+      // Verify the signature
+      const isValid = verifyOpaySignature(webhookData, opayCredentials.secretKey);
+      
+      if (!isValid) {
+        console.error('Invalid OPay webhook signature');
+        return res.status(400).json({ error: 'Invalid signature' });
+      }
+      
+      // Extract reference and transaction ID
+      const { orderNo, reference, status, amount } = webhookData.data;
+      
+      // Find the payment with this reference
+      const payments = await storage.getAllPayments();
+      // Define the payment type from the returned array elements
+      type PaymentType = typeof payments[0];
+      const payment = payments.find((p: PaymentType) => p.referenceNumber === reference);
+      
+      if (!payment) {
+        console.error(`Payment with reference ${reference} not found`);
+        return res.status(404).json({ error: 'Payment not found' });
+      }
+      
+      // Update payment status based on webhook status
+      let paymentStatus;
+      
+      if (status === 'SUCCESS') {
+        paymentStatus = 'verified';
+      } else if (status === 'FAILED' || status === 'TIMEOUT') {
+        paymentStatus = 'failed';
+      } else if (status === 'PENDING') {
+        paymentStatus = 'pending';
+      } else {
+        paymentStatus = 'invalid';
+      }
+      
+      // Update the payment record
+      await storage.updatePayment(payment.id, {
+        status: paymentStatus,
+        transactionId: orderNo,
+        completedAt: paymentStatus === 'verified' ? new Date() : undefined,
+        metadata: {
+          ...payment.metadata,
+          webhookResponse: JSON.stringify(webhookData)
+        }
+      });
+      
+      // If payment successful, create notification for staff
+      if (paymentStatus === 'verified') {
+        // Get admin users for notification
+        const users = await storage.getAllUsers();
+        const adminUsers = users.filter(user => user.isAdmin);
+        
+        // Get patient details
+        const patient = await storage.getPatientByPatientId(payment.patientId);
+        const patientName = patient ? `${patient.firstName} ${patient.lastName}` : payment.patientId;
+        
+        // Create notifications for all admin users
+        for (const adminUser of adminUsers) {
+          await storage.createNotification({
+            title: 'New OPay Payment',
+            message: `${patientName} has completed a payment of ${amount} via OPay.`,
+            type: 'payment',
+            recipientId: adminUser.id.toString(),
+            isRead: false,
+            metadata: {
+              patientId: payment.patientId,
+              paymentId: payment.id.toString(),
+              amount
+            }
+          });
+        }
+        
+        // Create audit log
+        await storage.createAuditLog({
+          userId: 'SYSTEM', // System generated
+          action: 'verify_payment',
+          entityType: 'payment',
+          entityId: payment.id.toString(),
+          details: {
+            patientId: payment.patientId,
+            amount: payment.amount,
+            paymentMethod: 'opay',
+            reference
+          },
+          ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+        });
+      }
+      
+      // Acknowledge the webhook
+      res.status(200).json({ status: 'success' });
+    } catch (error) {
+      console.error('Error processing OPay webhook:', error);
+      res.status(500).json({ error: 'Failed to process webhook' });
+    }
+  });
+  
+  // OPay payment verification endpoint (authenticated)
+  app.post("/api/opay/verify", async (req, res) => {
+    if (!req.isAuthenticated() || 
+        (req.user?.role !== 'edec' && !req.user?.isAdmin)) {
+      return res.status(403).json({ message: "Unauthorized - EDEC or admin access required" });
+    }
+
+    try {
+      const { reference } = z.object({
+        reference: z.string()
+      }).parse(req.body);
+      
+      // Import OPay verification function
+      const { verifyOpayPayment } = require('./opay');
+      
+      // Get the payment with this reference
+      const payments = await storage.getAllPayments();
+      // Define the payment type from the returned array elements
+      type PaymentType = typeof payments[0];
+      const payment = payments.find((p: PaymentType) => p.referenceNumber === reference);
+      
+      if (!payment) {
+        return res.status(404).json({ message: "Payment not found" });
+      }
+      
+      // Verify with OPay
+      const verificationResult = await verifyOpayPayment(reference);
+      
+      // Update payment status based on verification
+      if (verificationResult.data?.status === 'SUCCESS') {
+        await storage.updatePayment(payment.id, {
+          status: 'verified',
+          completedAt: new Date(),
+          metadata: {
+            ...payment.metadata,
+            verificationResponse: JSON.stringify(verificationResult)
+          }
+        });
+        
+        // Create audit log for manual verification
+        if (req.user?.id) {
+          await storage.createAuditLog({
+            userId: req.user.id.toString(),
+            action: 'verify_payment',
+            entityType: 'payment',
+            entityId: payment.id.toString(),
+            details: {
+              patientId: payment.patientId,
+              amount: payment.amount,
+              paymentMethod: 'opay',
+              reference
+            },
+            ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+          });
+        }
+        
+        res.json({
+          verified: true,
+          payment: {
+            ...payment,
+            status: 'verified'
+          }
+        });
+      } else {
+        res.json({
+          verified: false,
+          payment,
+          opayStatus: verificationResult.data?.status || 'UNKNOWN'
+        });
+      }
+    } catch (error) {
+      console.error('Error verifying OPay payment:', error);
+      res.status(500).json({ message: "Failed to verify payment with OPay" });
     }
   });
 
