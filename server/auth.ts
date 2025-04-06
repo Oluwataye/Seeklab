@@ -146,20 +146,48 @@ export function setupAuth(app: Express) {
     passport.authenticate("local", async (err: any, user: any, info: any) => {
       if (err) { return next(err); }
       if (!user) { return res.status(401).json({ message: info?.message || 'Invalid credentials' }); }
-      req.login(user, async (err) => {
-        if (err) { return next(err); }
-        await createAuditLog(req, 'LOGIN', 'USER', user.id.toString());
-        res.status(200).json(req.user);
-      });
+      
+      // Update the last login timestamp
+      try {
+        const now = new Date();
+        const updatedUser = await storage.updateUser(user.id, { lastLogin: now });
+        
+        req.login(updatedUser, async (err) => {
+          if (err) { return next(err); }
+          await createAuditLog(req, 'LOGIN', 'USER', updatedUser.id.toString());
+          res.status(200).json(req.user);
+        });
+      } catch (error) {
+        console.error("Error updating last login timestamp:", error);
+        // Continue with login even if the timestamp update fails
+        req.login(user, async (err) => {
+          if (err) { return next(err); }
+          await createAuditLog(req, 'LOGIN', 'USER', user.id.toString());
+          res.status(200).json(req.user);
+        });
+      }
     })(req, res, next);
   });
 
-  app.post("/api/logout", (req, res, next) => {
-    const userId = req.user?.id.toString();
+  app.post("/api/logout", async (req, res, next) => {
+    const userId = req.user?.id;
+    const userIdStr = userId?.toString();
+    
+    if (userId) {
+      try {
+        // Update the last login timestamp on logout too (for tracking purposes)
+        const now = new Date();
+        await storage.updateUser(userId, { lastLogin: now });
+      } catch (error) {
+        console.error("Error updating timestamp on logout:", error);
+        // Continue with logout process even if the update fails
+      }
+    }
+    
     req.logout((err) => {
       if (err) return next(err);
-      if (userId) {
-        createAuditLog(req, 'LOGOUT', 'USER', userId);
+      if (userIdStr) {
+        createAuditLog(req, 'LOGOUT', 'USER', userIdStr);
       }
       res.sendStatus(200);
     });
