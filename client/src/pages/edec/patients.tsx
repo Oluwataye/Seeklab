@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, Search, UserPlus, ChevronRight, FileText, Calendar, Phone, Mail, Clock, CircleDollarSign, CheckCircle, ExternalLink } from "lucide-react";
+import { Loader2, Search, UserPlus, ChevronRight, FileText, Calendar, Phone, Mail, Clock, CircleDollarSign, CheckCircle, ExternalLink, LayoutDashboard } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 
@@ -68,14 +68,26 @@ export default function PatientsPage() {
   const filteredPatients = React.useMemo(() => {
     if (!patients || !Array.isArray(patients)) return [];
     
+    if (!searchTerm.trim()) return patients;
+    
     return patients.filter((patient: Patient) => {
       const searchLower = searchTerm.toLowerCase();
+      const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
+      const kinFullName = `${patient.kinFirstName} ${patient.kinLastName}`.toLowerCase();
+      const dateCreated = new Date(patient.createdAt).toLocaleDateString();
+      
       return (
         patient.patientId.toLowerCase().includes(searchLower) ||
         patient.firstName.toLowerCase().includes(searchLower) ||
         patient.lastName.toLowerCase().includes(searchLower) ||
+        fullName.includes(searchLower) ||
         patient.contactNumber.includes(searchTerm) ||
-        (patient.email && patient.email.toLowerCase().includes(searchLower))
+        patient.contactAddress.toLowerCase().includes(searchLower) ||
+        (patient.email && patient.email.toLowerCase().includes(searchLower)) ||
+        kinFullName.includes(searchLower) ||
+        patient.kinContactNumber.includes(searchTerm) ||
+        (patient.kinEmail && patient.kinEmail.toLowerCase().includes(searchLower)) ||
+        dateCreated.includes(searchTerm)
       );
     });
   }, [patients, searchTerm]);
@@ -170,13 +182,14 @@ export default function PatientsPage() {
           <div className="flex gap-3 mt-4 md:mt-0">
             <Button asChild variant="outline" size="sm">
               <Link href="/edec/dashboard">
+                <LayoutDashboard className="mr-2 h-4 w-4" />
                 Dashboard
               </Link>
             </Button>
-            <Button asChild size="sm">
-              <Link href="/edec/register-patient">
-                <UserPlus className="mr-2 h-4 w-4" />
-                Register Patient
+            <Button asChild variant="outline" size="sm">
+              <Link href="/verify-payment">
+                <CheckCircle className="mr-2 h-4 w-4" />
+                Verify Payment
               </Link>
             </Button>
           </div>
@@ -190,20 +203,40 @@ export default function PatientsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
-              <div className="relative w-full md:w-96">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search patients by ID, name or contact..."
-                  className="pl-8"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+            <div className="flex flex-col gap-4 mb-6">
+              <div className="flex flex-col md:flex-row gap-4 items-start">
+                <div className="relative w-full">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search patients by ID, name, contact, email or address..."
+                    className="pl-8"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="absolute right-1 top-1.5"
+                    onClick={() => setSearchTerm("")}
+                    disabled={!searchTerm}
+                  >
+                    Clear
+                  </Button>
+                </div>
               </div>
-              <p className="text-sm text-muted-foreground mt-2">
-                {filteredPatients.length} patient{filteredPatients.length !== 1 ? 's' : ''} found
-              </p>
+              
+              <div className="flex justify-between items-center">
+                <p className="text-sm text-muted-foreground">
+                  {filteredPatients.length} patient{filteredPatients.length !== 1 ? 's' : ''} found
+                </p>
+                <div className="text-sm text-muted-foreground">
+                  Quick Search: 
+                  <Button variant="link" size="sm" onClick={() => setSearchTerm("2025")}>This Year</Button>
+                  <Button variant="link" size="sm" onClick={() => setSearchTerm("+234")}>Nigerian</Button>
+                  <Button variant="link" size="sm" onClick={() => setSearchTerm("@gmail")}>Gmail</Button>
+                </div>
+              </div>
             </div>
 
             <div className="rounded-md border">
@@ -283,12 +316,12 @@ export default function PatientsPage() {
           <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex flex-col items-center text-center p-4 border rounded-lg hover:border-primary hover:bg-muted/50 transition-colors">
               <div className="bg-primary/10 rounded-full p-3 mb-3">
-                <UserPlus className="w-6 h-6 text-primary" />
+                <FileText className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="font-medium mb-1">Register Patient</h3>
-              <p className="text-sm text-muted-foreground mb-4">Add a new patient to the system</p>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/edec/register-patient">Register</Link>
+              <h3 className="font-medium mb-1">Export Patient List</h3>
+              <p className="text-sm text-muted-foreground mb-4">Download patient data report</p>
+              <Button variant="outline" size="sm">
+                Export CSV
               </Button>
             </div>
             

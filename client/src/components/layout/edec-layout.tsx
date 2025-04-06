@@ -67,11 +67,6 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
       icon: ClipboardCheck 
     },
     { 
-      name: "Patient Registration", 
-      href: "/edec/register-patient", 
-      icon: UserPlus 
-    },
-    { 
       name: "Payment Verification", 
       href: "/verify-payment", 
       icon: CreditCard 

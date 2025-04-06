@@ -65,14 +65,26 @@ export default function AdminPatientsPage() {
   const filteredPatients = React.useMemo(() => {
     if (!patients || !Array.isArray(patients)) return [];
     
+    if (!searchTerm.trim()) return patients;
+    
     return patients.filter((patient: Patient) => {
       const searchLower = searchTerm.toLowerCase();
+      const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
+      const kinFullName = `${patient.kinFirstName} ${patient.kinLastName}`.toLowerCase();
+      const dateCreated = new Date(patient.createdAt).toLocaleDateString();
+      
       return (
         patient.patientId.toLowerCase().includes(searchLower) ||
         patient.firstName.toLowerCase().includes(searchLower) ||
         patient.lastName.toLowerCase().includes(searchLower) ||
+        fullName.includes(searchLower) ||
         patient.contactNumber.includes(searchTerm) ||
-        (patient.email && patient.email.toLowerCase().includes(searchLower))
+        patient.contactAddress.toLowerCase().includes(searchLower) ||
+        (patient.email && patient.email.toLowerCase().includes(searchLower)) ||
+        kinFullName.includes(searchLower) ||
+        patient.kinContactNumber.includes(searchTerm) ||
+        (patient.kinEmail && patient.kinEmail.toLowerCase().includes(searchLower)) ||
+        dateCreated.includes(searchTerm)
       );
     });
   }, [patients, searchTerm]);
@@ -167,20 +179,40 @@ export default function AdminPatientsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
-              <div className="relative w-full md:w-96">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search patients by ID, name or contact..."
-                  className="pl-8"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+            <div className="flex flex-col gap-4 mb-6">
+              <div className="flex flex-col md:flex-row gap-4 items-start">
+                <div className="relative w-full">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search patients by ID, name, contact or email..."
+                    className="pl-8"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="absolute right-1 top-1.5"
+                    onClick={() => setSearchTerm("")}
+                    disabled={!searchTerm}
+                  >
+                    Clear
+                  </Button>
+                </div>
               </div>
-              <p className="text-sm text-muted-foreground mt-2">
-                {filteredPatients.length} patient{filteredPatients.length !== 1 ? 's' : ''} found
-              </p>
+              
+              <div className="flex justify-between items-center">
+                <p className="text-sm text-muted-foreground">
+                  {filteredPatients.length} patient{filteredPatients.length !== 1 ? 's' : ''} found
+                </p>
+                <div className="text-sm text-muted-foreground">
+                  Quick Search: 
+                  <Button variant="link" size="sm" onClick={() => setSearchTerm("2025")}>This Year</Button>
+                  <Button variant="link" size="sm" onClick={() => setSearchTerm("+234")}>Nigerian</Button>
+                  <Button variant="link" size="sm" onClick={() => setSearchTerm("@gmail")}>Gmail</Button>
+                </div>
+              </div>
             </div>
 
             <div className="rounded-md border">
