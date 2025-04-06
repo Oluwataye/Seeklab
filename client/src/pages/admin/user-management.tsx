@@ -57,6 +57,7 @@ export default function UserManagement() {
       email: "",
       password: "",
       role: "edec",
+      employeeId: "",
     },
   });
   
@@ -68,6 +69,7 @@ export default function UserManagement() {
       username: "",
       email: "",
       role: "edec",
+      employeeId: "",
     },
   });
 
@@ -209,6 +211,7 @@ export default function UserManagement() {
       email: user.email || '',
       role: user.role as FormData['role'],
       password: '',  // Empty password field as we don't want to change it by default
+      employeeId: user.employeeId || '',
     });
     setIsEditUserOpen(true);
   };
@@ -321,6 +324,22 @@ export default function UserManagement() {
                           </FormItem>
                         )}
                       />
+                      <FormField
+                        control={form.control}
+                        name="employeeId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Employee ID (optional)</FormLabel>
+                            <FormControl>
+                              <Input 
+                                {...field} 
+                                placeholder="EMP-12345-ABC"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                       <Button
                         type="submit"
                         disabled={createUserMutation.isPending}
@@ -360,6 +379,7 @@ export default function UserManagement() {
                       <TableHead>Username</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Role</TableHead>
+                      <TableHead>Employee ID</TableHead>
                       <TableHead>Last Login</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -381,6 +401,7 @@ export default function UserManagement() {
                             )
                           }
                         </TableCell>
+                        <TableCell>{user.employeeId || '-'}</TableCell>
                         <TableCell>{user.lastLogin ? new Date(user.lastLogin).toLocaleString() : '-'}</TableCell>
                         <TableCell className="text-right space-x-2">
                           <Button 
@@ -504,6 +525,22 @@ export default function UserManagement() {
                           </>
                         )}
                       </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="employeeId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Employee ID</FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        placeholder="EMP-12345-ABC"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
