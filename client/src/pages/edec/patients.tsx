@@ -192,6 +192,12 @@ export default function PatientsPage() {
                 Verify Payment
               </Link>
             </Button>
+            <Button asChild size="sm">
+              <Link href="/edec/register-patient">
+                <UserPlus className="mr-2 h-4 w-4" />
+                Register Patient
+              </Link>
+            </Button>
           </div>
         </div>
 
@@ -316,12 +322,12 @@ export default function PatientsPage() {
           <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex flex-col items-center text-center p-4 border rounded-lg hover:border-primary hover:bg-muted/50 transition-colors">
               <div className="bg-primary/10 rounded-full p-3 mb-3">
-                <FileText className="w-6 h-6 text-primary" />
+                <UserPlus className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="font-medium mb-1">Export Patient List</h3>
-              <p className="text-sm text-muted-foreground mb-4">Download patient data report</p>
-              <Button variant="outline" size="sm">
-                Export CSV
+              <h3 className="font-medium mb-1">Register Patient</h3>
+              <p className="text-sm text-muted-foreground mb-4">Add a new patient to the system</p>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/edec/register-patient">Register</Link>
               </Button>
             </div>
             

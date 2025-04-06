@@ -61,6 +61,11 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
       href: "/edec/patients", 
       icon: Users,
     },
+    {
+      name: "Patient Registration",
+      href: "/edec/register-patient",
+      icon: UserPlus
+    },
     { 
       name: "Test Requests", 
       href: "/edec/test-requests", 
