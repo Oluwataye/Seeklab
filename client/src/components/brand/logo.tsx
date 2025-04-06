@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, Image as ImageIcon } from 'lucide-react';
 
 interface BrandLogoProps {
   className?: string;
@@ -18,7 +18,7 @@ interface LogoSettings {
 
 // Default logo settings in case API call fails
 const defaultLogoSettings: LogoSettings = {
-  imageUrl: '', // Empty fallback - we'll handle this with a placeholder
+  imageUrl: '',
   name: 'SeekLab',
   tagline: 'Medical Lab Results Management',
 };
@@ -29,37 +29,52 @@ export function BrandLogo({
   showText = true,
   logoType = 'normal'
 }: BrandLogoProps) {
+  // Local state for image error tracking
   const [imageError, setImageError] = useState(false);
+  // Local state for persisting the last valid URL
+  const [lastValidImageUrl, setLastValidImageUrl] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const [cacheBuster, setCacheBuster] = useState(Date.now());
   const imgRef = useRef<HTMLImageElement>(null);
-
-  // Fetch logo settings from server with minimal caching
+  
+  // Disable auto-refresh to prevent image flashing
+  useEffect(() => {
+    // Initial fetch only - no interval to avoid flickering
+    queryClient.invalidateQueries({ queryKey: ['/api/settings/logo'] });
+    
+    // Only refresh cache buster on mount
+    setCacheBuster(Date.now());
+  }, [queryClient]);
+  
+  // Fetch logo settings from server with proper caching
   const { data: logoSettings, isLoading } = useQuery<LogoSettings>({
     queryKey: ['/api/settings/logo', cacheBuster],
     initialData: defaultLogoSettings,
-    staleTime: 1000 * 10, // 10 seconds - more aggressive caching
-    refetchInterval: 30000, // Re-fetch every 30 seconds
-    refetchOnWindowFocus: true,
-    refetchOnMount: true
+    staleTime: 1000 * 60, // 1 minute - stable caching
+    refetchOnWindowFocus: false, // Don't auto-refresh to prevent flashing
+    refetchOnMount: true,
+    retry: 3,
   });
-
-  // Force refresh logo settings and reset error state
-  const refreshLogo = () => {
-    setImageError(false);
-    setCacheBuster(Date.now());
-    queryClient.invalidateQueries({ queryKey: ['/api/settings/logo'] });
-  };
-
-  // Re-fetch logo settings when component mounts
+  
+  // Handle successful data fetches
   useEffect(() => {
-    refreshLogo();
-    
-    // Set up a refresh interval 
-    const intervalId = setInterval(refreshLogo, 30000);
-    
-    return () => clearInterval(intervalId);
-  }, [queryClient]);
+    if (logoSettings?.imageUrl && logoSettings.imageUrl !== '') {
+      setLastValidImageUrl(logoSettings.imageUrl);
+      setImageError(false);
+    }
+  }, [logoSettings]);
+
+  // Use the most stable URL source - either from API or from our local state
+  const effectiveImageUrl = imageError ? null : (
+    logoSettings?.imageUrl && logoSettings.imageUrl !== '' 
+      ? logoSettings.imageUrl 
+      : lastValidImageUrl
+  );
+  
+  // Generate a cache-busted URL for the image
+  const displayUrl = effectiveImageUrl 
+    ? `${effectiveImageUrl}?t=${cacheBuster}&v=${encodeURIComponent(variant)}&type=${logoType}`
+    : '';
 
   // Size mappings for different variants
   const sizes = {
@@ -76,48 +91,44 @@ export function BrandLogo({
     icon: 'text-lg',
   };
 
-  // Generate a heavily cache-busted URL for the image
-  const imageUrl = logoSettings?.imageUrl 
-    ? `${logoSettings.imageUrl}?t=${cacheBuster}&v=${encodeURIComponent(variant)}&type=${logoType}`
-    : '';
-
   // Create placeholder when no image or error
   const PlaceholderLogo = () => (
     <div 
       className={cn(
-        'flex items-center justify-center bg-gray-200 rounded-sm text-gray-600',
+        'flex items-center justify-center bg-gray-100 border border-gray-200 rounded-sm text-primary',
         sizes[variant]
       )}
     >
-      <span className="font-bold text-xs">
-        {logoSettings?.name?.substring(0, 2) || 'SL'}
-      </span>
+      <ImageIcon className="w-4 h-4" />
     </div>
   );
+
+  // Create a function to manually refresh the logo if needed
+  const forceRefresh = () => {
+    setImageError(false);
+    setCacheBuster(Date.now());
+    queryClient.invalidateQueries({ queryKey: ['/api/settings/logo'] });
+  };
 
   // Render logo with loading state
   return (
     <div className={cn('flex items-center gap-2', className)}>
       {isLoading ? (
         <Loader2 className={cn('animate-spin', sizes[variant])} />
-      ) : imageError || !imageUrl ? (
+      ) : !displayUrl ? (
         <PlaceholderLogo />
       ) : (
         <img 
           ref={imgRef}
-          src={imageUrl} 
+          src={displayUrl} 
           alt={logoSettings?.name || defaultLogoSettings.name} 
           className={cn('rounded-sm object-contain', sizes[variant])} 
-          onError={(e) => {
-            console.error(`Failed to load ${logoType} logo from ${imageUrl}`);
+          onError={() => {
+            console.error(`Failed to load ${logoType} logo from ${displayUrl}`);
             setImageError(true);
           }}
-          onLoad={() => {
-            // Reset error state if image loads successfully
-            if (imageError) {
-              setImageError(false);
-            }
-          }}
+          onClick={forceRefresh} // Allow manual refresh on click
+          style={{ cursor: 'pointer' }}
         />
       )}
       

@@ -319,17 +319,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ message: "Admin access confirmed" });
   });
 
-  // Logo settings endpoint - public, with reduced caching for responsiveness
+  // Logo settings endpoint - public, with stable caching
   app.get("/api/settings/logo", async (req, res) => {
     try {
-      // Reduce cache time to make logo updates more responsive
-      res.setHeader('Cache-Control', 'public, max-age=10, must-revalidate'); // Cache for 10 seconds only
+      // Stable caching for logo settings - longer lived to avoid flicker
+      res.setHeader('Cache-Control', 'public, max-age=300, must-revalidate'); // Cache for 5 minutes
       
       // Add timestamp header to help with browser caching
       res.setHeader('X-Timestamp', Date.now().toString());
       
       // Fetch logo settings from database
       const logoSettings = await storage.getLogoSettings();
+      
+      // Important: keep track of most recent valid image URL
+      let validImageUrl = '';
+      let validImagePath = '';
       
       // Check if the image file actually exists
       if (logoSettings.imageUrl && logoSettings.imageUrl.startsWith('/uploads/')) {
@@ -339,18 +343,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Verify the file exists
           await fs.promises.access(filePath, fs.constants.F_OK);
+          
+          // File exists, it's valid
+          validImageUrl = logoSettings.imageUrl;
+          validImagePath = filePath;
         } catch (fileError) {
           console.error(`Logo file doesn't exist: ${logoSettings.imageUrl}`, fileError);
-          // Don't send a non-existent file URL to the client
-          logoSettings.imageUrl = '';
+          
+          // Try to find any valid logo in the uploads directory as fallback
+          try {
+            const files = await fs.promises.readdir(path.join(process.cwd(), 'uploads'));
+            // Find the most recent png file
+            const pngFiles = files.filter(f => f.endsWith('.png') && f.startsWith('logo-'));
+            
+            if (pngFiles.length > 0) {
+              // Sort by modified time, newest first
+              const fileStats = await Promise.all(
+                pngFiles.map(async file => {
+                  const filePath = path.join(process.cwd(), 'uploads', file);
+                  const stats = await fs.promises.stat(filePath);
+                  return { file, stats };
+                })
+              );
+              
+              fileStats.sort((a, b) => b.stats.mtime.getTime() - a.stats.mtime.getTime());
+              
+              // Use the newest file
+              const newestFile = fileStats[0].file;
+              validImageUrl = `/uploads/${newestFile}`;
+              validImagePath = path.join(process.cwd(), 'uploads', newestFile);
+              
+              // Update the database with the correct URL
+              await storage.updateLogoSettings({ imageUrl: validImageUrl });
+              console.log(`Updated logo settings with recovered image: ${validImageUrl}`);
+            }
+          } catch (recoveryError) {
+            console.error('Could not recover any valid logo files:', recoveryError);
+          }
         }
+      }
+      
+      // Always ensure we return valid data
+      logoSettings.imageUrl = validImageUrl;
+      
+      // Add cache-busting URL parameter for client
+      if (validImageUrl) {
+        console.log(`Serving logo from ${validImagePath}`);
       }
       
       res.json(logoSettings);
     } catch (error) {
       console.error('Error fetching logo settings:', error);
-      res.status(500).json({ 
-        message: "Failed to fetch logo settings", 
+      // Return valid JSON even on error, but with status 200 to maintain client state
+      res.json({ 
         name: 'SeekLab', 
         tagline: 'Medical Lab Results Management',
         imageUrl: '' 
