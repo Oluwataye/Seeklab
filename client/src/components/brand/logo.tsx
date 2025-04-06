@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 
 interface BrandLogoProps {
@@ -28,17 +28,32 @@ export function BrandLogo({
   showText = true 
 }: BrandLogoProps) {
   const [imageError, setImageError] = useState(false);
+  const queryClient = useQueryClient();
+  const [cacheBuster, setCacheBuster] = useState(Date.now()); // Add cache busting timestamp
   
-  // Fetch logo settings from server
+  // Fetch logo settings from server with reduced caching
   const { data: logoSettings, isLoading } = useQuery<LogoSettings>({
-    queryKey: ['/api/settings/logo'],
+    queryKey: ['/api/settings/logo', cacheBuster],
     // If the API fails, use default logo settings
     initialData: defaultLogoSettings,
-    // Don't refetch too often
-    staleTime: 1000 * 60 * 60, // 1 hour
-    refetchOnWindowFocus: false,
-    refetchOnMount: false
+    // Reduce caching time to make changes appear faster
+    staleTime: 1000 * 30, // 30 seconds
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
   });
+
+  // Re-fetch logo settings when component mounts to ensure we have the latest
+  useEffect(() => {
+    // Refresh the logo data when component mounts
+    queryClient.invalidateQueries({ queryKey: ['/api/settings/logo'] });
+    
+    // Set up a refresh interval to update the cache buster
+    const intervalId = setInterval(() => {
+      setCacheBuster(Date.now());
+    }, 60000); // Check for new logo every minute
+    
+    return () => clearInterval(intervalId);
+  }, [queryClient]);
 
   // Size mappings for different variants
   const sizes = {
@@ -53,10 +68,10 @@ export function BrandLogo({
     large: 'text-xl',
   };
 
-  // Determine which image URL to use
+  // Generate a cache-busting URL for the image
   const imageUrl = imageError ? 
     defaultLogoSettings.imageUrl : 
-    (logoSettings?.imageUrl || defaultLogoSettings.imageUrl);
+    (logoSettings?.imageUrl ? `${logoSettings.imageUrl}?t=${cacheBuster}` : defaultLogoSettings.imageUrl);
 
   // Render logo with loading state
   return (
@@ -70,6 +85,7 @@ export function BrandLogo({
           className={cn('rounded-sm', sizes[variant])} 
           onError={() => {
             // If the image fails to load, fall back to the default logo
+            console.error(`Failed to load logo image from: ${imageUrl}`);
             if (!imageError) {
               setImageError(true);
             }

@@ -15,16 +15,18 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Serve static files from the uploads directory
+// Serve static files from the uploads directory with enhanced cache control
 app.use('/uploads', express.static(uploadsDir, {
-  maxAge: '1h',         // Cache for 1 hour
+  maxAge: '5m',         // Cache for 5 minutes (reduced from 1 hour)
   fallthrough: false,   // Return 404 for nonexistent files
   etag: true,           // Enable ETag for efficient caching
   lastModified: true,   // Enable Last-Modified header
   setHeaders: (res, path) => {
     console.log(`Serving static file: ${path}`);
-    // Add custom headers for debugging
+    // Add headers for proper cache control
     res.setHeader('X-File-Path', path);
+    res.setHeader('Cache-Control', 'public, max-age=300, must-revalidate'); // 5 minutes, must revalidate
+    res.setHeader('Vary', 'Accept-Encoding');
   }
 }));
 

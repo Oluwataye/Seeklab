@@ -338,12 +338,13 @@ export default function LogoSettings() {
                         <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
                       ) : (
                         <img 
-                          key={form.watch('imageUrl')} // Force re-render on URL change
-                          src={form.watch('imageUrl')} 
+                          key={`${form.watch('imageUrl')}?t=${Date.now()}`} // Force re-render on URL change with cache buster
+                          src={`${form.watch('imageUrl')}?t=${Date.now()}`} 
                           alt="Current logo" 
                           className="max-h-full max-w-full object-contain"
                           onError={(e) => {
                             // If image fails to load, show a fallback icon
+                            console.error(`Failed to load logo from ${form.watch('imageUrl')}`);
                             const target = e.target as HTMLImageElement;
                             target.src = '/logo.svg';
                           }}
@@ -449,11 +450,12 @@ export default function LogoSettings() {
                       {/* Use the form values directly for live preview */}
                       <div className="flex items-center gap-2">
                         <img 
-                          key={form.watch('imageUrl') + '-default'} 
-                          src={form.watch('imageUrl')} 
+                          key={`${form.watch('imageUrl')}?t=${Date.now()}-default`} 
+                          src={`${form.watch('imageUrl')}?t=${Date.now()}`} 
                           alt={form.watch('name')}
                           className="h-8 w-8 rounded-sm object-contain"
                           onError={(e) => {
+                            console.error(`Failed to load preview logo from ${form.watch('imageUrl')}`);
                             const target = e.target as HTMLImageElement;
                             target.src = '/logo.svg';
                           }}
@@ -475,11 +477,12 @@ export default function LogoSettings() {
                     <div className="bg-white p-4 flex items-center">
                       <div className="flex items-center gap-2">
                         <img 
-                          key={form.watch('imageUrl') + '-small'} 
-                          src={form.watch('imageUrl')} 
+                          key={`${form.watch('imageUrl')}?t=${Date.now()}-small`} 
+                          src={`${form.watch('imageUrl')}?t=${Date.now()}`}  
                           alt={form.watch('name')}
                           className="h-6 w-6 rounded-sm object-contain"
                           onError={(e) => {
+                            console.error(`Failed to load small logo from ${form.watch('imageUrl')}`);
                             const target = e.target as HTMLImageElement;
                             target.src = '/logo.svg';
                           }}
@@ -498,11 +501,12 @@ export default function LogoSettings() {
                     <div className="bg-white p-4 flex items-center">
                       <div className="flex items-center gap-2">
                         <img 
-                          key={form.watch('imageUrl') + '-large'} 
-                          src={form.watch('imageUrl')} 
+                          key={`${form.watch('imageUrl')}?t=${Date.now()}-large`} 
+                          src={`${form.watch('imageUrl')}?t=${Date.now()}`}  
                           alt={form.watch('name')}
                           className="h-12 w-12 rounded-sm object-contain"
                           onError={(e) => {
+                            console.error(`Failed to load large logo from ${form.watch('imageUrl')}`);
                             const target = e.target as HTMLImageElement;
                             target.src = '/logo.svg';
                           }}
@@ -524,11 +528,12 @@ export default function LogoSettings() {
                     <div className="bg-white p-4 flex items-center">
                       <div className="flex items-center">
                         <img 
-                          key={form.watch('imageUrl') + '-icon'} 
-                          src={form.watch('imageUrl')} 
+                          key={`${form.watch('imageUrl')}?t=${Date.now()}-icon`} 
+                          src={`${form.watch('imageUrl')}?t=${Date.now()}`}  
                           alt={form.watch('name')}
                           className="h-8 w-8 rounded-sm object-contain"
                           onError={(e) => {
+                            console.error(`Failed to load icon logo from ${form.watch('imageUrl')}`);
                             const target = e.target as HTMLImageElement;
                             target.src = '/logo.svg';
                           }}

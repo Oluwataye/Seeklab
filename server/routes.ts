@@ -422,11 +422,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Updating logo settings with new URL:', logoUrl);
       await storage.updateLogoSettings({ imageUrl: logoUrl });
       
-      res.json({
-        imageUrl: logoUrl,
-        originalName: file.originalname,
-        size: file.size,
-        message: "Logo uploaded successfully"
+      // Verify that the file exists on disk before returning success
+      const filePath = path.join(process.cwd(), 'uploads', filename);
+      fs.access(filePath, fs.constants.F_OK, (err) => {
+        if (err) {
+          console.error('File does not exist on disk after upload:', err);
+          return res.status(500).json({ message: "File upload failed: The file was not saved correctly" });
+        }
+        
+        console.log('Verified file exists on disk at', filePath);
+        res.json({
+          imageUrl: logoUrl,
+          originalName: file.originalname,
+          size: file.size,
+          message: "Logo uploaded successfully",
+          timestamp: Date.now() // Add a timestamp to help with cache busting
+        });
       });
       
       // Log the logo upload
