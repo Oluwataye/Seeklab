@@ -5,7 +5,7 @@ import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
-import { User as SelectUser } from "@shared/schema";
+import { User, User as SelectUser } from "@shared/schema";
 import { roles } from "@shared/schema";
 
 declare global {
@@ -100,6 +100,15 @@ export function setupAuth(app: Express) {
         return res.status(400).json({ message: "Username already exists" });
       }
 
+      // Generate employee ID if not provided 
+      let employeeId = req.body.employeeId;
+      if (!employeeId) {
+        // Format: EMP-12345-XYZ
+        const randomDigits = Math.floor(10000 + Math.random() * 90000); // 5-digit number
+        const randomSuffix = Math.random().toString(36).substring(2, 5).toUpperCase(); // 3 letter suffix
+        employeeId = `EMP-${randomDigits}-${randomSuffix}`;
+      }
+
       // Check if the username contains "Admin" (case-insensitive)
       const isAdmin = req.body.username.toLowerCase().includes("admin");
       const user = await storage.createUser({
@@ -107,6 +116,7 @@ export function setupAuth(app: Express) {
         password: await hashPassword(req.body.password),
         isAdmin,
         isLabStaff: false, // No longer using isLabStaff flag
+        employeeId,
       });
 
       req.login(user, async (err) => {

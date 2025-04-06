@@ -40,6 +40,7 @@ type FormData = {
   email: string;
   password: string;
   role: string; // Changed from enum to string to support custom roles
+  employeeId?: string;
 };
 
 export default function UserManagement() {

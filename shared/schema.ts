@@ -11,6 +11,7 @@ export const users = pgTable("users", {
   email: text("email"),
   role: text("role").notNull().default("EDEC"),
   lastLogin: timestamp("last_login"),
+  employeeId: text("employee_id"),
 });
 
 export const patients = pgTable("patients", {
@@ -179,6 +180,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   password: true,
   email: true,
   role: true,
+  employeeId: true,
 });
 
 export const insertRoleSchema = createInsertSchema(roles).pick({
