@@ -15,9 +15,9 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Serve static files from the uploads directory with enhanced cache control
+// Serve static files from the uploads directory with minimum caching for better updates
 app.use('/uploads', express.static(uploadsDir, {
-  maxAge: '5m',         // Cache for 5 minutes (reduced from 1 hour)
+  maxAge: '1m',         // Cache for just 1 minute for more frequent updates 
   fallthrough: false,   // Return 404 for nonexistent files
   etag: true,           // Enable ETag for efficient caching
   lastModified: true,   // Enable Last-Modified header
@@ -25,8 +25,14 @@ app.use('/uploads', express.static(uploadsDir, {
     console.log(`Serving static file: ${path}`);
     // Add headers for proper cache control
     res.setHeader('X-File-Path', path);
-    res.setHeader('Cache-Control', 'public, max-age=300, must-revalidate'); // 5 minutes, must revalidate
+    res.setHeader('X-Timestamp', Date.now().toString());
+    res.setHeader('Cache-Control', 'public, max-age=60, must-revalidate'); // 1 minute, must revalidate
     res.setHeader('Vary', 'Accept-Encoding');
+    
+    // Add CORS headers to ensure images can be loaded everywhere
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   }
 }));
 

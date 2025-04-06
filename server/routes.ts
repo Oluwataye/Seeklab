@@ -319,18 +319,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ message: "Admin access confirmed" });
   });
 
-  // Logo settings endpoint - public, cached for performance
+  // Logo settings endpoint - public, with reduced caching for responsiveness
   app.get("/api/settings/logo", async (req, res) => {
     try {
-      // Set cache headers for performance optimization
-      res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+      // Reduce cache time to make logo updates more responsive
+      res.setHeader('Cache-Control', 'public, max-age=10, must-revalidate'); // Cache for 10 seconds only
+      
+      // Add timestamp header to help with browser caching
+      res.setHeader('X-Timestamp', Date.now().toString());
       
       // Fetch logo settings from database
       const logoSettings = await storage.getLogoSettings();
+      
+      // Check if the image file actually exists
+      if (logoSettings.imageUrl && logoSettings.imageUrl.startsWith('/uploads/')) {
+        try {
+          const fileName = path.basename(logoSettings.imageUrl);
+          const filePath = path.join(process.cwd(), 'uploads', fileName);
+          
+          // Verify the file exists
+          await fs.promises.access(filePath, fs.constants.F_OK);
+        } catch (fileError) {
+          console.error(`Logo file doesn't exist: ${logoSettings.imageUrl}`, fileError);
+          // Don't send a non-existent file URL to the client
+          logoSettings.imageUrl = '';
+        }
+      }
+      
       res.json(logoSettings);
     } catch (error) {
       console.error('Error fetching logo settings:', error);
-      res.status(500).json({ message: "Failed to fetch logo settings" });
+      res.status(500).json({ 
+        message: "Failed to fetch logo settings", 
+        name: 'SeekLab', 
+        tagline: 'Medical Lab Results Management',
+        imageUrl: '' 
+      });
     }
   });
 
@@ -414,45 +438,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const logoUrl = `/uploads/${filename}`;
       console.log('Logo URL for image:', logoUrl, 'from filename:', filename, 'original path:', file.path);
       
-      // Get current logo settings
-      const currentSettings = await storage.getLogoSettings();
-      console.log('Current logo settings:', currentSettings);
-      
-      // Update logo URL in database settings
-      console.log('Updating logo settings with new URL:', logoUrl);
-      await storage.updateLogoSettings({ imageUrl: logoUrl });
-      
-      // Verify that the file exists on disk before returning success
-      const filePath = path.join(process.cwd(), 'uploads', filename);
-      fs.access(filePath, fs.constants.F_OK, (err) => {
-        if (err) {
-          console.error('File does not exist on disk after upload:', err);
-          return res.status(500).json({ message: "File upload failed: The file was not saved correctly" });
+      // Async verification to make sure the file is accessible
+      try {
+        const filePath = path.join(process.cwd(), 'uploads', filename);
+        await fs.promises.access(filePath, fs.constants.F_OK);
+        console.log('Verified file exists on disk at', filePath);
+        
+        // Try to delete any old logo file to clean up disk space
+        try {
+          const currentSettings = await storage.getLogoSettings();
+          if (currentSettings.imageUrl && 
+              currentSettings.imageUrl.startsWith('/uploads/') && 
+              currentSettings.imageUrl !== logoUrl) {
+            const oldFilename = path.basename(currentSettings.imageUrl);
+            const oldFilePath = path.join(process.cwd(), 'uploads', oldFilename);
+            await fs.promises.access(oldFilePath, fs.constants.F_OK);
+            // Only remove if the file exists and it's not the new file
+            if (oldFilename !== filename) {
+              await fs.promises.unlink(oldFilePath);
+              console.log(`Removed old logo file: ${oldFilePath}`);
+            }
+          }
+        } catch (cleanupError) {
+          // Non-critical error, just log it
+          console.log('Could not cleanup old logo file:', cleanupError);
         }
         
-        console.log('Verified file exists on disk at', filePath);
+        // Update logo URL in database settings
+        await storage.updateLogoSettings({ imageUrl: logoUrl });
+        
+        // Immediately invalidate and re-fetch logo settings in the cache
+        const timestamp = Date.now();
+        
+        // Return success with the new URL and timestamp
         res.json({
           imageUrl: logoUrl,
           originalName: file.originalname,
           size: file.size,
           message: "Logo uploaded successfully",
-          timestamp: Date.now() // Add a timestamp to help with cache busting
+          timestamp // Add a timestamp to help with cache busting
         });
-      });
-      
-      // Log the logo upload
-      if (req.user?.id) {
-        await storage.createAuditLog({
-          userId: req.user.id.toString(),
-          action: "upload_logo",
-          entityType: "settings",
-          details: { 
-            logoUrl,
-            originalName: file.originalname,
-            size: file.size,
-            mimetype: file.mimetype
-          },
-          ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+        
+        // Log the logo upload
+        if (req.user?.id) {
+          await storage.createAuditLog({
+            userId: req.user.id.toString(),
+            action: "upload_logo",
+            entityType: "settings",
+            details: { 
+              logoUrl,
+              originalName: file.originalname,
+              size: file.size,
+              mimetype: file.mimetype,
+              timestamp
+            },
+            ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+          });
+        }
+      } catch (error) {
+        const fileError = error as Error;
+        console.error('File verification failed:', fileError);
+        return res.status(500).json({ 
+          message: "File upload failed: Unable to access the uploaded file",
+          details: fileError.message 
         });
       }
     } catch (error) {
