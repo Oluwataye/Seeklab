@@ -41,6 +41,7 @@ const navigation = [
   { name: "Role & Permissions", href: "/admin/roles", icon: Shield },
   { name: "Code Generator", href: "/admin/codes", icon: KeyRound },
   { name: "Patient Management", href: "/admin/patients", icon: UserPlus },
+  { name: "Register Patient", href: "/admin/register-patient", icon: UserPlus },
   { name: "Payment Settings", href: "/admin/payment-settings", icon: CreditCard },
   { name: "Verify Payment", href: "/verify-payment", icon: CheckCircle2 },
   { name: "Test Requests", href: "/admin/test-requests", icon: ClipboardList },

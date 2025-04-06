@@ -24,6 +24,7 @@ import TestTypes from "@/pages/admin/test-types";
 import PaymentSettings from "@/pages/admin/payment-settings";
 import AdminTestRequests from "@/pages/admin/test-requests";
 import AdminPatients from "@/pages/admin/patients";
+import AdminRegisterPatient from "@/pages/admin/register-patient";
 // Removed admin verify payment import
 import PsychologistDashboard from "@/pages/psychologist/dashboard";
 import AssessmentsPage from "@/pages/psychologist/assessments";
@@ -109,6 +110,11 @@ function Router() {
       <ProtectedRoute 
         path="/admin/patients" 
         component={AdminPatients}
+        requireAdmin={true}
+      />
+      <ProtectedRoute 
+        path="/admin/register-patient" 
+        component={AdminRegisterPatient}
         requireAdmin={true}
       />
       <ProtectedRoute 

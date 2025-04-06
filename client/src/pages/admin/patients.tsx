@@ -144,10 +144,16 @@ export default function AdminPatientsPage() {
                 Dashboard
               </Link>
             </Button>
-            <Button asChild size="sm">
+            <Button asChild variant="outline" size="sm">
               <Link href="/verify-payment">
                 <CheckCircle className="mr-2 h-4 w-4" />
                 Verify Payment
+              </Link>
+            </Button>
+            <Button asChild size="sm">
+              <Link href="/admin/register-patient">
+                <UserPlus className="mr-2 h-4 w-4" />
+                Register Patient
               </Link>
             </Button>
           </div>
