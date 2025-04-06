@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import React from "react";
+import React, { useState } from "react";
 import { AdminLayout } from "@/components/layout/admin-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,12 +7,13 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { getQueryFn, apiRequest, queryClient } from "@/lib/queryClient";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Loader2, CheckCircle, CreditCard, BanknoteIcon, ShieldAlert } from "lucide-react";
+import { Loader2, CheckCircle, CreditCard, BanknoteIcon, ShieldAlert, Eye, EyeOff } from "lucide-react";
 
 interface PaymentSettingsData {
   id?: number;
@@ -59,6 +60,7 @@ type PaymentSettingsFormValues = z.infer<typeof paymentSettingsSchema>;
 
 export default function PaymentSettings() {
   const { toast } = useToast();
+  const [showSecretKey, setShowSecretKey] = useState(false);
 
   const { data: paymentSettings, isLoading } = useQuery<PaymentSettingsData>({
     queryKey: ['/api/payment-settings'],
@@ -336,14 +338,41 @@ export default function PaymentSettings() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>OPay Secret Key</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="password"
-                                  placeholder="Enter OPay Secret Key"
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormDescription className="flex items-center">
+                              <div className="relative">
+                                <FormControl>
+                                  <Input
+                                    type={showSecretKey ? "text" : "password"}
+                                    placeholder="Enter OPay Secret Key"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="absolute right-0 top-0 h-full px-3 py-2 transition-transform hover:scale-110"
+                                        onClick={() => setShowSecretKey(!showSecretKey)}
+                                      >
+                                        {showSecretKey ? (
+                                          <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                        ) : (
+                                          <Eye className="h-4 w-4 text-muted-foreground" />
+                                        )}
+                                        <span className="sr-only">
+                                          {showSecretKey ? "Hide" : "Show"} secret key
+                                        </span>
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>{showSecretKey ? "Hide" : "Show"} secret key</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              </div>
+                              <FormDescription className="flex items-center mt-2">
                                 <ShieldAlert className="h-4 w-4 mr-1" /> Keep this key secure
                               </FormDescription>
                               <FormMessage />
