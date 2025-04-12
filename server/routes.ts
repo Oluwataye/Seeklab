@@ -319,14 +319,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ message: "Admin access confirmed" });
   });
 
-  // Logo settings endpoint - public, with stable caching
+  // Logo backup endpoint - serves a JSON file with the last valid logo URL
+  // This is used as a fallback when the database is unavailable
+  app.get("/uploads/logo-backup.json", async (req, res) => {
+    try {
+      // First, check if the file exists
+      const backupPath = path.join(process.cwd(), 'uploads', 'logo-backup.json');
+      
+      try {
+        // Try to read the backup file
+        const backupData = await fs.promises.readFile(backupPath, 'utf8');
+        const parsed = JSON.parse(backupData);
+        
+        // Validate the backup data
+        if (parsed && parsed.logoUrl) {
+          // Make sure the referenced file exists
+          const logoFilename = path.basename(parsed.logoUrl);
+          const logoPath = path.join(process.cwd(), 'uploads', logoFilename);
+          
+          try {
+            await fs.promises.access(logoPath, fs.constants.F_OK);
+            // File exists, return the backup data
+            res.json(parsed);
+            return;
+          } catch (e) {
+            // Logo file doesn't exist, continue with fallback
+            console.log(`Logo file from backup doesn't exist: ${logoPath}`);
+          }
+        }
+      } catch (e) {
+        // Backup file doesn't exist or is invalid, continue with fallback
+      }
+      
+      // If we got here, we need to generate a new backup
+      // Look for any valid logo files
+      const uploadsDir = path.join(process.cwd(), 'uploads');
+      try {
+        // Ensure the directory exists
+        await fs.promises.access(uploadsDir, fs.constants.F_OK);
+        
+        // Find all potential logo files
+        const files = await fs.promises.readdir(uploadsDir);
+        
+        // Look for logo files with different extensions
+        const logoFiles = files.filter(f => 
+          (f.endsWith('.png') || f.endsWith('.jpg') || f.endsWith('.jpeg') || f.endsWith('.svg')) && 
+          f.startsWith('logo-')
+        );
+        
+        if (logoFiles.length > 0) {
+          // Sort by name (which includes timestamp) to get the newest
+          logoFiles.sort().reverse();
+          
+          const newestFile = logoFiles[0];
+          const logoUrl = `/uploads/${newestFile}`;
+          
+          // Create backup data
+          const backupData = JSON.stringify({
+            logoUrl,
+            timestamp: Date.now(),
+            recovered: true
+          });
+          
+          // Save the backup file
+          await fs.promises.writeFile(backupPath, backupData);
+          
+          // Return the backup data
+          res.json({
+            logoUrl,
+            timestamp: Date.now(),
+            recovered: true
+          });
+          return;
+        }
+      } catch (e) {
+        // Failed to generate backup, fall back to empty response
+      }
+      
+      // Ultimate fallback - no valid logo found
+      res.json({
+        logoUrl: '',
+        timestamp: Date.now(),
+        error: 'No valid logo found'
+      });
+    } catch (error) {
+      console.error('Error serving logo backup:', error);
+      res.status(200).json({
+        logoUrl: '',
+        timestamp: Date.now(),
+        error: 'Backup error'
+      });
+    }
+  });
+  
+  // Logo settings endpoint - public, with improved reliability
   app.get("/api/settings/logo", async (req, res) => {
     try {
-      // Stable caching for logo settings - longer lived to avoid flicker
-      res.setHeader('Cache-Control', 'public, max-age=300, must-revalidate'); // Cache for 5 minutes
+      // Strong caching for logo settings - longer lived to avoid flicker
+      // Set a longer cache time but allow revalidation
+      res.setHeader('Cache-Control', 'public, max-age=3600, must-revalidate'); // Cache for 1 hour
       
       // Add timestamp header to help with browser caching
       res.setHeader('X-Timestamp', Date.now().toString());
+      
+      // Track if this is a force refresh request
+      const isForceRefresh = req.query.force === 'true';
       
       // Fetch logo settings from database
       const logoSettings = await storage.getLogoSettings();
@@ -334,8 +431,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Important: keep track of most recent valid image URL
       let validImageUrl = '';
       let validImagePath = '';
+      let foundValidLogo = false;
       
-      // Check if the image file actually exists
+      // First, check if the configured logo exists
       if (logoSettings.imageUrl && logoSettings.imageUrl.startsWith('/uploads/')) {
         try {
           const fileName = path.basename(logoSettings.imageUrl);
@@ -347,58 +445,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // File exists, it's valid
           validImageUrl = logoSettings.imageUrl;
           validImagePath = filePath;
+          foundValidLogo = true;
+          
+          // Verify file is not corrupted by checking size
+          const stats = await fs.promises.stat(filePath);
+          if (stats.size === 0) {
+            console.warn(`Logo file exists but has zero size: ${filePath}`);
+            foundValidLogo = false;
+          }
         } catch (fileError) {
           console.error(`Logo file doesn't exist: ${logoSettings.imageUrl}`, fileError);
-          
-          // Try to find any valid logo in the uploads directory as fallback
-          try {
-            const files = await fs.promises.readdir(path.join(process.cwd(), 'uploads'));
-            // Find the most recent png file
-            const pngFiles = files.filter(f => f.endsWith('.png') && f.startsWith('logo-'));
-            
-            if (pngFiles.length > 0) {
-              // Sort by modified time, newest first
-              const fileStats = await Promise.all(
-                pngFiles.map(async file => {
-                  const filePath = path.join(process.cwd(), 'uploads', file);
-                  const stats = await fs.promises.stat(filePath);
-                  return { file, stats };
-                })
-              );
-              
-              fileStats.sort((a, b) => b.stats.mtime.getTime() - a.stats.mtime.getTime());
-              
-              // Use the newest file
-              const newestFile = fileStats[0].file;
-              validImageUrl = `/uploads/${newestFile}`;
-              validImagePath = path.join(process.cwd(), 'uploads', newestFile);
-              
-              // Update the database with the correct URL
-              await storage.updateLogoSettings({ imageUrl: validImageUrl });
-              console.log(`Updated logo settings with recovered image: ${validImageUrl}`);
-            }
-          } catch (recoveryError) {
-            console.error('Could not recover any valid logo files:', recoveryError);
-          }
+          foundValidLogo = false;
         }
       }
       
-      // Always ensure we return valid data
-      logoSettings.imageUrl = validImageUrl;
-      
-      // Add cache-busting URL parameter for client
-      if (validImageUrl) {
-        console.log(`Serving logo from ${validImagePath}`);
+      // If the configured logo doesn't exist, search for any valid logo files
+      if (!foundValidLogo || isForceRefresh) {
+        try {
+          // Create uploads directory if it doesn't exist
+          const uploadsDir = path.join(process.cwd(), 'uploads');
+          try {
+            await fs.promises.access(uploadsDir, fs.constants.F_OK);
+          } catch (e) {
+            await fs.promises.mkdir(uploadsDir, { recursive: true });
+            console.log('Created uploads directory');
+          }
+          
+          // Find all potential logo files
+          const files = await fs.promises.readdir(uploadsDir);
+          
+          // Look for logo files with different extensions
+          const logoFiles = files.filter(f => 
+            (f.endsWith('.png') || f.endsWith('.jpg') || f.endsWith('.jpeg') || f.endsWith('.svg')) && 
+            f.startsWith('logo-')
+          );
+          
+          if (logoFiles.length > 0) {
+            // Sort by modified time, newest first
+            const fileStats = await Promise.all(
+              logoFiles.map(async file => {
+                const filePath = path.join(process.cwd(), 'uploads', file);
+                const stats = await fs.promises.stat(filePath);
+                return { file, stats, size: stats.size };
+              })
+            );
+            
+            // Filter out empty files
+            const validFiles = fileStats.filter(f => f.size > 0);
+            
+            if (validFiles.length > 0) {
+              // Sort by newest first
+              validFiles.sort((a, b) => b.stats.mtime.getTime() - a.stats.mtime.getTime());
+              
+              // Use the newest valid file
+              const newestFile = validFiles[0].file;
+              validImageUrl = `/uploads/${newestFile}`;
+              validImagePath = path.join(process.cwd(), 'uploads', newestFile);
+              foundValidLogo = true;
+              
+              // Update the database with the correct URL if it's different
+              if (logoSettings.imageUrl !== validImageUrl) {
+                await storage.updateLogoSettings({ imageUrl: validImageUrl });
+                console.log(`Updated logo settings with recovered image: ${validImageUrl}`);
+              }
+            }
+          }
+        } catch (recoveryError) {
+          console.error('Could not recover any valid logo files:', recoveryError);
+        }
       }
       
-      res.json(logoSettings);
+      // Send a copy of the settings with the validated image URL
+      const responseSettings = {
+        ...logoSettings,
+        imageUrl: validImageUrl,
+        // Add validation status for debugging
+        _debug: {
+          foundValidLogo,
+          validImagePath: foundValidLogo ? validImagePath : null,
+          timestamp: Date.now()
+        }
+      };
+      
+      // Log serving info
+      if (validImageUrl) {
+        console.log(`Serving logo from ${validImagePath}, URL: ${validImageUrl}`);
+      } else {
+        console.log('No valid logo file found to serve');
+      }
+      
+      // Always return the same structure, even if no logo is found
+      res.json(responseSettings);
     } catch (error) {
       console.error('Error fetching logo settings:', error);
-      // Return valid JSON even on error, but with status 200 to maintain client state
+      // Return valid JSON even on error, with status 200 to maintain client state
       res.json({ 
         name: 'SeekLab', 
         tagline: 'Medical Lab Results Management',
-        imageUrl: '' 
+        imageUrl: '',
+        _debug: { 
+          error: true, 
+          message: error instanceof Error ? error.message : 'Unknown error',
+          timestamp: Date.now()
+        }
       });
     }
   });
@@ -440,7 +589,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Logo upload endpoint - for uploading logo image files
+  // Logo upload endpoint - for uploading logo image files with enhanced reliability
   app.post("/api/settings/logo/upload", upload.single('logo'), async (req, res) => {
     console.log('Logo upload request received:', {
       isAuthenticated: req.isAuthenticated(),
@@ -477,51 +626,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
         destination: file.destination
       });
       
-      // Get the relative path for the uploaded logo
-      // The file.path will contain the absolute path, so we need to extract just the filename
-      const filename = path.basename(file.path);
-      const logoUrl = `/uploads/${filename}`;
-      console.log('Logo URL for image:', logoUrl, 'from filename:', filename, 'original path:', file.path);
-      
-      // Async verification to make sure the file is accessible
+      // Ensure uploads directory exists
+      const uploadsDir = path.join(process.cwd(), 'uploads');
       try {
-        const filePath = path.join(process.cwd(), 'uploads', filename);
-        await fs.promises.access(filePath, fs.constants.F_OK);
-        console.log('Verified file exists on disk at', filePath);
+        await fs.promises.access(uploadsDir, fs.constants.F_OK);
+      } catch (e) {
+        await fs.promises.mkdir(uploadsDir, { recursive: true });
+        console.log('Created uploads directory');
+      }
+      
+      // Get the original filename and create a more descriptive one
+      const originalExtension = path.extname(file.originalname).toLowerCase();
+      const validExtensions = ['.png', '.jpg', '.jpeg', '.svg'];
+      
+      // Validate extension
+      if (!validExtensions.includes(originalExtension)) {
+        console.error(`Invalid file extension: ${originalExtension}`);
+        return res.status(400).json({ 
+          message: "Invalid file type, only PNG, JPG, JPEG, and SVG are allowed" 
+        });
+      }
+      
+      // Create a new filename with timestamp to avoid collisions
+      const timestamp = Date.now();
+      const newFilename = `logo-${timestamp}${originalExtension}`;
+      const newFilePath = path.join(uploadsDir, newFilename);
+      
+      // Copy the uploaded file to the new location to ensure we have a stable copy
+      try {
+        // First make a copy of the file to ensure it's complete
+        await fs.promises.copyFile(file.path, newFilePath);
         
-        // Try to delete any old logo file to clean up disk space
+        // Verify the copied file exists and has a valid size
+        const stats = await fs.promises.stat(newFilePath);
+        if (stats.size === 0) {
+          throw new Error('Copied file has zero size, possible corruption');
+        }
+        
+        console.log(`Created stable copy of logo at ${newFilePath} (${stats.size} bytes)`);
+        
+        // The URL format for the browser
+        const logoUrl = `/uploads/${newFilename}`;
+        
+        // Try to keep only the last 3 logo files to avoid filling disk
         try {
-          const currentSettings = await storage.getLogoSettings();
-          if (currentSettings.imageUrl && 
-              currentSettings.imageUrl.startsWith('/uploads/') && 
-              currentSettings.imageUrl !== logoUrl) {
-            const oldFilename = path.basename(currentSettings.imageUrl);
-            const oldFilePath = path.join(process.cwd(), 'uploads', oldFilename);
-            await fs.promises.access(oldFilePath, fs.constants.F_OK);
-            // Only remove if the file exists and it's not the new file
-            if (oldFilename !== filename) {
-              await fs.promises.unlink(oldFilePath);
-              console.log(`Removed old logo file: ${oldFilePath}`);
+          const files = await fs.promises.readdir(uploadsDir);
+          const logoFiles = files
+            .filter(f => f.startsWith('logo-') && 
+                        (f.endsWith('.png') || f.endsWith('.jpg') || 
+                         f.endsWith('.jpeg') || f.endsWith('.svg')))
+            .filter(f => f !== newFilename) // Don't include the file we just uploaded
+            .sort(); // Sort alphabetically
+          
+          // Keep only the newest 3 files
+          if (logoFiles.length > 3) {
+            // Delete the oldest files (up to the newest 3)
+            const filesToDelete = logoFiles.slice(0, logoFiles.length - 3);
+            for (const fileToDelete of filesToDelete) {
+              try {
+                await fs.promises.unlink(path.join(uploadsDir, fileToDelete));
+                console.log(`Cleaned up old logo file: ${fileToDelete}`);
+              } catch (e) {
+                console.log(`Failed to delete old logo file ${fileToDelete}:`, e);
+              }
             }
           }
         } catch (cleanupError) {
-          // Non-critical error, just log it
-          console.log('Could not cleanup old logo file:', cleanupError);
+          // Non-critical, just log it
+          console.log('Error during logo cleanup:', cleanupError);
         }
         
         // Update logo URL in database settings
         await storage.updateLogoSettings({ imageUrl: logoUrl });
         
-        // Immediately invalidate and re-fetch logo settings in the cache
-        const timestamp = Date.now();
+        // Create a backup of this setting in case the database fails
+        try {
+          // Write a backup file with the current logo URL
+          const backupData = JSON.stringify({ 
+            logoUrl, 
+            timestamp, 
+            originalName: file.originalname 
+          });
+          await fs.promises.writeFile(
+            path.join(process.cwd(), 'uploads', 'logo-backup.json'), 
+            backupData
+          );
+        } catch (backupError) {
+          // Non-critical, just log it
+          console.log('Failed to write logo backup file:', backupError);
+        }
         
-        // Return success with the new URL and timestamp
+        // Return success with the new URL
         res.json({
           imageUrl: logoUrl,
           originalName: file.originalname,
-          size: file.size,
+          size: stats.size,
           message: "Logo uploaded successfully",
-          timestamp // Add a timestamp to help with cache busting
+          timestamp,
+          absolutePath: newFilePath, // For debugging
         });
         
         // Log the logo upload
@@ -533,19 +735,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             details: { 
               logoUrl,
               originalName: file.originalname,
-              size: file.size,
+              size: stats.size,
               mimetype: file.mimetype,
               timestamp
             },
             ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
           });
         }
-      } catch (error) {
-        const fileError = error as Error;
-        console.error('File verification failed:', fileError);
+      } catch (fileError) {
+        console.error('File operation failed:', fileError);
         return res.status(500).json({ 
-          message: "File upload failed: Unable to access the uploaded file",
-          details: fileError.message 
+          message: "Logo file processing failed - please try again",
+          details: fileError instanceof Error ? fileError.message : String(fileError) 
         });
       }
     } catch (error) {

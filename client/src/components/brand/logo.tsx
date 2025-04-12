@@ -23,6 +23,48 @@ const defaultLogoSettings: LogoSettings = {
   tagline: 'Medical Lab Results Management',
 };
 
+// Use localStorage to persistently cache the logo settings between page refreshes
+const getStoredLogoUrl = (): string | null => {
+  try {
+    // Try to get from localStorage first
+    const storedUrl = localStorage.getItem('lastValidLogoUrl');
+    if (storedUrl) {
+      return storedUrl;
+    }
+    
+    // If not in localStorage, try to load from backup file
+    // This is just a static path reference, not an API call
+    return '/uploads/logo-backup.json'; 
+  } catch (e) {
+    console.error('Error retrieving cached logo URL', e);
+    return null;
+  }
+};
+
+const storeLogoUrl = (url: string | null): void => {
+  try {
+    if (url) {
+      // Store in localStorage for fast access
+      localStorage.setItem('lastValidLogoUrl', url);
+      
+      // Also store timestamp of last successful logo
+      localStorage.setItem('lastValidLogoTimestamp', Date.now().toString());
+    }
+  } catch (e) {
+    console.error('Failed to store logo URL in localStorage', e);
+  }
+};
+
+// Utility function to try loading an image and check if it exists
+const checkImageExists = async (url: string): Promise<boolean> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(true);
+    img.onerror = () => resolve(false);
+    img.src = url;
+  });
+};
+
 export function BrandLogo({ 
   className, 
   variant = 'default',
@@ -31,47 +73,59 @@ export function BrandLogo({
 }: BrandLogoProps) {
   // Local state for image error tracking
   const [imageError, setImageError] = useState(false);
-  // Local state for persisting the last valid URL
-  const [lastValidImageUrl, setLastValidImageUrl] = useState<string | null>(null);
+  
+  // Initialize lastValidImageUrl from localStorage for persistence between refreshes
+  const [lastValidImageUrl, setLastValidImageUrl] = useState<string | null>(getStoredLogoUrl());
+  
   const queryClient = useQueryClient();
-  const [cacheBuster, setCacheBuster] = useState(Date.now());
+  // Use a stable cacheBuster that doesn't change on re-renders
+  const [cacheBuster] = useState(() => Date.now());
   const imgRef = useRef<HTMLImageElement>(null);
   
-  // Disable auto-refresh to prevent image flashing
+  // Fetch logo settings once on component mount
   useEffect(() => {
-    // Initial fetch only - no interval to avoid flickering
     queryClient.invalidateQueries({ queryKey: ['/api/settings/logo'] });
-    
-    // Only refresh cache buster on mount
-    setCacheBuster(Date.now());
   }, [queryClient]);
   
-  // Fetch logo settings from server with proper caching
+  // Fetch logo settings from server with longer caching for stability
   const { data: logoSettings, isLoading } = useQuery<LogoSettings>({
     queryKey: ['/api/settings/logo', cacheBuster],
     initialData: defaultLogoSettings,
-    staleTime: 1000 * 60, // 1 minute - stable caching
+    staleTime: 1000 * 60 * 5, // 5 minutes - very stable caching
     refetchOnWindowFocus: false, // Don't auto-refresh to prevent flashing
     refetchOnMount: true,
     retry: 3,
+    // Force a success response type
+    select: (data): LogoSettings => {
+      // Ensure we have valid data structure
+      return {
+        imageUrl: data?.imageUrl || '',
+        name: data?.name || defaultLogoSettings.name,
+        tagline: data?.tagline || defaultLogoSettings.tagline
+      };
+    }
   });
-  
-  // Handle successful data fetches
+
+  // Update local state AND localStorage when we get valid logo data
   useEffect(() => {
     if (logoSettings?.imageUrl && logoSettings.imageUrl !== '') {
       setLastValidImageUrl(logoSettings.imageUrl);
+      storeLogoUrl(logoSettings.imageUrl);
       setImageError(false);
     }
   }, [logoSettings]);
 
-  // Use the most stable URL source - either from API or from our local state
+  // Image URL precedence:
+  // 1. Current API response if valid
+  // 2. Locally stored valid URL if not in error state
+  // 3. From localStorage cache
   const effectiveImageUrl = imageError ? null : (
-    logoSettings?.imageUrl && logoSettings.imageUrl !== '' 
+    (logoSettings?.imageUrl && logoSettings.imageUrl !== '') 
       ? logoSettings.imageUrl 
       : lastValidImageUrl
   );
   
-  // Generate a cache-busted URL for the image
+  // Generate a cache-busted URL for the image that remains stable during this session
   const displayUrl = effectiveImageUrl 
     ? `${effectiveImageUrl}?t=${cacheBuster}&v=${encodeURIComponent(variant)}&type=${logoType}`
     : '';
@@ -105,9 +159,32 @@ export function BrandLogo({
 
   // Create a function to manually refresh the logo if needed
   const forceRefresh = () => {
-    setImageError(false);
-    setCacheBuster(Date.now());
-    queryClient.invalidateQueries({ queryKey: ['/api/settings/logo'] });
+    // Generate a new unique timestamp for this refresh
+    const newCacheBuster = Date.now();
+    // Construct a fresh URL for a true force refresh
+    const refreshUrl = effectiveImageUrl 
+      ? `${effectiveImageUrl}?force=true&t=${newCacheBuster}`
+      : '';
+      
+    // Try to preload the image to verify it exists
+    if (refreshUrl) {
+      const img = new Image();
+      img.onload = () => {
+        // Success - reset the error state
+        setImageError(false);
+        // Force a re-fetch from server
+        queryClient.invalidateQueries({ queryKey: ['/api/settings/logo'] });
+      };
+      img.onerror = () => {
+        console.error('Force refresh failed to load logo');
+        // Keep the error state
+        setImageError(true);
+      };
+      img.src = refreshUrl;
+    } else {
+      // No URL to try, just re-fetch from server
+      queryClient.invalidateQueries({ queryKey: ['/api/settings/logo'] });
+    }
   };
 
   // Render logo with loading state
