@@ -330,7 +330,7 @@ function PageContentManagement() {
 
       {/* Add Page Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto custom-scrollbar">
           <DialogHeader>
             <DialogTitle>Add New Page Content</DialogTitle>
             <DialogDescription>
@@ -439,7 +439,7 @@ function PageContentManagement() {
 
       {/* Edit Page Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar">
           <DialogHeader>
             <DialogTitle>Edit Page Content</DialogTitle>
             <DialogDescription>
@@ -545,7 +545,7 @@ function PageContentManagement() {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto custom-scrollbar">
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
