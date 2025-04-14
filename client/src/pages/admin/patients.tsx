@@ -477,7 +477,7 @@ export default function AdminPatientsPage() {
 
       {/* Access Code Generated Dialog */}
       <Dialog open={isAccessCodeDialogOpen} onOpenChange={setIsAccessCodeDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto custom-scrollbar">
           <DialogHeader>
             <DialogTitle>Access Code Generated</DialogTitle>
             <DialogDescription>

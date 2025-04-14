@@ -230,7 +230,7 @@ export default function UserManagement() {
                     Add User
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="max-h-[90vh] overflow-y-auto custom-scrollbar">
                   <DialogHeader>
                     <DialogTitle>Add New User</DialogTitle>
                   </DialogHeader>
@@ -436,7 +436,7 @@ export default function UserManagement() {
 
       {/* Edit User Dialog */}
       <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto custom-scrollbar">
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
           </DialogHeader>
