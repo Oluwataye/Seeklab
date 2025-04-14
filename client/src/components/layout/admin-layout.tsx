@@ -43,6 +43,7 @@ const navigation = [
   { name: "Code Generator", href: "/admin/codes", icon: KeyRound },
   { name: "Patient Management", href: "/admin/patients", icon: UserPlus },
   { name: "Payment Settings", href: "/admin/payment-settings", icon: CreditCard },
+  { name: "Payment Audit", href: "/admin/payment-audit", icon: CreditCard },
   { name: "Verify Payment", href: "/verify-payment", icon: CheckCircle2 },
   { name: "Test Requests", href: "/admin/test-requests", icon: ClipboardList },
   { name: "Result Templates", href: "/admin/templates", icon: FileText },

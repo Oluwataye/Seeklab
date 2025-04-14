@@ -23,6 +23,7 @@ import ResultTemplates from "@/pages/admin/result-templates";
 import LogoSettings from "@/pages/admin/logo-settings";
 import TestTypes from "@/pages/admin/test-types";
 import PaymentSettings from "@/pages/admin/payment-settings";
+import PaymentAudit from "@/pages/admin/payment-audit";
 import PageContent from "@/pages/admin/page-content";
 import AdminTestRequests from "@/pages/admin/test-requests";
 import AdminPatients from "@/pages/admin/patients";
@@ -131,6 +132,11 @@ function Router() {
       <ProtectedRoute 
         path="/admin/test-requests" 
         component={AdminTestRequests}
+        requireAdmin={true}
+      />
+      <ProtectedRoute 
+        path="/admin/payment-audit" 
+        component={PaymentAudit}
         requireAdmin={true}
       />
 
