@@ -1612,6 +1612,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get all payments (Admin only)
+  app.get("/api/payments", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user?.isAdmin) {
+      return res.status(403).json({ message: "Unauthorized - Admin access required" });
+    }
+
+    try {
+      const payments = await storage.getAllPayments();
+      res.json(payments);
+    } catch (error) {
+      console.error('Error fetching all payments:', error);
+      res.status(500).json({ message: "Failed to fetch payments" });
+    }
+  });
+  
   // Payment verification endpoint
   app.post("/api/payments/verify", async (req, res) => {
     if (!req.isAuthenticated() || 

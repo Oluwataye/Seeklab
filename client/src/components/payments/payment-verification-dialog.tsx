@@ -59,11 +59,12 @@ export function PaymentVerificationDialog({
   // Query to verify payment
   const verifyPaymentMutation = useMutation({
     mutationFn: async (data: PaymentVerificationFormValues) => {
-      const response = await apiRequest(`/api/payments/verify`, {
-        method: "POST",
-        data: { referenceNumber: data.paymentReference },
-      });
-      return response;
+      const response = await apiRequest(
+        "POST",
+        "/api/payments/verify", 
+        { referenceNumber: data.paymentReference }
+      );
+      return response.json();
     },
     onSuccess: (data) => {
       setVerificationStatus("verified");
@@ -86,16 +87,17 @@ export function PaymentVerificationDialog({
   // Mutation to generate access code
   const generateAccessCodeMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest(`/api/patients/${patientId}/access-code`, {
-        method: "POST",
-        data: { 
-          paymentReference: form.getValues().paymentReference,
-          isPaid: true
-        },
-      });
-      return response;
+      const response = await apiRequest(
+        "POST",
+        `/api/patients/${patientId}/access-code`, 
+        { 
+          testType: "General Assessment",
+          paymentReference: form.getValues().paymentReference
+        }
+      );
+      return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast({
         title: "Access Code Generated",
         description: `The access code ${data.accessCode} has been created successfully.`,
