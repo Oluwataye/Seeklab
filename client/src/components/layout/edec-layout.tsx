@@ -142,10 +142,11 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
           <ResizablePanel
             defaultSize={20}
             minSize={15}
-            maxSize={30}
+            maxSize={35}
             className={cn(
               "bg-white border-r flex flex-col",
-              !isSidebarOpen && "hidden lg:block"
+              !isSidebarOpen && "hidden lg:block",
+              isSidebarOpen && isMobile && "fixed inset-y-0 left-0 z-40 w-64"
             )}
           >
             <nav className="flex-1 flex flex-col h-full">
@@ -168,7 +169,7 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
                         )}
                       >
                         <item.icon className="h-5 w-5 flex-shrink-0" />
-                        <span className="truncate">{item.name}</span>
+                        <span className="whitespace-normal break-words">{item.name}</span>
                       </Link>
                     );
                   })}

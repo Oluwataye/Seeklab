@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
@@ -118,8 +118,8 @@ export function PsychologistLayout({ children }: { children: React.ReactNode }) 
                           : "text-gray-700 hover:bg-gray-50"
                       )}
                     >
-                      <item.icon className="h-5 w-5" />
-                      {item.name}
+                      <item.icon className="h-5 w-5 flex-shrink-0" />
+                      <span className="whitespace-normal break-words">{item.name}</span>
                     </Link>
                   );
                 })}
