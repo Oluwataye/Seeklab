@@ -86,6 +86,7 @@ export interface IStorage {
   
   // Page content management
   getPageContent(pageSlug: string): Promise<PageContent | undefined>;
+  getPageContentById(id: number): Promise<PageContent | undefined>;
   getAllPageContents(): Promise<PageContent[]>;
   createPageContent(data: InsertPageContent): Promise<PageContent>;
   updatePageContent(id: number, data: Partial<PageContent>): Promise<PageContent>;
