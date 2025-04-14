@@ -742,6 +742,19 @@ export class DatabaseStorage implements IStorage {
       return undefined;
     }
   }
+  
+  async getPageContentById(id: number): Promise<PageContent | undefined> {
+    try {
+      const [content] = await db
+        .select()
+        .from(pageContents)
+        .where(eq(pageContents.id, id));
+      return content;
+    } catch (error) {
+      console.error(`Error fetching page content for id ${id}:`, error);
+      return undefined;
+    }
+  }
 
   async getAllPageContents(): Promise<PageContent[]> {
     try {
