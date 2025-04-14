@@ -192,7 +192,7 @@ function Router() {
       />
       <ProtectedRoute 
         path="/edec/substance-abuse-test" 
-        component={EDECTestRequest}
+        component={() => import('./pages/admin/edec-test-request').then(module => module.default)}
         requireSpecificRole="edec"
       />
       <ProtectedRoute 

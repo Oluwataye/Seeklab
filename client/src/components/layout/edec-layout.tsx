@@ -25,6 +25,7 @@ import {
   FileText,
   FileCheck,
   Shield,
+  FileSpreadsheet,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
@@ -65,6 +66,11 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
       name: "Test Requests", 
       href: "/edec/test-requests", 
       icon: ClipboardCheck 
+    },
+    { 
+      name: "Substance Abuse Test", 
+      href: "/edec/substance-abuse-test", 
+      icon: FileSpreadsheet 
     },
     { 
       name: "Payment Verification", 

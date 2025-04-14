@@ -64,13 +64,7 @@ export default function EDECTestRequest() {
     queryKey: ["/api/test-types"],
   });
 
-  const handlePatientDataUpdate = (data: Patient | null) => {
-    if (data) {
-      setPatientName(`${data.firstName} ${data.lastName}`);
-    } else {
-      setPatientName("");
-    }
-  };
+  // This function is no longer needed as we're using useEffect for data updates
 
   const { data: patient, isLoading: isLoadingPatient } = useQuery({
     queryKey: ["/api/patients/search", patientId],
