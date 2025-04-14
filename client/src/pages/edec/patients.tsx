@@ -358,7 +358,7 @@ export default function PatientsPage() {
 
       {/* Patient Details Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto custom-scrollbar">
           {selectedPatient && (
             <>
               <DialogHeader>
@@ -511,7 +511,7 @@ export default function PatientsPage() {
 
       {/* Payment Required Dialog */}
       <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto custom-scrollbar">
           <DialogHeader>
             <DialogTitle>Payment Required</DialogTitle>
             <DialogDescription>
@@ -569,7 +569,7 @@ export default function PatientsPage() {
       
       {/* Generated Access Code Dialog */}
       <Dialog open={isAccessCodeDialogOpen} onOpenChange={setIsAccessCodeDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto custom-scrollbar">
           <DialogHeader>
             <DialogTitle>Access Code Generated</DialogTitle>
             <DialogDescription>
