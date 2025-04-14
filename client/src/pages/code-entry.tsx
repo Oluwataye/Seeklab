@@ -242,16 +242,19 @@ export default function CodeEntry() {
                 <div className="text-center mb-6">
                   <h2 className="text-2xl font-bold">Healthcare Provider Access</h2>
                   <p className="text-muted-foreground mt-2">
-                    Please log in to access patient records and test results
+                    This section is for authorized healthcare providers only
                   </p>
                 </div>
                 
-                <div className="flex justify-center">
-                  <Button asChild size="lg">
-                    <Link href="/auth">
-                      Provider Login
-                    </Link>
-                  </Button>
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Healthcare providers should use their secure staff portal for accessing patient records.
+                    If you are a healthcare provider and need access, please contact your system administrator.
+                  </p>
+                  <div className="flex items-center justify-center text-amber-600 gap-2 mt-4">
+                    <AlertCircle className="h-5 w-5" />
+                    <span className="text-sm font-medium">Authorized Personnel Only</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>

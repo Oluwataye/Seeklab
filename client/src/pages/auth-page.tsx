@@ -8,10 +8,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
-import { FlaskConical, Lock, User, Mail } from "lucide-react";
+import { FlaskConical, Lock, User, Mail, ShieldAlert } from "lucide-react";
 import { useEffect } from "react";
 import { PublicLayout } from "@/components/layout/public-layout";
 import { PasswordInput } from "@/components/ui/password-input";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -53,7 +54,17 @@ export default function AuthPage() {
     },
   });
 
-  // Use useEffect for navigation to avoid state updates during render
+  // Redirect to the secure login page immediately
+  useEffect(() => {
+    // Redirect to the secure login page after a small delay
+    const redirectTimer = setTimeout(() => {
+      navigate("/secure/login");
+    }, 500);
+    
+    return () => clearTimeout(redirectTimer);
+  }, [navigate]);
+
+  // Also handle normal user redirects if they somehow authenticate here
   useEffect(() => {
     if (user) {
       if (user.isAdmin) {
@@ -76,8 +87,20 @@ export default function AuthPage() {
   return (
     <PublicLayout>
       <div className="flex flex-col lg:flex-row gap-8 px-4 py-8">
+        {/* Redirect Alert */}
+        <div className="w-full max-w-3xl mx-auto mb-6">
+          <Alert variant="destructive">
+            <ShieldAlert className="h-4 w-4" />
+            <AlertTitle>Security Enhancement</AlertTitle>
+            <AlertDescription>
+              For security reasons, the login page has been moved to a secure endpoint. 
+              You are being redirected to the secure staff portal login page...
+            </AlertDescription>
+          </Alert>
+        </div>
+      
         {/* Form Section */}
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center opacity-50 pointer-events-none">
           <Card className="w-full max-w-md">
             <CardContent className="pt-6">
               <div className="mb-8 text-center">
@@ -109,7 +132,7 @@ export default function AuthPage() {
                           <FormControl>
                             <div className="relative">
                               <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                              <Input {...field} className="pl-10" placeholder="Enter your username" />
+                              <Input {...field} className="pl-10" placeholder="Enter your username" disabled />
                             </div>
                           </FormControl>
                           <FormMessage />
@@ -129,6 +152,7 @@ export default function AuthPage() {
                                 {...field} 
                                 className="pl-10"
                                 placeholder="Enter your password" 
+                                disabled
                               />
                             </div>
                           </FormControl>
@@ -137,11 +161,11 @@ export default function AuthPage() {
                       )}
                     />
                     <Button
-                      type="submit"
+                      type="button"
                       className="w-full bg-primary hover:bg-primary/90"
-                      disabled={loginMutation.isPending}
+                      disabled={true}
                     >
-                      {loginMutation.isPending ? "Logging in..." : "Login to Portal"}
+                      Redirecting...
                     </Button>
                   </form>
                 </Form>

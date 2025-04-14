@@ -4,8 +4,7 @@ import {
   CreditCard, 
   InfoIcon, 
   Mail, 
-  Shield, 
-  LogIn 
+  Shield
 } from "lucide-react";
 import { BrandLogo } from "@/components/brand/logo";
 
@@ -40,10 +39,7 @@ export function PublicHeader() {
             </Link>
           </nav>
         </div>
-        <Link href="/auth" className="text-sm text-primary hover:underline flex items-center gap-1">
-          <LogIn className="h-4 w-4" />
-          Staff Login
-        </Link>
+        {/* Staff login link removed for security */}
       </div>
     </header>
   );
