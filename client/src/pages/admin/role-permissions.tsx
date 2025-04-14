@@ -125,7 +125,7 @@ export default function RolePermissions() {
                     Create Custom Role
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="max-h-[90vh] overflow-y-auto custom-scrollbar">
                   <DialogHeader>
                     <DialogTitle>Create New Role</DialogTitle>
                   </DialogHeader>

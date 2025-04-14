@@ -244,7 +244,7 @@ export default function LogoSettings() {
         
         {/* Logo Preview Dialog */}
         <AlertDialog open={showCropDialog} onOpenChange={setShowCropDialog}>
-          <AlertDialogContent>
+          <AlertDialogContent className="max-h-[90vh] overflow-y-auto custom-scrollbar">
             <AlertDialogHeader>
               <AlertDialogTitle>Upload Logo</AlertDialogTitle>
               <AlertDialogDescription>
