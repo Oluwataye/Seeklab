@@ -41,6 +41,23 @@ export function PsychologistLayout({ children }: { children: React.ReactNode }) 
   const { user, logoutMutation } = useAuth();
   const [location] = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    // Check if screen is mobile sized on mount and when window is resized
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 1024); // lg breakpoint in Tailwind is 1024px
+    };
+    
+    // Initial check
+    checkIfMobile();
+    
+    // Add event listener for window resize
+    window.addEventListener('resize', checkIfMobile);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
 
   return (
     <div className="flex flex-col h-screen">
@@ -97,10 +114,11 @@ export function PsychologistLayout({ children }: { children: React.ReactNode }) 
           <ResizablePanel
             defaultSize={20}
             minSize={15}
-            maxSize={30}
+            maxSize={35}
             className={cn(
-              "bg-white border-r",
-              !isSidebarOpen && "hidden lg:block"
+              "bg-white border-r flex flex-col",
+              !isSidebarOpen && "hidden lg:block",
+              isSidebarOpen && isMobile && "fixed inset-y-0 left-0 z-40 w-64"
             )}
           >
             <nav className="h-full py-4 flex flex-col">
@@ -140,6 +158,14 @@ export function PsychologistLayout({ children }: { children: React.ReactNode }) 
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
+      
+      {/* Mobile sidebar overlay */}
+      {isSidebarOpen && isMobile && (
+        <div
+          className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
     </div>
   );
 }
