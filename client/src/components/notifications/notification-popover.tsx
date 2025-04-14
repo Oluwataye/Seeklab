@@ -63,7 +63,7 @@ export function NotificationPopover() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
+      <PopoverContent className="w-80 p-0 max-h-[60vh] overflow-y-auto custom-scrollbar" align="end">
         <div className="p-2 border-b">
           <h4 className="text-sm font-medium">Notifications</h4>
         </div>

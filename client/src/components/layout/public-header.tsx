@@ -55,7 +55,7 @@ export function PublicHeader() {
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[250px] sm:w-[300px]">
+            <SheetContent side="right" className="w-[250px] sm:w-[300px] max-h-screen overflow-y-auto custom-scrollbar">
               <div className="py-4">
                 <div className="flex justify-between items-center mb-6">
                   <BrandLogo showText={false} variant="small" />
