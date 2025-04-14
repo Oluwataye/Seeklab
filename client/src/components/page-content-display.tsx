@@ -90,9 +90,15 @@ export function PageContentDisplay({ slug, className }: PageContentDisplayProps)
   
   return (
     <div className={className}>
-      <h1 className="text-3xl font-bold mb-6">{pageContent.title}</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">{pageContent.title}</h1>
       <div 
-        className="prose max-w-none dark:prose-invert" 
+        className="prose max-w-none dark:prose-invert 
+                 prose-headings:scroll-mt-16 
+                 prose-h1:text-xl sm:prose-h1:text-2xl
+                 prose-h2:text-lg sm:prose-h2:text-xl
+                 prose-p:text-sm sm:prose-p:text-base
+                 prose-img:rounded-md prose-img:mx-auto
+                 prose-a:text-primary"
         dangerouslySetInnerHTML={{ __html: pageContent.content }}
       />
     </div>

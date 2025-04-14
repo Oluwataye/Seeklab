@@ -4,10 +4,10 @@ import { PageContentDisplay } from "@/components/page-content-display";
 export default function AboutPage() {
   return (
     <PublicLayout>
-      <div className="container mx-auto py-8 px-4">
+      <div className="mx-auto py-4 sm:py-6 md:py-8">
         <PageContentDisplay 
           slug="about" 
-          className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 max-w-4xl mx-auto"
+          className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 max-w-4xl mx-auto"
         />
       </div>
     </PublicLayout>
