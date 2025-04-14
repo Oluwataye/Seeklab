@@ -157,6 +157,16 @@ export const settings = pgTable("settings", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+export const pageContents = pgTable("page_contents", {
+  id: serial("id").primaryKey(),
+  pageSlug: varchar("page_slug", { length: 64 }).notNull().unique(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  metaDescription: text("meta_description"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  updatedBy: text("updated_by").notNull(),
+});
+
 export const insertResultTemplateSchema = createInsertSchema(resultTemplates).pick({
   name: true,
   category: true,
@@ -265,6 +275,14 @@ export const insertPaymentSettingSchema = createInsertSchema(paymentSettings).pi
   updatedBy: true,
 });
 
+export const insertPageContentSchema = createInsertSchema(pageContents).pick({
+  pageSlug: true,
+  title: true,
+  content: true,
+  metaDescription: true,
+  updatedBy: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type Role = typeof roles.$inferSelect;
@@ -287,3 +305,5 @@ export type Payment = typeof payments.$inferSelect;
 export type InsertPayment = z.infer<typeof insertPaymentSchema>;
 export type PaymentSetting = typeof paymentSettings.$inferSelect;
 export type InsertPaymentSetting = z.infer<typeof insertPaymentSettingSchema>;
+export type PageContent = typeof pageContents.$inferSelect;
+export type InsertPageContent = z.infer<typeof insertPageContentSchema>;

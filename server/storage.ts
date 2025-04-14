@@ -83,6 +83,13 @@ export interface IStorage {
   
   // Generate access code for patient results
   generateAccessCode(patientId: string): Promise<string>;
+  
+  // Page content management
+  getPageContent(pageSlug: string): Promise<PageContent | undefined>;
+  getAllPageContents(): Promise<PageContent[]>;
+  createPageContent(data: InsertPageContent): Promise<PageContent>;
+  updatePageContent(id: number, data: Partial<PageContent>): Promise<PageContent>;
+  deletePageContent(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
