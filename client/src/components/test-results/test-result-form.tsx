@@ -355,7 +355,7 @@ export function TestResultForm({
                   Delete Result
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
+              <AlertDialogContent className="max-h-[90vh] overflow-y-auto custom-scrollbar">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                   <AlertDialogDescription>
