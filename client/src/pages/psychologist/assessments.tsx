@@ -224,7 +224,7 @@ export default function AssessmentsPage() {
                               {result.psychologistAssessment ? "View/Edit" : "Add Assessment"}
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="max-w-2xl">
+                          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
                             <DialogHeader>
                               <DialogTitle>Psychological Assessment</DialogTitle>
                             </DialogHeader>
