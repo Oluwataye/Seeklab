@@ -8,7 +8,9 @@ import {
   insertPatientSchema, 
   insertPaymentSchema, 
   insertPaymentSettingSchema,
-  Payment
+  insertPageContentSchema,
+  Payment,
+  PageContent
 } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
@@ -2000,6 +2002,173 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error marking notification as read:', error);
       res.status(500).json({ message: "Failed to mark notification as read" });
+    }
+  });
+
+  // Page Content Management Routes
+  app.get("/api/page-contents", async (req, res) => {
+    try {
+      const pageContents = await storage.getAllPageContents();
+      res.json(pageContents);
+    } catch (error) {
+      console.error('Error fetching page contents:', error);
+      res.status(500).json({ message: "Failed to fetch page contents" });
+    }
+  });
+
+  app.get("/api/page-contents/:slug", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const pageContent = await storage.getPageContent(slug);
+      
+      if (!pageContent) {
+        return res.status(404).json({ message: "Page content not found" });
+      }
+      
+      res.json(pageContent);
+    } catch (error) {
+      console.error('Error fetching page content:', error);
+      res.status(500).json({ message: "Failed to fetch page content" });
+    }
+  });
+
+  app.post("/api/page-contents", csrfProtection, async (req, res) => {
+    if (!req.isAuthenticated() || !req.user?.isAdmin) {
+      return res.status(403).json({ message: "Unauthorized - Admin access required" });
+    }
+
+    try {
+      const pageContentData = insertPageContentSchema.parse(req.body);
+      
+      // Check if page already exists
+      const existing = await storage.getPageContent(pageContentData.pageSlug);
+      if (existing) {
+        return res.status(409).json({ message: "Page with this slug already exists" });
+      }
+      
+      // Add updated by info
+      const dataWithUser = {
+        ...pageContentData,
+        updatedBy: req.user.username || 'Unknown admin'
+      };
+      
+      const pageContent = await storage.createPageContent(dataWithUser);
+      
+      // Create audit log for this action
+      if (req.user?.id) {
+        await storage.createAuditLog({
+          userId: req.user.id.toString(),
+          action: "create_page_content",
+          entityType: "page_content",
+          entityId: pageContent.id.toString(),
+          details: { 
+            pageSlug: pageContent.pageSlug,
+            title: pageContent.title
+          },
+          ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+        });
+      }
+      
+      res.status(201).json(pageContent);
+    } catch (error) {
+      console.error('Error creating page content:', error);
+      res.status(400).json({ message: "Invalid page content data" });
+    }
+  });
+
+  app.patch("/api/page-contents/:id", csrfProtection, async (req, res) => {
+    if (!req.isAuthenticated() || !req.user?.isAdmin) {
+      return res.status(403).json({ message: "Unauthorized - Admin access required" });
+    }
+
+    try {
+      const contentId = parseInt(req.params.id);
+      
+      if (isNaN(contentId)) {
+        return res.status(400).json({ message: "Invalid content ID" });
+      }
+      
+      // Get simplified schema for update (all fields optional)
+      const updateSchema = z.object({
+        title: z.string().optional(),
+        content: z.string().optional(),
+        metaDescription: z.string().optional()
+      });
+      
+      const updateData = updateSchema.parse(req.body);
+      
+      // Add updated by info
+      const dataWithUser = {
+        ...updateData,
+        updatedBy: req.user.username || 'Unknown admin',
+        updatedAt: new Date()
+      };
+      
+      const updatedContent = await storage.updatePageContent(contentId, dataWithUser);
+      
+      // Create audit log for this action
+      if (req.user?.id) {
+        await storage.createAuditLog({
+          userId: req.user.id.toString(),
+          action: "update_page_content",
+          entityType: "page_content",
+          entityId: contentId.toString(),
+          details: { 
+            pageSlug: updatedContent.pageSlug,
+            fields: Object.keys(updateData)
+          },
+          ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+        });
+      }
+      
+      res.json(updatedContent);
+    } catch (error) {
+      console.error('Error updating page content:', error);
+      res.status(400).json({ message: "Invalid update data" });
+    }
+  });
+
+  app.delete("/api/page-contents/:id", csrfProtection, async (req, res) => {
+    if (!req.isAuthenticated() || !req.user?.isAdmin) {
+      return res.status(403).json({ message: "Unauthorized - Admin access required" });
+    }
+
+    try {
+      const contentId = parseInt(req.params.id);
+      
+      if (isNaN(contentId)) {
+        return res.status(400).json({ message: "Invalid content ID" });
+      }
+      
+      // Get the page content first for audit logging
+      const pageContents = await storage.getAllPageContents();
+      const pageContent = pageContents.find(p => p.id === contentId);
+      
+      if (!pageContent) {
+        return res.status(404).json({ message: "Page content not found" });
+      }
+      
+      await storage.deletePageContent(contentId);
+      
+      // Create audit log for this action
+      if (req.user?.id) {
+        await storage.createAuditLog({
+          userId: req.user.id.toString(),
+          action: "delete_page_content",
+          entityType: "page_content",
+          entityId: contentId.toString(),
+          details: { 
+            pageSlug: pageContent.pageSlug,
+            title: pageContent.title
+          },
+          ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+        });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting page content:', error);
+      res.status(500).json({ message: "Failed to delete page content" });
     }
   });
 
