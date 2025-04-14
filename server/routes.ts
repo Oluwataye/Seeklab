@@ -2059,21 +2059,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const pageContentData = insertPageContentSchema.parse(req.body);
+      // First validate only the client-provided fields
+      const clientSchema = z.object({
+        pageSlug: z.string().min(2).max(64),
+        title: z.string().min(3),
+        content: z.string().min(10),
+        metaDescription: z.string().optional()
+      });
+      
+      const validatedClientData = clientSchema.parse(req.body);
       
       // Check if page already exists
-      const existing = await storage.getPageContent(pageContentData.pageSlug);
+      const existing = await storage.getPageContent(validatedClientData.pageSlug);
       if (existing) {
         return res.status(409).json({ message: "Page with this slug already exists" });
       }
       
-      // Add updated by info
-      const dataWithUser = {
-        ...pageContentData,
-        updatedBy: req.user.username || 'Unknown admin'
+      // Add required updatedBy field from server context
+      const pageContentData = {
+        ...validatedClientData,
+        updatedBy: req.user?.username || 'Unknown admin'
       };
       
-      const pageContent = await storage.createPageContent(dataWithUser);
+      const pageContent = await storage.createPageContent(pageContentData);
       
       // Create audit log for this action
       if (req.user?.id) {
@@ -2132,7 +2140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Add updated by info
       const dataWithUser = {
         ...updateData,
-        updatedBy: req.user.username || 'Unknown admin',
+        updatedBy: req.user?.username || 'Unknown admin',
         updatedAt: new Date()
       };
       
