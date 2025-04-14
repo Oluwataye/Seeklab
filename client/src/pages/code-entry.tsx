@@ -7,13 +7,11 @@ import { Form, FormField, FormItem, FormControl, FormMessage } from "@/component
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { PublicLayout } from "@/components/layout/public-layout";
 import { useMutation } from "@tanstack/react-query";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { InfoIcon, ShieldCheck, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { InfoIcon, ShieldCheck, CheckCircle, Loader2 } from "lucide-react";
 
 const codeSchema = z.object({
   code: z.string().length(8, { message: "Access code must be 8 characters" }),
@@ -115,151 +113,118 @@ export default function CodeEntry() {
           </p>
         </div>
 
-        <Tabs defaultValue="patient" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="patient">For Patients</TabsTrigger>
-            <TabsTrigger value="healthcare">For Healthcare Providers</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="patient">
-            <div className="grid md:grid-cols-5 gap-6">
-              <div className="md:col-span-3 space-y-6">
-                <Card className="w-full">
-                  <CardContent className="pt-6">
-                    <h2 className="text-2xl font-bold mb-4 text-center">Access Your Test Results</h2>
-                    <p className="text-muted-foreground text-center mb-6">
-                      Enter the 8-character code provided by your lab
-                    </p>
+        <div className="grid md:grid-cols-5 gap-6">
+          <div className="md:col-span-3 space-y-6">
+            <Card className="w-full">
+              <CardContent className="pt-6">
+                <h2 className="text-2xl font-bold mb-4 text-center">Access Your Test Results</h2>
+                <p className="text-muted-foreground text-center mb-6">
+                  Enter the 8-character code provided by your lab
+                </p>
 
-                    <Form {...form}>
-                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <FormField
-                          control={form.control}
-                          name="code"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  placeholder="Enter 8-digit code (e.g., SEEK-A1B2)"
-                                  className="text-center text-xl tracking-wider code-input"
-                                  disabled={resultMutation.isPending}
-                                  autoComplete="off"
-                                  maxLength={8}
-                                  onChange={(e) => {
-                                    const value = e.target.value
-                                      .replace(/[^a-zA-Z0-9-]/g, '')
-                                      .toUpperCase();
-                                    field.onChange(value);
-                                  }}
-                                />
-                              </FormControl>
-                              <FormMessage className="error-text" />
-                            </FormItem>
-                          )}
-                        />
-                        <Button 
-                          type="submit" 
-                          className="w-full" 
-                          style={{ backgroundColor: 'var(--lab-header)', color: 'white' }}
-                          disabled={resultMutation.isPending}
-                          size="lg"
-                        >
-                          {resultMutation.isPending ? (
-                            <span className="flex items-center">
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Verifying...
-                            </span>
-                          ) : "View Results"}
-                        </Button>
-                      </form>
-                    </Form>
-                  </CardContent>
-                  <CardFooter className="text-sm text-muted-foreground flex justify-center">
-                    <div className="flex items-center">
-                      <ShieldCheck className="h-4 w-4 mr-2" />
-                      Secure, encrypted connection
-                    </div>
-                  </CardFooter>
-                </Card>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="code"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="Enter 8-digit code (e.g., SEEK-A1B2)"
+                              className="text-center text-xl tracking-wider code-input"
+                              disabled={resultMutation.isPending}
+                              autoComplete="off"
+                              maxLength={8}
+                              onChange={(e) => {
+                                const value = e.target.value
+                                  .replace(/[^a-zA-Z0-9-]/g, '')
+                                  .toUpperCase();
+                                field.onChange(value);
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage className="error-text" />
+                        </FormItem>
+                      )}
+                    />
+                    <Button 
+                      type="submit" 
+                      className="w-full" 
+                      style={{ backgroundColor: 'var(--lab-header)', color: 'white' }}
+                      disabled={resultMutation.isPending}
+                      size="lg"
+                    >
+                      {resultMutation.isPending ? (
+                        <span className="flex items-center">
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Verifying...
+                        </span>
+                      ) : "View Results"}
+                    </Button>
+                  </form>
+                </Form>
+              </CardContent>
+              <CardFooter className="text-sm text-muted-foreground flex justify-center">
+                <div className="flex items-center">
+                  <ShieldCheck className="h-4 w-4 mr-2" />
+                  Secure, encrypted connection
+                </div>
+              </CardFooter>
+            </Card>
 
-                <Alert>
-                  <InfoIcon className="h-4 w-4" />
-                  <AlertTitle>Need help?</AlertTitle>
-                  <AlertDescription>
-                    If you don't have an access code, please contact your healthcare provider or lab technician.
-                  </AlertDescription>
-                </Alert>
-              </div>
+            <Alert>
+              <InfoIcon className="h-4 w-4" />
+              <AlertTitle>Need help?</AlertTitle>
+              <AlertDescription>
+                If you don't have an access code, please contact your healthcare provider or lab technician.
+              </AlertDescription>
+            </Alert>
+          </div>
 
-              <div className="md:col-span-2 space-y-4">
-                <Card>
-                  <CardContent className="pt-6">
-                    <h3 className="font-semibold mb-3">How It Works</h3>
-                    <ul className="space-y-3">
-                      <li className="flex gap-2">
-                        <span className="flex-shrink-0 h-6 w-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm">1</span>
-                        <span>Enter your 8-character access code</span>
-                      </li>
-                      <li className="flex gap-2">
-                        <span className="flex-shrink-0 h-6 w-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm">2</span>
-                        <span>View your lab results securely</span>
-                      </li>
-                      <li className="flex gap-2">
-                        <span className="flex-shrink-0 h-6 w-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm">3</span>
-                        <span>Download or print your results if needed</span>
-                      </li>
-                    </ul>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="pt-6">
-                    <h3 className="font-semibold mb-3">Privacy & Security</h3>
-                    <div className="space-y-3 text-sm">
-                      <div className="flex items-start gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-600 mt-0.5" />
-                        <span>HIPAA compliant</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-600 mt-0.5" />
-                        <span>256-bit SSL encryption</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-600 mt-0.5" />
-                        <span>Results expire after limited time</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="healthcare">
+          <div className="md:col-span-2 space-y-4">
             <Card>
               <CardContent className="pt-6">
-                <div className="text-center mb-6">
-                  <h2 className="text-2xl font-bold">Healthcare Provider Access</h2>
-                  <p className="text-muted-foreground mt-2">
-                    This section is for authorized healthcare providers only
-                  </p>
-                </div>
-                
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Healthcare providers should use their secure staff portal for accessing patient records.
-                    If you are a healthcare provider and need access, please contact your system administrator.
-                  </p>
-                  <div className="flex items-center justify-center text-amber-600 gap-2 mt-4">
-                    <AlertCircle className="h-5 w-5" />
-                    <span className="text-sm font-medium">Authorized Personnel Only</span>
+                <h3 className="font-semibold mb-3">How It Works</h3>
+                <ul className="space-y-3">
+                  <li className="flex gap-2">
+                    <span className="flex-shrink-0 h-6 w-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm">1</span>
+                    <span>Enter your 8-character access code</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="flex-shrink-0 h-6 w-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm">2</span>
+                    <span>View your lab results securely</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="flex-shrink-0 h-6 w-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm">3</span>
+                    <span>Download or print your results if needed</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="pt-6">
+                <h3 className="font-semibold mb-3">Privacy & Security</h3>
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600 mt-0.5" />
+                    <span>HIPAA compliant</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600 mt-0.5" />
+                    <span>256-bit SSL encryption</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600 mt-0.5" />
+                    <span>Results expire after limited time</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
+          </div>
+        </div>
       </div>
     </PublicLayout>
   );
