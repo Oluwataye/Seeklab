@@ -1312,17 +1312,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Check for payment reference if provided in request body
+      const { testType, paymentReference } = z.object({
+        testType: z.string(),
+        paymentReference: z.string().optional()
+      }).parse(req.body);
+      
+      // If payment reference is provided, verify it
+      if (paymentReference) {
+        // Fetch payment using the reference
+        const payment = await storage.getPaymentByReference(paymentReference);
+        
+        if (!payment || payment.patientId !== patient.patientId) {
+          return res.status(400).json({ 
+            message: "Invalid payment reference or payment doesn't belong to this patient" 
+          });
+        }
+        
+        if (payment.status !== 'completed' && payment.status !== 'verified') {
+          return res.status(400).json({ 
+            message: "Payment has not been completed or verified" 
+          });
+        }
+      }
+      
       // Generate an access code for the patient
       const accessCode = await storage.generateAccessCode(patient.patientId);
       
       // Generate expiry date (30 days from now)
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 30);
-      
-      // Get test type
-      const { testType } = z.object({
-        testType: z.string()
-      }).parse(req.body);
       
       // Create a new result entry with this access code
       const result = await storage.createResult({
@@ -1602,26 +1621,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const { patientId, referenceNumber } = z.object({
-        patientId: z.string(),
+        patientId: z.string().optional(),
         referenceNumber: z.string()
       }).parse(req.body);
       
-      // Find all payments for this patient
-      const payments = await storage.getPaymentsByPatientId(patientId);
-      const payment = payments.find(p => p.referenceNumber === referenceNumber);
+      // First try to find the payment by reference number directly
+      const payment = await storage.getPaymentByReference(referenceNumber);
       
       if (!payment) {
-        return res.status(404).json({ message: "Payment not found" });
+        return res.status(404).json({ message: "Payment not found with this reference number" });
+      }
+      
+      // If patientId is provided, verify it matches
+      if (patientId && payment.patientId !== patientId) {
+        return res.status(400).json({ 
+          message: "Payment reference is valid but doesn't belong to this patient" 
+        });
+      }
+      
+      // Update status to verified if not already
+      if (payment.status !== 'verified') {
+        await storage.updatePayment(payment.id, { 
+          status: 'verified',
+          completedAt: new Date()
+        });
+        
+        // Create audit log for this verification
+        if (req.user?.id) {
+          await storage.createAuditLog({
+            userId: req.user.id.toString(),
+            action: "verify_payment",
+            entityType: "payment",
+            entityId: payment.id.toString(),
+            details: { 
+              patientId: payment.patientId,
+              amount: payment.amount,
+              paymentMethod: payment.paymentMethod,
+              referenceNumber: payment.referenceNumber
+            },
+            ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+          });
+        }
       }
       
       // Return payment details
       res.json({
-        verified: true,
-        payment
+        amount: payment.amount,
+        currency: payment.currency || 'NGN',
+        status: 'verified',
+        paymentMethod: payment.paymentMethod,
+        createdAt: payment.createdAt,
+        referenceNumber: payment.referenceNumber,
+        patientId: payment.patientId
       });
     } catch (error) {
       console.error('Error verifying payment:', error);
-      res.status(400).json({ message: "Invalid reference number or patient ID" });
+      res.status(400).json({ message: "Invalid reference number" });
     }
   });
 

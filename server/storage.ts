@@ -64,6 +64,7 @@ export interface IStorage {
   // Payment management
   createPayment(payment: InsertPayment): Promise<Payment>;
   getPaymentById(id: number): Promise<Payment | undefined>;
+  getPaymentByReference(referenceNumber: string): Promise<Payment | undefined>;
   getPaymentsByPatientId(patientId: string): Promise<Payment[]>;
   getAllPayments(): Promise<Payment[]>;
   updatePayment(id: number, data: Partial<Payment>): Promise<Payment>;
@@ -556,6 +557,16 @@ export class DatabaseStorage implements IStorage {
       return payment;
     } catch (error) {
       console.error('Error fetching payment by id:', error);
+      return undefined;
+    }
+  }
+  
+  async getPaymentByReference(referenceNumber: string): Promise<Payment | undefined> {
+    try {
+      const [payment] = await db.select().from(payments).where(eq(payments.referenceNumber, referenceNumber));
+      return payment;
+    } catch (error) {
+      console.error('Error fetching payment by reference number:', error);
       return undefined;
     }
   }
