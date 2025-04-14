@@ -20,7 +20,7 @@ interface LogoSettings {
 const defaultLogoSettings: LogoSettings = {
   imageUrl: '',
   name: 'SeekLab',
-  tagline: 'Substance Abuse Screening Test',
+  tagline: 'Know where you stand. Take control of tomorrow.',
 };
 
 // Use localStorage to persistently cache the logo settings between page refreshes
@@ -84,10 +84,28 @@ export function BrandLogo({
   
   // Fetch logo settings once on component mount, with force refresh
   useEffect(() => {
-    // Force clear both the query cache and local storage
+    // Force clear ALL caches - localStorage, sessionStorage and query cache
     localStorage.removeItem('lastValidLogoTimestamp');
+    localStorage.removeItem('lastValidLogoUrl');
+    sessionStorage.removeItem('logoSettings');
+    
+    // Create a timestamp to ensure we get fresh data
+    const forcedTimestamp = Date.now();
+    
+    // Clear all query cache for logo settings
     queryClient.removeQueries({ queryKey: ['/api/settings/logo'] });
-    queryClient.invalidateQueries({ queryKey: ['/api/settings/logo'] });
+    queryClient.invalidateQueries({ 
+      queryKey: ['/api/settings/logo'],
+      refetchType: 'all'
+    });
+    
+    // Force a refresh after a short delay
+    setTimeout(() => {
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/settings/logo'],
+        refetchType: 'all'
+      });
+    }, 500);
   }, [queryClient]);
   
   // Fetch logo settings from server with minimal caching to get fresh data
@@ -164,29 +182,49 @@ export function BrandLogo({
   const forceRefresh = () => {
     // Generate a new unique timestamp for this refresh
     const newCacheBuster = Date.now();
+    
+    // Clear ALL caches to ensure fresh data
+    localStorage.removeItem('lastValidLogoTimestamp');
+    localStorage.removeItem('lastValidLogoUrl');
+    sessionStorage.removeItem('logoSettings');
+    
     // Construct a fresh URL for a true force refresh
     const refreshUrl = effectiveImageUrl 
       ? `${effectiveImageUrl}?force=true&t=${newCacheBuster}`
       : '';
-      
+    
+    // Remove from query cache completely
+    queryClient.removeQueries({ queryKey: ['/api/settings/logo'] });
+    
     // Try to preload the image to verify it exists
     if (refreshUrl) {
       const img = new Image();
       img.onload = () => {
         // Success - reset the error state
         setImageError(false);
-        // Force a re-fetch from server
-        queryClient.invalidateQueries({ queryKey: ['/api/settings/logo'] });
+        // Force a re-fetch from server with fresh data
+        queryClient.invalidateQueries({ 
+          queryKey: ['/api/settings/logo'],
+          refetchType: 'all'
+        });
       };
       img.onerror = () => {
         console.error('Force refresh failed to load logo');
         // Keep the error state
         setImageError(true);
+        // Still try to fetch logo settings anyway
+        queryClient.invalidateQueries({ 
+          queryKey: ['/api/settings/logo'],
+          refetchType: 'all'
+        });
       };
       img.src = refreshUrl;
     } else {
-      // No URL to try, just re-fetch from server
-      queryClient.invalidateQueries({ queryKey: ['/api/settings/logo'] });
+      // No URL to try, just re-fetch from server with fresh data
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/settings/logo'],
+        refetchType: 'all'
+      });
     }
   };
 

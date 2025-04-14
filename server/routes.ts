@@ -541,7 +541,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Return valid JSON even on error, with status 200 to maintain client state
       res.json({ 
         name: 'SeekLab', 
-        tagline: 'Substance Abuse Screening Test',
+        tagline: 'Know where you stand. Take control of tomorrow.',
         imageUrl: '',
         _debug: { 
           error: true, 
