@@ -103,8 +103,8 @@ export default function PaymentPage() {
   if (isLoading) {
     return (
       <PublicLayout>
-        <div className="container mx-auto p-6">
-          <h1 className="text-3xl font-bold mb-8">Payment Information</h1>
+        <div className="container mx-auto px-4 py-4 sm:p-6">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-8">Payment Information</h1>
           <p>Loading payment information...</p>
         </div>
       </PublicLayout>
@@ -114,8 +114,8 @@ export default function PaymentPage() {
   if (error || !paymentSettings) {
     return (
       <PublicLayout>
-        <div className="container mx-auto p-6">
-          <h1 className="text-3xl font-bold mb-8">Payment Information</h1>
+        <div className="container mx-auto px-4 py-4 sm:p-6">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-8">Payment Information</h1>
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
@@ -130,13 +130,13 @@ export default function PaymentPage() {
 
   return (
     <PublicLayout>
-      <div className="container mx-auto p-6">
-        <h1 className="text-3xl font-bold mb-2">Payment Information</h1>
-        <p className="text-muted-foreground mb-8">
+      <div className="container mx-auto px-4 py-4 sm:p-6">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Payment Information</h1>
+        <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-8">
           Access code verification and payment services
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8">
           <div className="md:col-span-2">
             <Tabs defaultValue="bank" className="w-full">
               <TabsList className="grid grid-cols-2 w-full mb-4">
@@ -159,56 +159,56 @@ export default function PaymentPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4">
                       <div>
-                        <h3 className="text-sm font-medium">Bank Name</h3>
-                        <p className="text-lg">{settings.bankName}</p>
+                        <h3 className="text-xs sm:text-sm font-medium">Bank Name</h3>
+                        <p className="text-base sm:text-lg">{settings.bankName}</p>
                       </div>
                       <div>
-                        <h3 className="text-sm font-medium">Account Name</h3>
-                        <p className="text-lg">{settings.accountName}</p>
+                        <h3 className="text-xs sm:text-sm font-medium">Account Name</h3>
+                        <p className="text-base sm:text-lg">{settings.accountName}</p>
                       </div>
                       <div>
-                        <h3 className="text-sm font-medium">Account Number</h3>
-                        <p className="text-lg font-mono">{settings.accountNumber}</p>
+                        <h3 className="text-xs sm:text-sm font-medium">Account Number</h3>
+                        <p className="text-base sm:text-lg font-mono">{settings.accountNumber}</p>
                       </div>
-                      <Separator className="my-4" />
-                      <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                        <div className="flex items-start mb-3">
+                      <Separator className="my-3 sm:my-4" />
+                      <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-3 sm:p-4">
+                        <div className="flex items-start mb-2 sm:mb-3">
                           <div className="flex-shrink-0">
-                            <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                            <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 dark:text-blue-400" />
                           </div>
-                          <div className="ml-3">
-                            <h3 className="text-base font-semibold text-blue-800 dark:text-blue-300">What to do after making your payment</h3>
+                          <div className="ml-2 sm:ml-3">
+                            <h3 className="text-sm sm:text-base font-semibold text-blue-800 dark:text-blue-300">What to do after making your payment</h3>
                           </div>
                         </div>
-                        <div className="ml-8 space-y-4">
-                          <div className="space-y-2">
-                            <p className="text-sm font-medium text-blue-800 dark:text-blue-300">Step 1: Make the transfer</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                        <div className="ml-6 sm:ml-8 space-y-3 sm:space-y-4">
+                          <div className="space-y-1 sm:space-y-2">
+                            <p className="text-xs sm:text-sm font-medium text-blue-800 dark:text-blue-300">Step 1: Make the transfer</p>
+                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
                               Complete the bank transfer of {settings.currency} {settings.accessCodePrice.toLocaleString()} to the account details above.
                               Use your full name as the payment reference.
                             </p>
                           </div>
                           
-                          <div className="space-y-2">
-                            <p className="text-sm font-medium text-blue-800 dark:text-blue-300">Step 2: Save your receipt</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                          <div className="space-y-1 sm:space-y-2">
+                            <p className="text-xs sm:text-sm font-medium text-blue-800 dark:text-blue-300">Step 2: Save your receipt</p>
+                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
                               Keep a copy of your payment receipt or transaction reference. You will need this for verification.
                             </p>
                           </div>
                           
-                          <div className="space-y-2">
-                            <p className="text-sm font-medium text-blue-800 dark:text-blue-300">Step 3: Verify your payment</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                          <div className="space-y-1 sm:space-y-2">
+                            <p className="text-xs sm:text-sm font-medium text-blue-800 dark:text-blue-300">Step 3: Verify your payment</p>
+                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
                               Visit our laboratory or contact our staff at <span className="font-medium">(+234) 123-456-7890</span> to verify your payment.
                               Provide your name and payment reference number.
                             </p>
                           </div>
                           
-                          <div className="space-y-2">
-                            <p className="text-sm font-medium text-blue-800 dark:text-blue-300">Step 4: Receive your access code</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                          <div className="space-y-1 sm:space-y-2">
+                            <p className="text-xs sm:text-sm font-medium text-blue-800 dark:text-blue-300">Step 4: Receive your access code</p>
+                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
                               Once your payment is verified, our staff will generate and provide you with your personal access code
                               for viewing your test results.
                             </p>
@@ -242,24 +242,24 @@ export default function PaymentPage() {
                   <CardContent>
                     <div className="space-y-6">
                       <div>
-                        <h3 className="mb-3 font-medium">Card information</h3>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className={`flex items-center justify-between rounded-md p-3 ${paymentMethod === 'google' ? 'bg-gray-800' : 'bg-gray-800/50'}`}
+                        <h3 className="mb-2 sm:mb-3 text-sm sm:text-base font-medium">Card information</h3>
+                        <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                          <div className={`flex items-center justify-between rounded-md p-2 sm:p-3 ${paymentMethod === 'google' ? 'bg-gray-800' : 'bg-gray-800/50'}`}
                               onClick={() => setPaymentMethod('google')}
                               style={{ cursor: 'pointer' }}>
-                            <div className="flex items-center gap-2">
-                              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-white">
-                                <span className="text-xs font-semibold text-black">G</span>
+                            <div className="flex items-center gap-1 sm:gap-2">
+                              <div className="flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-white">
+                                <span className="text-[10px] sm:text-xs font-semibold text-black">G</span>
                               </div>
-                              <span>Google Pay</span>
+                              <span className="text-xs sm:text-sm">Google Pay</span>
                             </div>
                           </div>
-                          <div className={`flex items-center justify-between rounded-md p-3 ${paymentMethod === 'card' ? 'bg-gray-800' : 'bg-gray-800/50'}`}
+                          <div className={`flex items-center justify-between rounded-md p-2 sm:p-3 ${paymentMethod === 'card' ? 'bg-gray-800' : 'bg-gray-800/50'}`}
                               onClick={() => setPaymentMethod('card')}
                               style={{ cursor: 'pointer' }}>
-                            <div className="flex items-center gap-2">
-                              <CreditCard className="h-5 w-5" />
-                              <span>Card</span>
+                            <div className="flex items-center gap-1 sm:gap-2">
+                              <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
+                              <span className="text-xs sm:text-sm">Card</span>
                             </div>
                           </div>
                         </div>
@@ -418,33 +418,33 @@ export default function PaymentPage() {
                             {isSubmitting ? "Processing..." : "Make payment"}
                           </Button>
                           
-                          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 mt-6">
-                            <div className="flex items-start mb-3">
+                          <div className="bg-gray-800 border border-gray-700 rounded-lg p-3 sm:p-4 mt-4 sm:mt-6">
+                            <div className="flex items-start mb-2 sm:mb-3">
                               <div className="flex-shrink-0">
-                                <AlertCircle className="h-5 w-5 text-blue-400" />
+                                <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
                               </div>
-                              <div className="ml-3">
-                                <h3 className="text-base font-semibold text-blue-300">After submitting your payment</h3>
+                              <div className="ml-2 sm:ml-3">
+                                <h3 className="text-sm sm:text-base font-semibold text-blue-300">After submitting your payment</h3>
                               </div>
                             </div>
-                            <div className="ml-8 space-y-4">
-                              <div className="space-y-2">
-                                <p className="text-sm font-medium text-blue-300">Step 1: Wait for processing</p>
-                                <p className="text-sm text-gray-300">
+                            <div className="ml-6 sm:ml-8 space-y-2 sm:space-y-4">
+                              <div className="space-y-1 sm:space-y-2">
+                                <p className="text-xs sm:text-sm font-medium text-blue-300">Step 1: Wait for processing</p>
+                                <p className="text-xs sm:text-sm text-gray-300">
                                   Your payment will be processed immediately. You'll see a confirmation message once it's successful.
                                 </p>
                               </div>
                               
-                              <div className="space-y-2">
-                                <p className="text-sm font-medium text-blue-300">Step 2: Save your confirmation</p>
-                                <p className="text-sm text-gray-300">
+                              <div className="space-y-1 sm:space-y-2">
+                                <p className="text-xs sm:text-sm font-medium text-blue-300">Step 2: Save your confirmation</p>
+                                <p className="text-xs sm:text-sm text-gray-300">
                                   Make sure to save or screenshot the payment confirmation for your records.
                                 </p>
                               </div>
                               
-                              <div className="space-y-2">
-                                <p className="text-sm font-medium text-blue-300">Step 3: Receive your access code</p>
-                                <p className="text-sm text-gray-300">
+                              <div className="space-y-1 sm:space-y-2">
+                                <p className="text-xs sm:text-sm font-medium text-blue-300">Step 3: Receive your access code</p>
+                                <p className="text-xs sm:text-sm text-gray-300">
                                   Your access code will be generated automatically and displayed on screen. 
                                   You will also receive it via email if you've provided your email address.
                                 </p>
@@ -462,24 +462,24 @@ export default function PaymentPage() {
 
           <div>
             <Card>
-              <CardHeader>
-                <CardTitle>Payment Summary</CardTitle>
-                <CardDescription>
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="text-lg sm:text-xl">Payment Summary</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
                   Current rates for our services
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between">
-                    <span>Access Code Price:</span>
-                    <span className="font-bold">
+              <CardContent className="pb-3 sm:pb-6">
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm sm:text-base">Access Code Price:</span>
+                    <span className="font-bold text-base sm:text-lg">
                       {settings.currency} {settings.accessCodePrice.toLocaleString()}
                     </span>
                   </div>
-                  <Separator />
+                  <Separator className="my-2 sm:my-3" />
                   <div>
-                    <h3 className="text-sm font-medium mb-2">Access Code Benefits:</h3>
-                    <ul className="list-disc list-inside space-y-1 text-sm">
+                    <h3 className="text-xs sm:text-sm font-medium mb-1 sm:mb-2">Access Code Benefits:</h3>
+                    <ul className="list-disc list-inside space-y-0.5 sm:space-y-1 text-xs sm:text-sm">
                       <li>Secure access to test results</li>
                       <li>Can be used up to two times</li>
                       <li>Valid for 30 days</li>
@@ -488,20 +488,20 @@ export default function PaymentPage() {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="flex flex-col space-y-4">
-                <p className="text-sm text-muted-foreground">
+              <CardFooter className="flex flex-col space-y-3 sm:space-y-4 pt-0">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   For any payment inquiries, please contact our support team.
                 </p>
                 
-                <div className="flex items-center p-3 bg-green-50 dark:bg-green-900 rounded-md">
-                  <div className="flex-shrink-0 mr-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600 dark:text-green-400">
+                <div className="flex items-center p-2 sm:p-3 bg-green-50 dark:bg-green-900 rounded-md">
+                  <div className="flex-shrink-0 mr-2 sm:mr-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600 dark:text-green-400 h-4 w-4 sm:h-5 sm:w-5">
                       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                       <polyline points="22 4 12 14.01 9 11.01"></polyline>
                     </svg>
                   </div>
-                  <p className="text-sm text-green-700 dark:text-green-300">
-                    <span className="font-medium">Access Code Direct Support:</span> Call <span className="font-semibold">(+234) 123-456-7890</span> for immediate assistance
+                  <p className="text-xs sm:text-sm text-green-700 dark:text-green-300">
+                    <span className="font-medium">Access Code Support:</span> Call <span className="font-semibold">(+234) 123-456-7890</span>
                   </p>
                 </div>
               </CardFooter>
