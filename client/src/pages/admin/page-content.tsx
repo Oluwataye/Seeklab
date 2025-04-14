@@ -109,9 +109,11 @@ function PageContentManagement() {
       queryClient.invalidateQueries({ queryKey: ["/api/page-contents"] });
     },
     onError: (error: any) => {
+      console.error("Page content error:", error);
+      const errorMessage = error.response?.data?.details || error.message || "Failed to create page content";
       toast({
-        title: "Error",
-        description: error.message || "Failed to create page content",
+        title: "Error Creating Page Content",
+        description: typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage),
         variant: "destructive",
       });
     },
