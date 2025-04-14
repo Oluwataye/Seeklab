@@ -15,19 +15,86 @@ const app = express();
 app.use(express.json({ limit: '1mb' })); // Limit request size
 app.use(express.urlencoded({ extended: false }));
 
-// Security headers middleware
+// Enhanced security headers middleware
 app.use((req, res, next) => {
-  // Add security headers
+  // Add comprehensive security headers
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
-  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'");
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  
+  // Content Security Policy balanced for security and compatibility with React development
+  // Use development-friendly policy in dev mode, more strict in production
+  const isProd = process.env.NODE_ENV === 'production';
+  
+  // Choose appropriate CSP directives based on environment
+  const cspDirectives = isProd ? [
+    // Production: More restrictive
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Allow eval for optimized builds
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "font-src 'self'",
+    "connect-src 'self'",
+    "object-src 'none'",
+    "frame-src 'self'",
+    "media-src 'self'",
+    "form-action 'self'",
+    "base-uri 'self'",
+    "frame-ancestors 'none'",
+    "upgrade-insecure-requests",
+    "block-all-mixed-content"
+  ] : [
+    // Development: More permissive for hot-reloading and debugging tools
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Required for React dev mode
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "font-src 'self' data:",
+    "connect-src 'self' ws:", // Allow WebSocket for HMR
+    "object-src 'none'",
+    "frame-src 'self'",
+    "media-src 'self'",
+    "form-action 'self'",
+    "base-uri 'self'"
+    // Omit upgrade-insecure-requests and block-all-mixed-content in dev for local testing
+  ];
+  
+  res.setHeader('Content-Security-Policy', cspDirectives.join('; '));
+  
+  // Control referrer information sent in requests
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  
+  // Restrict browser features
+  res.setHeader('Permissions-Policy', [
+    'camera=()',              // No camera access
+    'microphone=()',          // No microphone access
+    'geolocation=()',         // No location access
+    'payment=()',             // No payment API
+    'usb=()',                 // No USB API
+    'battery=()',             // No battery info
+    'accelerometer=()',       // No motion sensors
+    'gyroscope=()',           // No motion sensors
+    'magnetometer=()',        // No motion sensors
+    'ambient-light-sensor=()', // No light sensor
+    'display-capture=()',     // No screen capture
+    'midi=()'                 // No MIDI access
+  ].join(', '));
+  
+  // Set a cache control policy by default (can be overridden by specific routes)
+  res.setHeader('Cache-Control', 'no-store, max-age=0, must-revalidate');
   
   // Don't expose information about the server
   res.removeHeader('X-Powered-By');
+  
+  // Add Cross-Origin-Resource-Policy header to prevent resource theft
+  res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+  
+  // Add Cross-Origin-Opener-Policy to prevent window opener attacks
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  
+  // Add Cross-Origin-Embedder-Policy to prevent resource sharing vulnerabilities
+  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
   
   next();
 });

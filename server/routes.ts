@@ -34,14 +34,45 @@ const logoStorage = multer.diskStorage({
   }
 });
 
-// File filter to only allow image files
+// Enhanced file filter to only allow image files with additional security checks
 const fileFilter = (req: Express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  // Strictly validate allowed MIME types
   const allowedTypes = ['image/jpeg', 'image/png', 'image/svg+xml'];
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only JPEG, PNG and SVG files are allowed'));
+  
+  // Check MIME type
+  if (!allowedTypes.includes(file.mimetype)) {
+    return cb(new Error('Only JPEG, PNG and SVG files are allowed'));
   }
+  
+  // Additional validation based on file extension
+  const ext = path.extname(file.originalname).toLowerCase();
+  const allowedExtensions = ['.jpg', '.jpeg', '.png', '.svg'];
+  
+  if (!allowedExtensions.includes(ext)) {
+    return cb(new Error('Invalid file extension, only JPG, PNG, and SVG are allowed'));
+  }
+  
+  // Check for consistency between extension and MIME type
+  const validCombinations = [
+    { ext: '.jpg', mime: 'image/jpeg' },
+    { ext: '.jpeg', mime: 'image/jpeg' },
+    { ext: '.png', mime: 'image/png' },
+    { ext: '.svg', mime: 'image/svg+xml' }
+  ];
+  
+  const isValidCombination = validCombinations.some(
+    combo => combo.ext === ext && combo.mime === file.mimetype
+  );
+  
+  if (!isValidCombination) {
+    return cb(new Error('Mismatched file extension and content type'));
+  }
+  
+  // Log attempted file upload for audit purposes
+  console.log(`File upload attempt: ${file.originalname} (${file.mimetype})`);
+  
+  // Allow the upload
+  cb(null, true);
 };
 
 // Set up multer upload
@@ -591,29 +622,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Logo upload endpoint - for uploading logo image files with enhanced reliability
   app.post("/api/settings/logo/upload", upload.single('logo'), async (req, res) => {
-    console.log('Logo upload request received:', {
-      isAuthenticated: req.isAuthenticated(),
-      userIsAdmin: req.user?.isAdmin,
+    // Create audit log for upload attempts (even if unauthorized)
+    const auditDetails = {
+      ipAddress: req.ip || req.socket.remoteAddress || 'unknown',
+      userAgent: req.headers['user-agent'] || 'unknown',
       hasFile: !!req.file,
       fileDetails: req.file ? {
-        filename: req.file.filename,
         originalname: req.file.originalname,
         mimetype: req.file.mimetype,
         size: req.file.size,
-        path: req.file.path,
-      } : null,
+      } : null
+    };
+    
+    console.log('Logo upload request received:', {
+      isAuthenticated: req.isAuthenticated(),
+      userIsAdmin: req.user?.isAdmin,
+      ...auditDetails,
       body: req.body
     });
 
+    // Strict authentication check
     if (!req.isAuthenticated() || !req.user?.isAdmin) {
       console.log('Unauthorized logo upload attempt');
-      return res.status(403).json({ message: "Unauthorized" });
+      
+      // Log the unauthorized attempt
+      if (req.user?.id) {
+        await storage.createAuditLog({
+          userId: req.user.id.toString(),
+          action: 'UNAUTHORIZED_LOGO_UPLOAD_ATTEMPT',
+          entityType: 'SETTINGS',
+          details: auditDetails,
+          ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+        });
+      }
+      
+      return res.status(403).json({ 
+        message: "Unauthorized - Admin access required for file uploads", 
+        error: "UNAUTHORIZED_ACCESS"
+      });
     }
 
     try {
       if (!req.file) {
         console.log('No file uploaded in the request');
-        return res.status(400).json({ message: "No file uploaded" });
+        
+        await storage.createAuditLog({
+          userId: req.user.id.toString(),
+          action: 'FAILED_LOGO_UPLOAD',
+          entityType: 'SETTINGS',
+          details: { reason: 'NO_FILE_PROVIDED', ...auditDetails },
+          ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+        });
+        
+        return res.status(400).json({ 
+          message: "No file uploaded", 
+          error: "NO_FILE_PROVIDED" 
+        });
       }
       
       // Get the uploaded file details
@@ -626,7 +690,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         destination: file.destination
       });
       
-      // Ensure uploads directory exists
+      // Enhanced security: perform additional file validation
+      
+      // 1. Verify file size (already checked by multer, but double-checking)
+      const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+      if (file.size > MAX_FILE_SIZE) {
+        // Remove the invalid file
+        try {
+          await fs.promises.unlink(file.path);
+        } catch (err) {
+          console.error('Failed to delete oversized file:', err);
+        }
+        
+        await storage.createAuditLog({
+          userId: req.user.id.toString(),
+          action: 'REJECTED_LOGO_UPLOAD',
+          entityType: 'SETTINGS',
+          details: { 
+            reason: 'FILE_TOO_LARGE', 
+            size: file.size, 
+            maxAllowed: MAX_FILE_SIZE,
+            ...auditDetails 
+          },
+          ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+        });
+        
+        return res.status(400).json({ 
+          message: "File size exceeds limit (max 2MB)", 
+          error: "FILE_TOO_LARGE" 
+        });
+      }
+      
+      // 2. Ensure uploads directory exists
       const uploadsDir = path.join(process.cwd(), 'uploads');
       try {
         await fs.promises.access(uploadsDir, fs.constants.F_OK);
@@ -635,15 +730,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('Created uploads directory');
       }
       
-      // Get the original filename and create a more descriptive one
+      // 3. Enhanced extension and MIME type validation
       const originalExtension = path.extname(file.originalname).toLowerCase();
       const validExtensions = ['.png', '.jpg', '.jpeg', '.svg'];
+      const validMimeTypes = ['image/jpeg', 'image/png', 'image/svg+xml'];
       
       // Validate extension
       if (!validExtensions.includes(originalExtension)) {
-        console.error(`Invalid file extension: ${originalExtension}`);
+        // Remove the invalid file
+        try {
+          await fs.promises.unlink(file.path);
+        } catch (err) {
+          console.error('Failed to delete file with invalid extension:', err);
+        }
+        
+        await storage.createAuditLog({
+          userId: req.user.id.toString(),
+          action: 'REJECTED_LOGO_UPLOAD',
+          entityType: 'SETTINGS',
+          details: { 
+            reason: 'INVALID_FILE_EXTENSION', 
+            extension: originalExtension,
+            ...auditDetails 
+          },
+          ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+        });
+        
         return res.status(400).json({ 
-          message: "Invalid file type, only PNG, JPG, JPEG, and SVG are allowed" 
+          message: "Invalid file type, only PNG, JPG, JPEG, and SVG are allowed", 
+          error: "INVALID_FILE_TYPE" 
+        });
+      }
+      
+      // Validate MIME type
+      if (!validMimeTypes.includes(file.mimetype)) {
+        // Remove the invalid file
+        try {
+          await fs.promises.unlink(file.path);
+        } catch (err) {
+          console.error('Failed to delete file with invalid MIME type:', err);
+        }
+        
+        await storage.createAuditLog({
+          userId: req.user.id.toString(),
+          action: 'REJECTED_LOGO_UPLOAD',
+          entityType: 'SETTINGS',
+          details: { 
+            reason: 'INVALID_MIME_TYPE', 
+            mimeType: file.mimetype,
+            ...auditDetails 
+          },
+          ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+        });
+        
+        return res.status(400).json({ 
+          message: "Invalid file content type", 
+          error: "INVALID_CONTENT_TYPE" 
         });
       }
       
