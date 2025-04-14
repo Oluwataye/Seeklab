@@ -87,7 +87,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                   {user?.username}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end" className="w-56 max-h-[60vh] overflow-y-auto custom-scrollbar">
                 <DropdownMenuLabel>Account</DropdownMenuLabel>
                 <DropdownMenuItem asChild>
                   <Link href="/admin/profile">Profile Settings</Link>

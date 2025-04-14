@@ -70,7 +70,7 @@ export function PsychologistLayout({ children }: { children: React.ReactNode }) 
                   {user?.username}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end" className="w-56 max-h-[60vh] overflow-y-auto custom-scrollbar">
                 <DropdownMenuLabel>Account</DropdownMenuLabel>
                 <DropdownMenuItem asChild>
                   <Link href="/psychologist/profile">Profile Settings</Link>
@@ -103,8 +103,8 @@ export function PsychologistLayout({ children }: { children: React.ReactNode }) 
               !isSidebarOpen && "hidden lg:block"
             )}
           >
-            <nav className="h-full py-4">
-              <div className="space-y-1 px-2">
+            <nav className="h-full py-4 flex flex-col">
+              <div className="overflow-y-auto flex-1 custom-scrollbar space-y-1 px-2">
                 {navigation.map((item) => {
                   const isActive = location === item.href;
                   return (
@@ -131,7 +131,7 @@ export function PsychologistLayout({ children }: { children: React.ReactNode }) 
 
           {/* Main Content */}
           <ResizablePanel defaultSize={80}>
-            <main className="h-[calc(100vh-4rem)] overflow-auto p-6 bg-gray-50">
+            <main className="h-[calc(100vh-4rem)] overflow-auto p-6 bg-gray-50 custom-scrollbar">
               <div className="max-w-7xl mx-auto flex flex-col min-h-[calc(100vh-8rem)]">
                 {children}
                 <Footer />
