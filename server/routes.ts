@@ -2091,9 +2091,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       res.status(201).json(pageContent);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating page content:', error);
-      res.status(400).json({ message: "Invalid page content data" });
+      // Provide more detailed error information
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ 
+          message: "Invalid page content data", 
+          details: error.errors 
+        });
+      } else {
+        res.status(400).json({ 
+          message: "Invalid page content data",
+          details: error.message || "Unknown validation error" 
+        });
+      }
     }
   });
 
@@ -2143,9 +2154,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       res.json(updatedContent);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating page content:', error);
-      res.status(400).json({ message: "Invalid update data" });
+      // Provide more detailed error information
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ 
+          message: "Invalid update data", 
+          details: error.errors 
+        });
+      } else {
+        res.status(400).json({ 
+          message: "Invalid update data",
+          details: error.message || "Unknown validation error" 
+        });
+      }
     }
   });
 
