@@ -1,6 +1,6 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import { Express } from "express";
+import { Express, Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
@@ -11,6 +11,13 @@ import { roles } from "@shared/schema";
 declare global {
   namespace Express {
     interface User extends SelectUser {}
+    interface Request {
+      // Extend Express Request to ensure TypeScript understands these properties
+      ip?: string;
+      socket: {
+        remoteAddress?: string;
+      };
+    }
   }
 }
 
@@ -44,10 +51,75 @@ async function comparePasswords(supplied: string, stored: string) {
   }
 }
 
+// Simple rate limiter for login attempts
+interface RateLimitEntry {
+  count: number;
+  resetTime: number;
+  blocked: boolean;
+}
+
+// Maps IP addresses to their rate limit info
+const loginRateLimits = new Map<string, RateLimitEntry>();
+
+// Rate limit middleware for login endpoint
+function loginRateLimiter(req: Request, res: Response, next: NextFunction) {
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  const now = Date.now();
+  const windowMs = 15 * 60 * 1000; // 15 minutes
+  const maxAttempts = 5; // Max attempts per window
+  
+  if (!loginRateLimits.has(ip)) {
+    // First attempt from this IP
+    loginRateLimits.set(ip, {
+      count: 1,
+      resetTime: now + windowMs,
+      blocked: false
+    });
+    return next();
+  }
+  
+  const rateLimitInfo = loginRateLimits.get(ip)!;
+  
+  // Check if window has expired and reset if needed
+  if (now > rateLimitInfo.resetTime) {
+    rateLimitInfo.count = 1;
+    rateLimitInfo.resetTime = now + windowMs;
+    rateLimitInfo.blocked = false;
+    return next();
+  }
+  
+  // Check if this IP is currently blocked
+  if (rateLimitInfo.blocked) {
+    const remainingMinutes = Math.ceil(Number((rateLimitInfo.resetTime - now) / 60000));
+    return res.status(429).json({
+      message: `Too many failed login attempts. Please try again after ${remainingMinutes} minutes.`
+    });
+  }
+  
+  // Increment count and check if limit is reached
+  rateLimitInfo.count += 1;
+  
+  if (rateLimitInfo.count > maxAttempts) {
+    // Block this IP for the remainder of the window
+    rateLimitInfo.blocked = true;
+    const remainingMinutes = Math.ceil(Number((rateLimitInfo.resetTime - now) / 60000));
+    
+    // Log suspicious activity
+    console.warn(`Suspicious login activity detected from IP: ${ip}. Blocked for ${remainingMinutes} minutes.`);
+    
+    return res.status(429).json({
+      message: `Too many failed login attempts. Please try again after ${remainingMinutes} minutes.`
+    });
+  }
+  
+  // Allow the request
+  next();
+}
+
 export function setupAuth(app: Express) {
-  // Configure session middleware with secure settings
+  // Configure session middleware with enhanced secure settings
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET!,
+    secret: process.env.SESSION_SECRET || 'seeklab-secure-session-secret',
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
@@ -55,6 +127,7 @@ export function setupAuth(app: Express) {
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      sameSite: 'lax' // Helps prevent CSRF
     },
   };
 
@@ -142,10 +215,35 @@ export function setupAuth(app: Express) {
     }
   });
 
-  app.post("/api/login", async (req, res, next) => {
+  // Apply rate limiting to login endpoint
+  app.post("/api/login", loginRateLimiter, async (req, res, next) => {
     passport.authenticate("local", async (err: any, user: any, info: any) => {
       if (err) { return next(err); }
-      if (!user) { return res.status(401).json({ message: info?.message || 'Invalid credentials' }); }
+      
+      const ip = req.ip || req.socket.remoteAddress || 'unknown';
+      
+      if (!user) { 
+        // Failed login attempt - record in rate limiter but don't reset count
+        const rateLimitInfo = loginRateLimits.get(ip);
+        if (rateLimitInfo) {
+          // Already logged in loginRateLimiter but we log the attempt details
+          console.warn(`Failed login attempt for username: ${req.body.username} from IP: ${ip}`);
+          
+          // Create audit log for failed login attempt
+          await createAuditLog(req, 'FAILED_LOGIN', 'SECURITY', '', {
+            username: req.body.username,
+            ipAddress: ip,
+          });
+        }
+        return res.status(401).json({ message: info?.message || 'Invalid credentials' }); 
+      }
+      
+      // Successful login - reset rate limit counter
+      if (loginRateLimits.has(ip)) {
+        const rateLimitInfo = loginRateLimits.get(ip)!;
+        rateLimitInfo.count = 0;
+        rateLimitInfo.blocked = false;
+      }
       
       // Update the last login timestamp
       try {
