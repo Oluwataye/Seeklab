@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
@@ -14,6 +14,7 @@ import { z } from "zod";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { csrfProtection, provideCSRFToken } from "./csrf";
 
 // Configure multer storage for logo uploads
 const logoStorage = multer.diskStorage({

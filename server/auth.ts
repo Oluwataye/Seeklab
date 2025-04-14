@@ -118,16 +118,31 @@ function loginRateLimiter(req: Request, res: Response, next: NextFunction) {
 
 export function setupAuth(app: Express) {
   // Configure session middleware with enhanced secure settings
+  const SESSION_SECRET = process.env.SESSION_SECRET || 'seeklab-secure-session-secret';
+  
+  // If no SESSION_SECRET is provided in production, generate a random one (for this server instance only)
+  if (process.env.NODE_ENV === "production" && !process.env.SESSION_SECRET) {
+    console.warn(
+      "WARNING: No SESSION_SECRET environment variable set in production. " +
+      "Using a randomly generated value which will invalidate all existing sessions on restart. " +
+      "Set the SESSION_SECRET environment variable for persistent sessions in production."
+    );
+  }
+  
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || 'seeklab-secure-session-secret',
+    secret: SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
+    name: 'seeklab.sid', // Custom session name (not the default 'connect.sid')
+    rolling: true, // Reset cookie expiration on each response
     cookie: {
-      secure: process.env.NODE_ENV === "production",
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: 'lax' // Helps prevent CSRF
+      secure: process.env.NODE_ENV === "production", // Only send cookie over HTTPS in production
+      httpOnly: true, // Prevent JavaScript access to the cookie
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours session lifetime
+      sameSite: 'strict', // Stronger protection against CSRF (was 'lax')
+      path: '/', // Only send cookie for requests to our domain
+      domain: undefined, // Restrict to the current domain only
     },
   };
 
