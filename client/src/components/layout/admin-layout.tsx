@@ -21,7 +21,8 @@ import {
   CreditCard,
   UserPlus,
   ClipboardList,
-  CheckCircle2
+  CheckCircle2,
+  FileEdit
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -46,6 +47,7 @@ const navigation = [
   { name: "Test Requests", href: "/admin/test-requests", icon: ClipboardList },
   { name: "Result Templates", href: "/admin/templates", icon: FileText },
   { name: "Test Types", href: "/admin/test-types", icon: TestTube },
+  { name: "Page Content", href: "/admin/page-content", icon: FileEdit },
   { name: "Audit Logs", href: "/admin/logs", icon: FileText },
   { name: "Logo Settings", href: "/admin/logo", icon: Settings },
   { name: "Profile", href: "/admin/profile", icon: Settings },

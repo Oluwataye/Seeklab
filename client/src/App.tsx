@@ -23,6 +23,7 @@ import ResultTemplates from "@/pages/admin/result-templates";
 import LogoSettings from "@/pages/admin/logo-settings";
 import TestTypes from "@/pages/admin/test-types";
 import PaymentSettings from "@/pages/admin/payment-settings";
+import PageContent from "@/pages/admin/page-content";
 import AdminTestRequests from "@/pages/admin/test-requests";
 import AdminPatients from "@/pages/admin/patients";
 import AdminRegisterPatient from "@/pages/admin/register-patient";
@@ -109,6 +110,11 @@ function Router() {
       <ProtectedRoute 
         path="/admin/payment-settings" 
         component={PaymentSettings}
+        requireAdmin={true}
+      />
+      <ProtectedRoute 
+        path="/admin/page-content" 
+        component={PageContent}
         requireAdmin={true}
       />
       {/* Removed admin-specific verify-payment route */}
