@@ -91,9 +91,7 @@ export function PaymentAuditLog() {
   // Mutation to verify a payment
   const verifyPaymentMutation = useMutation({
     mutationFn: async (paymentId: number) => {
-      return await apiRequest(`/api/payments/${paymentId}/verify`, {
-        method: "POST",
-      });
+      return await apiRequest(`/api/payments/${paymentId}/verify`, "POST");
     },
     onSuccess: () => {
       toast({

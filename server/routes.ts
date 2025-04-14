@@ -1627,6 +1627,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Verify payment by ID (Admin only)
+  app.post("/api/payments/:id/verify", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user?.isAdmin) {
+      return res.status(403).json({ message: "Unauthorized - Admin access required" });
+    }
+
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid payment ID" });
+      }
+
+      // Find the payment
+      const payment = await storage.getPaymentById(id);
+      if (!payment) {
+        return res.status(404).json({ message: "Payment not found" });
+      }
+      
+      // Update status to verified
+      const updatedPayment = await storage.updatePayment(payment.id, { 
+        status: 'verified',
+        completedAt: new Date()
+      });
+      
+      // Create audit log for this verification
+      if (req.user?.id) {
+        await storage.createAuditLog({
+          userId: req.user.id.toString(),
+          action: "verify_payment",
+          entityType: "payment",
+          entityId: payment.id.toString(),
+          details: { 
+            patientId: payment.patientId,
+            amount: payment.amount,
+            paymentMethod: payment.paymentMethod,
+            referenceNumber: payment.referenceNumber
+          },
+          ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+        });
+        
+        // Create notification for system users about this verification
+        await storage.createNotification({
+          title: "Payment Verified",
+          message: `Payment of ₦${payment.amount.toLocaleString()} for patient ${payment.patientId} has been verified.`,
+          type: "payment",
+          recipientId: req.user.id.toString(),
+          isRead: false,
+          metadata: {
+            paymentId: payment.id,
+            referenceNumber: payment.referenceNumber
+          }
+        });
+      }
+      
+      // Return updated payment
+      res.json(updatedPayment);
+    } catch (error) {
+      console.error('Error verifying payment:', error);
+      res.status(500).json({ message: "Failed to verify payment" });
+    }
+  });
+  
   // Payment verification endpoint
   app.post("/api/payments/verify", async (req, res) => {
     if (!req.isAuthenticated() || 
