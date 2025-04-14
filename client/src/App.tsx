@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import CodeEntry from "@/pages/code-entry";
 import Results from "@/pages/results";
 import AuthPage from "@/pages/auth-page";
+import SecureLogin from "@/pages/secure/login";
 import AboutPage from "@/pages/about";
 import ContactPage from "@/pages/contact";
 import PrivacyPage from "@/pages/privacy";
@@ -53,7 +54,10 @@ function Router() {
       <Route path="/privacy" component={PrivacyPage} />
       <Route path="/payment" component={PaymentPage} />
       <Route path="/results" component={Results} />
+      
+      {/* Auth Routes - both legacy and new secure path */}
       <Route path="/auth" component={AuthPage} />
+      <Route path="/secure/login" component={SecureLogin} />
       <Route path="/dashboard" component={StaffDashboard} />
 
       {/* Admin Routes */}
