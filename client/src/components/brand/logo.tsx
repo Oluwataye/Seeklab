@@ -20,7 +20,7 @@ interface LogoSettings {
 const defaultLogoSettings: LogoSettings = {
   imageUrl: '',
   name: 'SeekLab',
-  tagline: 'Medical Lab Results Management',
+  tagline: 'Substance Abuse Screening Test',
 };
 
 // Use localStorage to persistently cache the logo settings between page refreshes
@@ -82,17 +82,20 @@ export function BrandLogo({
   const [cacheBuster] = useState(() => Date.now());
   const imgRef = useRef<HTMLImageElement>(null);
   
-  // Fetch logo settings once on component mount
+  // Fetch logo settings once on component mount, with force refresh
   useEffect(() => {
+    // Force clear both the query cache and local storage
+    localStorage.removeItem('lastValidLogoTimestamp');
+    queryClient.removeQueries({ queryKey: ['/api/settings/logo'] });
     queryClient.invalidateQueries({ queryKey: ['/api/settings/logo'] });
   }, [queryClient]);
   
-  // Fetch logo settings from server with longer caching for stability
+  // Fetch logo settings from server with minimal caching to get fresh data
   const { data: logoSettings, isLoading } = useQuery<LogoSettings>({
     queryKey: ['/api/settings/logo', cacheBuster],
     initialData: defaultLogoSettings,
-    staleTime: 1000 * 60 * 5, // 5 minutes - very stable caching
-    refetchOnWindowFocus: false, // Don't auto-refresh to prevent flashing
+    staleTime: 0, // No caching - always get fresh data
+    refetchOnWindowFocus: true, // Refresh when window gets focus
     refetchOnMount: true,
     retry: 3,
     // Force a success response type
