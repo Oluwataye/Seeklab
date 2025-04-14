@@ -1,10 +1,25 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { getCSRFToken } from "./csrf";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
     throw new Error(`${res.status}: ${text}`);
   }
+}
+
+/**
+ * Adds CSRF token to request headers if available
+ */
+function addCSRFHeader(headers: HeadersInit = {}): HeadersInit {
+  const token = getCSRFToken();
+  if (token) {
+    return {
+      ...headers,
+      'X-CSRF-Token': token
+    };
+  }
+  return headers;
 }
 
 export async function apiRequest(
@@ -15,9 +30,14 @@ export async function apiRequest(
   // Ensure URL starts with a slash and prepend /api if it doesn't already include it
   const apiUrl = url.startsWith('/api') ? url : `/api${url.startsWith('/') ? url : `/${url}`}`;
   
+  // Add CSRF protection for non-GET methods
+  const headers = method.toUpperCase() !== 'GET'
+    ? addCSRFHeader(data ? { "Content-Type": "application/json" } : {})
+    : (data ? { "Content-Type": "application/json" } : {});
+  
   const res = await fetch(apiUrl, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
@@ -32,6 +52,7 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    // GET requests don't need CSRF token
     const res = await fetch(queryKey[0] as string, {
       credentials: "include",
     });

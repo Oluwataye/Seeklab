@@ -150,6 +150,15 @@ export function setupAuth(app: Express) {
   app.use(session(sessionSettings));
   app.use(passport.initialize());
   app.use(passport.session());
+  
+  // Apply CSRF protection to all routes that need it
+  try {
+    const { provideCSRFToken } = require('./csrf');
+    app.use(provideCSRFToken);
+    console.log('CSRF protection enabled');
+  } catch (error) {
+    console.warn('CSRF protection could not be initialized:', error);
+  }
 
   passport.use(
     new LocalStrategy(async (username, password, done) => {
