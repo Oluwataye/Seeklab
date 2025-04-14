@@ -142,7 +142,7 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
           <ResizablePanel
             defaultSize={20}
             minSize={15}
-            maxSize={25}
+            maxSize={30}
             className={cn(
               "bg-white border-r flex flex-col",
               !isSidebarOpen && "hidden lg:block"
@@ -172,32 +172,6 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
                       </Link>
                     );
                   })}
-                </div>
-              </div>
-              
-              {/* Horizontal Scrollable Bottom Navigation */}
-              <div className="mt-auto border-t pt-2 pb-3 px-2">
-                <div className="overflow-x-auto custom-scrollbar">
-                  <div className="flex space-x-2 min-w-max px-1">
-                    {navigation.map((item) => {
-                      const isActive = location === item.href;
-                      return (
-                        <Link
-                          key={`bottom-${item.name}`}
-                          href={item.href}
-                          className={cn(
-                            "flex flex-col items-center px-3 py-2 text-xs font-medium rounded-md transition-colors min-w-[72px]",
-                            isActive
-                              ? "bg-primary text-primary-foreground"
-                              : "text-gray-700 hover:bg-gray-50"
-                          )}
-                        >
-                          <item.icon className="h-4 w-4 mb-1" />
-                          <span className="text-center truncate w-full">{item.name}</span>
-                        </Link>
-                      );
-                    })}
-                  </div>
                 </div>
               </div>
             </nav>
