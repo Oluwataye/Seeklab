@@ -56,13 +56,13 @@ export default function SecureLogin() {
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
       <header className="w-full bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
           <div className="flex items-center">
-            <BrandLogo showText={true} variant="default" />
+            <BrandLogo showText={true} variant="large" className="h-12" />
           </div>
-          <div className="flex items-center">
+          <div className="flex items-center bg-green-50 px-3 py-2 rounded-md border border-green-100">
             <ShieldCheck className="h-5 w-5 text-green-600 mr-2" />
-            <span className="text-sm text-green-600 font-medium">Secure Portal</span>
+            <span className="text-sm text-green-700 font-medium">Secure Authentication Portal</span>
           </div>
         </div>
       </header>
@@ -75,8 +75,8 @@ export default function SecureLogin() {
               <Card className="w-full border-0 shadow-none">
                 <CardContent className="p-0">
                   <div className="mb-8 text-center">
-                    <div className="bg-primary/10 rounded-full p-3 w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                      <FlaskConical className="h-8 w-8 text-primary" />
+                    <div className="flex justify-center mb-4">
+                      <BrandLogo showText={false} variant="large" className="h-24 w-24" />
                     </div>
                     <h1 className="text-2xl font-bold">Staff Portal</h1>
                     <p className="text-muted-foreground mt-2">
@@ -189,9 +189,13 @@ export default function SecureLogin() {
       </main>
       
       <footer className="py-6 border-t">
-        <div className="max-w-7xl mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} SeekLab Medical Systems. All rights reserved.</p>
-          <p className="mt-1">Protected by comprehensive security protocols and monitoring.</p>
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <div className="flex justify-center mb-3">
+            <BrandLogo showText={true} variant="default" className="h-8" />
+          </div>
+          <p className="text-sm text-primary font-medium mb-2">Know where you stand. Take control of tomorrow.</p>
+          <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} SeekLab Medical Systems. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground mt-1">Protected by comprehensive security protocols and monitoring.</p>
         </div>
       </footer>
     </div>
