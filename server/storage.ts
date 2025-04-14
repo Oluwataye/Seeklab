@@ -437,7 +437,7 @@ export class DatabaseStorage implements IStorage {
       return {
         imageUrl: '/logo.svg',
         name: 'SeekLab',
-        tagline: 'Medical Lab Results Management'
+        tagline: 'Know where you stand. Take control of tomorrow.'
       };
     } catch (error) {
       console.error('Error fetching logo settings:', error);
@@ -445,7 +445,7 @@ export class DatabaseStorage implements IStorage {
       return {
         imageUrl: '/logo.svg',
         name: 'SeekLab',
-        tagline: 'Medical Lab Results Management'
+        tagline: 'Know where you stand. Take control of tomorrow.'
       };
     }
   }
