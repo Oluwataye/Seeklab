@@ -144,30 +144,35 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
             minSize={15}
             maxSize={25}
             className={cn(
-              "bg-white border-r",
+              "bg-white border-r flex flex-col",
               !isSidebarOpen && "hidden lg:block"
             )}
           >
-            <nav className="h-full py-4">
-              <div className="space-y-1 px-2">
-                {navigation.map((item) => {
-                  const isActive = location === item.href;
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className={cn(
-                        "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                        isActive
-                          ? "bg-primary text-primary-foreground"
-                          : "text-gray-700 hover:bg-gray-50"
-                      )}
-                    >
-                      <item.icon className="h-5 w-5" />
-                      {item.name}
-                    </Link>
-                  );
-                })}
+            <nav className="flex-1 flex flex-col h-full">
+              <div className="py-4 px-2 font-medium text-sm text-gray-500">
+                EDEC NAVIGATION
+              </div>
+              <div className="overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 px-2">
+                <div className="space-y-1 min-h-min pb-4">
+                  {navigation.map((item) => {
+                    const isActive = location === item.href;
+                    return (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className={cn(
+                          "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                          isActive
+                            ? "bg-primary text-primary-foreground"
+                            : "text-gray-700 hover:bg-gray-50"
+                        )}
+                      >
+                        <item.icon className="h-5 w-5 flex-shrink-0" />
+                        <span className="truncate">{item.name}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
               </div>
             </nav>
           </ResizablePanel>
