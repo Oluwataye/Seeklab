@@ -172,14 +172,49 @@ export default function PaymentPage() {
                         <h3 className="text-sm font-medium">Account Number</h3>
                         <p className="text-lg font-mono">{settings.accountNumber}</p>
                       </div>
-                      <Separator />
-                      <Alert>
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertTitle>Important</AlertTitle>
-                        <AlertDescription>
-                          After making your payment, please contact our staff to verify and confirm your payment.
-                        </AlertDescription>
-                      </Alert>
+                      <Separator className="my-4" />
+                      <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                        <div className="flex items-start mb-3">
+                          <div className="flex-shrink-0">
+                            <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                          </div>
+                          <div className="ml-3">
+                            <h3 className="text-base font-semibold text-blue-800 dark:text-blue-300">What to do after making your payment</h3>
+                          </div>
+                        </div>
+                        <div className="ml-8 space-y-4">
+                          <div className="space-y-2">
+                            <p className="text-sm font-medium text-blue-800 dark:text-blue-300">Step 1: Make the transfer</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                              Complete the bank transfer of {settings.currency} {settings.accessCodePrice.toLocaleString()} to the account details above.
+                              Use your full name as the payment reference.
+                            </p>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <p className="text-sm font-medium text-blue-800 dark:text-blue-300">Step 2: Save your receipt</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                              Keep a copy of your payment receipt or transaction reference. You will need this for verification.
+                            </p>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <p className="text-sm font-medium text-blue-800 dark:text-blue-300">Step 3: Verify your payment</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                              Visit our laboratory or contact our staff at <span className="font-medium">(+234) 123-456-7890</span> to verify your payment.
+                              Provide your name and payment reference number.
+                            </p>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <p className="text-sm font-medium text-blue-800 dark:text-blue-300">Step 4: Receive your access code</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                              Once your payment is verified, our staff will generate and provide you with your personal access code
+                              for viewing your test results.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                   <CardFooter>
@@ -377,11 +412,45 @@ export default function PaymentPage() {
                           
                           <Button
                             type="submit"
-                            className="w-full bg-blue-600 hover:bg-blue-700"
+                            className="w-full bg-blue-600 hover:bg-blue-700 mb-4"
                             disabled={isSubmitting}
                           >
-                            {isSubmitting ? "Processing..." : "Save payment method"}
+                            {isSubmitting ? "Processing..." : "Make payment"}
                           </Button>
+                          
+                          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 mt-6">
+                            <div className="flex items-start mb-3">
+                              <div className="flex-shrink-0">
+                                <AlertCircle className="h-5 w-5 text-blue-400" />
+                              </div>
+                              <div className="ml-3">
+                                <h3 className="text-base font-semibold text-blue-300">After submitting your payment</h3>
+                              </div>
+                            </div>
+                            <div className="ml-8 space-y-4">
+                              <div className="space-y-2">
+                                <p className="text-sm font-medium text-blue-300">Step 1: Wait for processing</p>
+                                <p className="text-sm text-gray-300">
+                                  Your payment will be processed immediately. You'll see a confirmation message once it's successful.
+                                </p>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <p className="text-sm font-medium text-blue-300">Step 2: Save your confirmation</p>
+                                <p className="text-sm text-gray-300">
+                                  Make sure to save or screenshot the payment confirmation for your records.
+                                </p>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <p className="text-sm font-medium text-blue-300">Step 3: Receive your access code</p>
+                                <p className="text-sm text-gray-300">
+                                  Your access code will be generated automatically and displayed on screen. 
+                                  You will also receive it via email if you've provided your email address.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
                         </form>
                       </Form>
                     </div>
@@ -419,10 +488,22 @@ export default function PaymentPage() {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="flex flex-col space-y-4">
                 <p className="text-sm text-muted-foreground">
                   For any payment inquiries, please contact our support team.
                 </p>
+                
+                <div className="flex items-center p-3 bg-green-50 dark:bg-green-900 rounded-md">
+                  <div className="flex-shrink-0 mr-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600 dark:text-green-400">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                  </div>
+                  <p className="text-sm text-green-700 dark:text-green-300">
+                    <span className="font-medium">Access Code Direct Support:</span> Call <span className="font-semibold">(+234) 123-456-7890</span> for immediate assistance
+                  </p>
+                </div>
               </CardFooter>
             </Card>
           </div>
