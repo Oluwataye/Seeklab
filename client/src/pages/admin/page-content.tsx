@@ -66,7 +66,10 @@ function PageContentManagement() {
   // Fetch page contents
   const { data: pageContents = [], isLoading, refetch } = useQuery({
     queryKey: ["/api/page-contents"],
-    queryFn: () => apiRequest<PageContent[]>({ url: "/api/page-contents" }),
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/page-contents");
+      return await response.json() as PageContent[];
+    },
   });
 
   // Form for adding new page content
@@ -93,13 +96,8 @@ function PageContentManagement() {
   // Mutation for creating page content
   const createMutation = useMutation({
     mutationFn: async (values: z.infer<typeof pageContentSchema>) => {
-      const csrfToken = await getCSRFToken();
-      return apiRequest({
-        url: "/api/page-contents",
-        method: "POST",
-        data: values,
-        headers: { "X-CSRF-Token": csrfToken }
-      });
+      const csrfToken = getCSRFToken();
+      return apiRequest("POST", "/api/page-contents", values);
     },
     onSuccess: () => {
       toast({
@@ -123,13 +121,7 @@ function PageContentManagement() {
   const updateMutation = useMutation({
     mutationFn: async (data: { id: number; values: z.infer<typeof updatePageContentSchema> }) => {
       const { id, values } = data;
-      const csrfToken = await getCSRFToken();
-      return apiRequest({
-        url: `/api/page-contents/${id}`,
-        method: "PATCH",
-        data: values,
-        headers: { "X-CSRF-Token": csrfToken }
-      });
+      return apiRequest("PATCH", `/api/page-contents/${id}`, values);
     },
     onSuccess: () => {
       toast({
@@ -152,12 +144,7 @@ function PageContentManagement() {
   // Mutation for deleting page content
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const csrfToken = await getCSRFToken();
-      return apiRequest({
-        url: `/api/page-contents/${id}`,
-        method: "DELETE",
-        headers: { "X-CSRF-Token": csrfToken }
-      });
+      return apiRequest("DELETE", `/api/page-contents/${id}`);
     },
     onSuccess: () => {
       toast({
