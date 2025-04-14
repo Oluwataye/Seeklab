@@ -200,6 +200,22 @@ function PageContentManagement() {
     setSelectedPage(page);
     setIsDeleteDialogOpen(true);
   };
+  
+  // Function to load page content from slug
+  const getPageContentBySlug = async (slug: string) => {
+    try {
+      const response = await apiRequest("GET", `/api/page-contents/by-slug/${slug}`);
+      return await response.json() as PageContent;
+    } catch (error) {
+      console.error('Error loading page content:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load page content",
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
 
   // Update preview as user types in edit form
   const updatePreview = (content: string) => {

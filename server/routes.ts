@@ -2016,7 +2016,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/page-contents/:slug", async (req, res) => {
+  app.get("/api/page-contents/by-slug/:slug", async (req, res) => {
     try {
       const { slug } = req.params;
       const pageContent = await storage.getPageContent(slug);
@@ -2028,6 +2028,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(pageContent);
     } catch (error) {
       console.error('Error fetching page content:', error);
+      res.status(500).json({ message: "Failed to fetch page content" });
+    }
+  });
+  
+  app.get("/api/page-contents/by-id/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid ID format" });
+      }
+      
+      const pageContent = await storage.getPageContentById(id);
+      
+      if (!pageContent) {
+        return res.status(404).json({ message: "Page content not found" });
+      }
+      
+      res.json(pageContent);
+    } catch (error) {
+      console.error('Error fetching page content by ID:', error);
       res.status(500).json({ message: "Failed to fetch page content" });
     }
   });
