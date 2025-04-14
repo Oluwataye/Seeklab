@@ -1,4 +1,4 @@
-import { users, type User, type InsertUser, results, type Result, type InsertResult, roles, type Role, type InsertRole, auditLogs, type AuditLog, type InsertAuditLog, notifications, type Notification, type InsertNotification, testTypes, type TestType, type InsertTestType, settings, type Setting, type InsertSetting, patients, type Patient, type InsertPatient, payments, type Payment, type InsertPayment, paymentSettings, type PaymentSetting, type InsertPaymentSetting } from "@shared/schema";
+import { users, type User, type InsertUser, results, type Result, type InsertResult, roles, type Role, type InsertRole, auditLogs, type AuditLog, type InsertAuditLog, notifications, type Notification, type InsertNotification, testTypes, type TestType, type InsertTestType, settings, type Setting, type InsertSetting, patients, type Patient, type InsertPatient, payments, type Payment, type InsertPayment, paymentSettings, type PaymentSetting, type InsertPaymentSetting, pageContents, type PageContent, type InsertPageContent } from "@shared/schema";
 import session from "express-session";
 import { db } from "./db";
 import { eq, desc, and } from "drizzle-orm";
@@ -726,6 +726,75 @@ export class DatabaseStorage implements IStorage {
     }
     
     return accessCode;
+  }
+
+  // Page content management methods
+  async getPageContent(pageSlug: string): Promise<PageContent | undefined> {
+    try {
+      const [content] = await db
+        .select()
+        .from(pageContents)
+        .where(eq(pageContents.pageSlug, pageSlug));
+      return content;
+    } catch (error) {
+      console.error(`Error fetching page content for slug ${pageSlug}:`, error);
+      return undefined;
+    }
+  }
+
+  async getAllPageContents(): Promise<PageContent[]> {
+    try {
+      return await db
+        .select()
+        .from(pageContents)
+        .orderBy(pageContents.pageSlug);
+    } catch (error) {
+      console.error('Error fetching all page contents:', error);
+      return [];
+    }
+  }
+
+  async createPageContent(data: InsertPageContent): Promise<PageContent> {
+    try {
+      const [content] = await db
+        .insert(pageContents)
+        .values(data)
+        .returning();
+      return content;
+    } catch (error) {
+      console.error('Error creating page content:', error);
+      throw error;
+    }
+  }
+
+  async updatePageContent(id: number, data: Partial<PageContent>): Promise<PageContent> {
+    try {
+      const updatedData = {
+        ...data,
+        updatedAt: new Date()
+      };
+      
+      const [content] = await db
+        .update(pageContents)
+        .set(updatedData)
+        .where(eq(pageContents.id, id))
+        .returning();
+      return content;
+    } catch (error) {
+      console.error('Error updating page content:', error);
+      throw error;
+    }
+  }
+
+  async deletePageContent(id: number): Promise<void> {
+    try {
+      await db
+        .delete(pageContents)
+        .where(eq(pageContents.id, id));
+    } catch (error) {
+      console.error('Error deleting page content:', error);
+      throw error;
+    }
   }
 }
 
