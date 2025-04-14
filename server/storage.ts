@@ -230,7 +230,10 @@ export class DatabaseStorage implements IStorage {
     // Ensure permissions is properly cast as a string array
     const roleToInsert = {
       ...insertRole,
-      permissions: Array.isArray(insertRole.permissions) ? insertRole.permissions : []
+      // Make sure permissions is always an array of strings
+      permissions: Array.isArray(insertRole.permissions) ? 
+        insertRole.permissions.map(p => String(p)) : 
+        []
     };
     const [role] = await db.insert(roles).values(roleToInsert).returning();
     return role;
@@ -241,7 +244,7 @@ export class DatabaseStorage implements IStorage {
     const roleToUpdate = {
       ...data,
       permissions: data.permissions ? 
-        (Array.isArray(data.permissions) ? data.permissions : []) : 
+        (Array.isArray(data.permissions) ? data.permissions.map(p => String(p)) : []) : 
         undefined,
       updatedAt: new Date()
     };

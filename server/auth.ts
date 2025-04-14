@@ -7,6 +7,7 @@ import { promisify } from "util";
 import { storage } from "./storage";
 import { User, User as SelectUser } from "@shared/schema";
 import { roles } from "@shared/schema";
+import { provideCSRFToken } from "./csrf";
 
 declare global {
   namespace Express {
@@ -153,7 +154,7 @@ export function setupAuth(app: Express) {
   
   // Apply CSRF protection to all routes that need it
   try {
-    const { provideCSRFToken } = require('./csrf');
+    // Use the imported provideCSRFToken function
     app.use(provideCSRFToken);
     console.log('CSRF protection enabled');
   } catch (error) {
