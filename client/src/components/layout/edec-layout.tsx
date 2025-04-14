@@ -152,7 +152,7 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
               <div className="py-4 px-2 font-medium text-sm text-gray-500">
                 EDEC NAVIGATION
               </div>
-              <div className="overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 px-2">
+              <div className="overflow-y-auto flex-1 custom-scrollbar px-2">
                 <div className="space-y-1 min-h-min pb-4">
                   {navigation.map((item) => {
                     const isActive = location === item.href;
@@ -181,7 +181,7 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
 
           {/* Main Content */}
           <ResizablePanel defaultSize={80}>
-            <main className="h-[calc(100vh-4rem)] overflow-auto p-6 bg-gray-50">
+            <main className="h-[calc(100vh-4rem)] overflow-auto p-6 bg-gray-50 custom-scrollbar">
               <div className="max-w-7xl mx-auto">
                 {children}
               </div>
