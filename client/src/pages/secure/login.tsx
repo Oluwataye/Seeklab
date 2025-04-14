@@ -190,7 +190,7 @@ export default function SecureLogin() {
       
       <footer className="py-6 border-t">
         <div className="max-w-7xl mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} SeekLab Medical Systems. All rights reserved.</p>
+          <p>© 2025 T-Tech General Services. All rights reserved.</p>
           <p className="mt-1">Protected by comprehensive security protocols and monitoring.</p>
         </div>
       </footer>
