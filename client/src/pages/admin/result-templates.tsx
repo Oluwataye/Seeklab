@@ -39,6 +39,153 @@ interface ResultTemplate {
 
 const predefinedTemplates = [
   {
+    name: "Substance Abuse Screening Test",
+    category: "Toxicology",
+    fields: [
+      // Requesting Facility Information
+      { 
+        name: "Requesting Facility", 
+        type: "text"
+      },
+      { 
+        name: "Facility Address", 
+        type: "text"
+      },
+      { 
+        name: "Facility Phone", 
+        type: "text"
+      },
+      { 
+        name: "Facility Email", 
+        type: "text"
+      },
+      
+      // Patient Information
+      { 
+        name: "Patient ID/Student ID", 
+        type: "text"
+      },
+      { 
+        name: "Patient Sex", 
+        type: "options", 
+        options: ["Male", "Female", "Other"] 
+      },
+      
+      // Test Request Details
+      { 
+        name: "Date of Request", 
+        type: "text"
+      },
+      { 
+        name: "Requested By", 
+        type: "text"
+      },
+      { 
+        name: "Relationship to Patient", 
+        type: "options", 
+        options: ["Parent/Guardian", "School Official", "Healthcare Provider", "Self", "Other"] 
+      },
+      
+      // Reason for Test
+      { 
+        name: "Reason for Test", 
+        type: "options", 
+        options: ["Routine School Screening", "Clinical Assessment", "Behavioral Concerns", "Follow-Up Test", "Suspected Substance Use", "Other"] 
+      },
+      { 
+        name: "Reason Details", 
+        type: "text"
+      },
+      
+      // Test Type
+      { 
+        name: "Test Type", 
+        type: "options", 
+        options: ["Urine Drug Test", "Saliva Drug Test", "Breath Alcohol Test", "Blood Test", "Other"] 
+      },
+      
+      // Substance Test Results
+      { 
+        name: "Cannabis (THC)", 
+        type: "options", 
+        options: ["Negative", "Presumptive Positive", "Not Tested"] 
+      },
+      { 
+        name: "Cocaine", 
+        type: "options", 
+        options: ["Negative", "Presumptive Positive", "Not Tested"]  
+      },
+      { 
+        name: "Opioids", 
+        type: "options", 
+        options: ["Negative", "Presumptive Positive", "Not Tested"] 
+      },
+      { 
+        name: "Amphetamines", 
+        type: "options", 
+        options: ["Negative", "Presumptive Positive", "Not Tested"] 
+      },
+      { 
+        name: "Benzodiazepines", 
+        type: "options", 
+        options: ["Negative", "Presumptive Positive", "Not Tested"] 
+      },
+      { 
+        name: "Tramadol", 
+        type: "options", 
+        options: ["Negative", "Presumptive Positive", "Not Tested"] 
+      },
+      { 
+        name: "Other Substance", 
+        type: "text"
+      },
+      { 
+        name: "Other Substance Result", 
+        type: "options", 
+        options: ["Negative", "Presumptive Positive", "Not Tested"] 
+      },
+      
+      // Lab Use Section
+      { 
+        name: "Sample Received", 
+        type: "options", 
+        options: ["Yes", "No"] 
+      },
+      { 
+        name: "Date & Time Collected", 
+        type: "text"
+      },
+      { 
+        name: "Collected By", 
+        type: "text"
+      },
+      { 
+        name: "Lab Technician", 
+        type: "text"
+      },
+      {
+        name: "Specimen Validity",
+        type: "options",
+        options: ["Valid", "Invalid", "Not Tested"]
+      },
+      {
+        name: "Specific Gravity",
+        type: "options",
+        options: ["Normal", "Abnormal", "Not Tested"]
+      },
+      {
+        name: "pH",
+        type: "options",
+        options: ["Normal", "Abnormal", "Not Tested"]
+      },
+      { 
+        name: "Comments", 
+        type: "text" 
+      },
+    ],
+    interpretationGuidelines: "This is a preliminary substance abuse screening test. Presumptive positive results should be confirmed with a more specific method such as GC/MS (Gas Chromatography/Mass Spectrometry). Negative results do not necessarily indicate the absence of substance metabolites below the detection threshold. This test is performed in accordance with standard laboratory protocols and may be used for educational, clinical, or diagnostic purposes as indicated by the requesting facility.",
+  },
+  {
     name: "12-Panel Drug Test",
     category: "Toxicology",
     fields: [
