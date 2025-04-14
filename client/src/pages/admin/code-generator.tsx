@@ -13,8 +13,10 @@ import {
 } from "@/components/ui/table";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import type { Result } from "@shared/schema";
+import type { Result, TestType } from "@shared/schema";
 import { Loader2, Upload, Key } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 export default function CodeGenerator() {
   const { toast } = useToast();
@@ -27,6 +29,11 @@ export default function CodeGenerator() {
   const { data: results = [], isLoading } = useQuery<Result[]>({
     queryKey: ["/api/results"],
     staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  // Fetch test types
+  const { data: testTypes = [] } = useQuery<TestType[]>({
+    queryKey: ["/api/test-types"],
   });
 
   const generateCodeMutation = useMutation({
@@ -142,11 +149,23 @@ export default function CodeGenerator() {
                   value={patientId}
                   onChange={(e) => setPatientId(e.target.value)}
                 />
-                <Input 
-                  placeholder="Test Type"
-                  value={testType}
-                  onChange={(e) => setTestType(e.target.value)}
-                />
+                
+                <div className="space-y-2">
+                  <Label htmlFor="test-type-select">Test Type</Label>
+                  <Select value={testType} onValueChange={setTestType}>
+                    <SelectTrigger id="test-type-select">
+                      <SelectValue placeholder="Select test type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {testTypes.map((type) => (
+                        <SelectItem key={type.id} value={type.name}>
+                          {type.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
                 <Input 
                   placeholder="Notes (optional)"
                   value={notes}

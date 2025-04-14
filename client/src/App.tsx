@@ -25,6 +25,7 @@ import PaymentSettings from "@/pages/admin/payment-settings";
 import AdminTestRequests from "@/pages/admin/test-requests";
 import AdminPatients from "@/pages/admin/patients";
 import AdminRegisterPatient from "@/pages/admin/register-patient";
+import EDECTestRequest from "@/pages/admin/edec-test-request";
 // Removed admin verify payment import
 import PsychologistDashboard from "@/pages/psychologist/dashboard";
 import AssessmentsPage from "@/pages/psychologist/assessments";
@@ -187,6 +188,11 @@ function Router() {
       <ProtectedRoute 
         path="/edec/test-requests" 
         component={TestRequests}
+        requireSpecificRole="edec"
+      />
+      <ProtectedRoute 
+        path="/edec/substance-abuse-test" 
+        component={EDECTestRequest}
         requireSpecificRole="edec"
       />
       <ProtectedRoute 
