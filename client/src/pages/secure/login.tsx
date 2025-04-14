@@ -189,13 +189,9 @@ export default function SecureLogin() {
       </main>
       
       <footer className="py-6 border-t">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <div className="flex justify-center mb-3">
-            <BrandLogo showText={true} variant="default" className="h-8" />
-          </div>
-          <p className="text-sm text-primary font-medium mb-2">Know where you stand. Take control of tomorrow.</p>
-          <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} SeekLab Medical Systems. All rights reserved.</p>
-          <p className="text-xs text-muted-foreground mt-1">Protected by comprehensive security protocols and monitoring.</p>
+        <div className="max-w-7xl mx-auto px-4 text-center text-sm text-muted-foreground">
+          <p>© {new Date().getFullYear()} SeekLab Medical Systems. All rights reserved.</p>
+          <p className="mt-1">Protected by comprehensive security protocols and monitoring.</p>
         </div>
       </footer>
     </div>
