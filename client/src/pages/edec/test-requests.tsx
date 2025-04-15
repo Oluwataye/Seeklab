@@ -18,6 +18,7 @@ import {
   Clock,
   AlertCircle,
   Copy,
+  UserPlus,
   CheckCheck
 } from "lucide-react";
 import { Link } from "wouter";
