@@ -178,13 +178,16 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => setIsSidebarOpen(false)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsSidebarOpen(false);
+                    }}
                   >
                     <Menu className="h-5 w-5" />
                   </Button>
                 )}
               </div>
-              <div className="flex-1 overflow-y-auto py-2 px-3 custom-scrollbar">
+              <div className="flex-1 overflow-y-auto py-2 px-3 custom-scrollbar" onClick={(e) => e.stopPropagation()}>
                 {navigation.map((item) => {
                   const isActive = location === item.href;
                   return (
@@ -210,7 +213,10 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
 
           {/* ResizableHandle - only shown when sidebar is visible */}
           {(!isMobile || isSidebarOpen) && (
-            <ResizableHandle withHandle className="w-1.5 bg-gray-200 hover:bg-gray-300 active:bg-gray-400 cursor-col-resize" />
+            <ResizableHandle 
+              withHandle 
+              className="w-2 bg-gray-200 hover:bg-gray-300 active:bg-gray-400 cursor-col-resize z-20" 
+            />
           )}
 
           {/* Main Content */}

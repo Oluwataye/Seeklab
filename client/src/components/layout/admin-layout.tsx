@@ -155,13 +155,16 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => setIsSidebarOpen(false)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsSidebarOpen(false);
+                    }}
                   >
                     <Menu className="h-5 w-5" />
                   </Button>
                 )}
               </div>
-              <div className="flex-1 overflow-y-auto py-2 px-3 custom-scrollbar">
+              <div className="flex-1 overflow-y-auto py-2 px-3 custom-scrollbar" onClick={(e) => e.stopPropagation()}>
                 {navigation.map((item) => {
                   const isActive = location === item.href;
                   return (
