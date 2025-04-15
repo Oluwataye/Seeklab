@@ -150,8 +150,8 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
             onExpand={() => setIsSidebarOpen(true)}
             className={cn(
               "bg-white border-r flex flex-col transition-all",
-              isMobile && !isSidebarOpen && "hidden",
-              isMobile && isSidebarOpen && "fixed inset-y-0 left-0 z-40 w-64"
+              !isSidebarOpen && isMobile ? "hidden" : "",
+              isSidebarOpen && isMobile ? "fixed inset-y-0 left-0 z-40 w-64" : ""
             )}
           >
             <nav className="flex-1 flex flex-col h-full">
@@ -194,7 +194,7 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
           
           {/* ResizableHandle with proper visibility */}
           <ResizableHandle withHandle 
-            className="bg-gray-200 hover:bg-gray-300 transition-colors cursor-col-resize"
+            className="bg-gray-200 hover:bg-gray-300 transition-colors cursor-col-resize block"
           />
 
           {/* Main Content */}
