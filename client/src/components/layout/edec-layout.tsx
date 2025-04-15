@@ -93,7 +93,7 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
         <div className="h-full px-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
-              variant="ghost"
+              variant="outline"
               size="icon"
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               className="flex lg:hidden"
@@ -141,13 +141,17 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
         <ResizablePanelGroup direction="horizontal">
           {/* Sidebar */}
           <ResizablePanel
+            id="edec-sidebar"
             defaultSize={20}
-            minSize={15}
-            maxSize={35}
+            minSize={10}
+            maxSize={40}
+            collapsible={true}
+            onCollapse={() => setIsSidebarOpen(false)}
+            onExpand={() => setIsSidebarOpen(true)}
             className={cn(
-              "bg-white border-r flex flex-col",
-              !isSidebarOpen && "hidden lg:flex",
-              isSidebarOpen && isMobile && "fixed inset-y-0 left-0 z-40 w-64"
+              "bg-white border-r flex flex-col transition-all",
+              isMobile && !isSidebarOpen && "hidden",
+              isMobile && isSidebarOpen && "fixed inset-y-0 left-0 z-40 w-64"
             )}
           >
             <nav className="flex-1 flex flex-col h-full">
@@ -187,12 +191,11 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
               </div>
             </nav>
           </ResizablePanel>
-
-          {/* Toggleable ResizableHandle that works on both mobile and desktop */}
-          <ResizableHandle withHandle className={cn(
-            "bg-gray-200 hover:bg-gray-300 transition-colors",
-            !isSidebarOpen && "hidden lg:flex"
-          )} />
+          
+          {/* ResizableHandle with proper visibility */}
+          <ResizableHandle withHandle 
+            className="bg-gray-200 hover:bg-gray-300 transition-colors cursor-col-resize"
+          />
 
           {/* Main Content */}
           <ResizablePanel defaultSize={80}>
@@ -225,6 +228,19 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
           className="fixed inset-0 z-10 bg-black/50 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
+      )}
+      
+      {/* Fixed toggle button when sidebar is closed */}
+      {!isSidebarOpen && (
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => setIsSidebarOpen(true)}
+          className="fixed left-4 top-20 z-50 rounded-full shadow-md h-10 w-10 flex items-center justify-center lg:hidden"
+          aria-label="Open sidebar"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
       )}
     </div>
   );
