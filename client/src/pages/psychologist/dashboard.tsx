@@ -40,6 +40,8 @@ export default function PsychologistDashboard() {
     staleTime: 1000 * 60, // 1 minute
   });
 
+  const [assessmentInput, setAssessmentInput] = useState("");
+  
   const addAssessmentMutation = useMutation({
     mutationFn: async (data: { resultId: number; assessment: string }) => {
       const response = await fetch(`/api/results/${data.resultId}/assessment`, {
@@ -53,6 +55,7 @@ export default function PsychologistDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/results"] });
       setSelectedResult(null);
+      setAssessmentInput("");
       toast({
         title: "Success",
         description: "Assessment has been added to the result.",
@@ -165,7 +168,10 @@ export default function PsychologistDashboard() {
                         <DialogTrigger asChild>
                           <Button 
                             variant="outline"
-                            onClick={() => setSelectedResult(result)}
+                            onClick={() => {
+                              setSelectedResult(result);
+                              setAssessmentInput(result.psychologistAssessment || "");
+                            }}
                           >
                             {result.psychologistAssessment ? "View/Update" : "Add Assessment"}
                           </Button>
@@ -190,16 +196,16 @@ export default function PsychologistDashboard() {
                             <div className="space-y-2">
                               <h3 className="font-medium">Assessment</h3>
                               <Textarea
-                                defaultValue={result.psychologistAssessment || ""}
+                                value={assessmentInput}
                                 className="min-h-[200px]"
                                 placeholder="Enter your psychological assessment based on the test results..."
-                                onChange={(e) => handleAssessmentSubmit(e.target.value)}
+                                onChange={(e) => setAssessmentInput(e.target.value)}
                               />
                             </div>
 
                             <Button
-                              onClick={() => handleAssessmentSubmit(result.psychologistAssessment || "")}
-                              disabled={addAssessmentMutation.isPending}
+                              onClick={() => handleAssessmentSubmit(assessmentInput)}
+                              disabled={addAssessmentMutation.isPending || !assessmentInput.trim()}
                               className="w-full mental-health-button"
                             >
                               {addAssessmentMutation.isPending && (
