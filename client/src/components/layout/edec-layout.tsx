@@ -27,7 +27,7 @@ import {
   Shield,
   FileSpreadsheet,
 } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,8 +40,30 @@ import {
 export function EdecLayout({ children }: { children: React.ReactNode }) {
   const [, navigate] = useLocation();
   const { user, logoutMutation } = useAuth();
-  const isMobile = useIsMobile();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(!isMobile);
+  
+  // Add window resize listener to update isMobile state
+  React.useEffect(() => {
+    const handleResize = () => {
+      const isMobileView = window.innerWidth < 1024;
+      setIsMobile(isMobileView);
+      
+      // Auto-close sidebar on mobile when screen size changes to mobile
+      if (isMobileView) {
+        setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(true);
+      }
+    };
+    
+    // Initial check and event listener
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {

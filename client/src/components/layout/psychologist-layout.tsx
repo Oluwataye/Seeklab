@@ -40,13 +40,22 @@ const navigation = [
 export function PsychologistLayout({ children }: { children: React.ReactNode }) {
   const { user, logoutMutation } = useAuth();
   const [location] = useLocation();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  // On desktop: open by default, on mobile: closed by default
   const [isMobile, setIsMobile] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(!isMobile);
   
   useEffect(() => {
     // Check if screen is mobile sized on mount and when window is resized
     const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 1024); // lg breakpoint in Tailwind is 1024px
+      const isMobileView = window.innerWidth < 1024; // lg breakpoint in Tailwind is 1024px
+      setIsMobile(isMobileView);
+      
+      // Auto-close sidebar on mobile when screen size changes to mobile
+      if (isMobileView) {
+        setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(true);
+      }
     };
     
     // Initial check
