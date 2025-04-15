@@ -96,7 +96,8 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
               variant="ghost"
               size="icon"
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="lg:hidden"
+              className="flex lg:hidden"
+              aria-label="Toggle sidebar"
             >
               <Menu className="h-5 w-5" />
             </Button>
@@ -187,25 +188,10 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
             </nav>
           </ResizablePanel>
 
-          {/* Toggle button for sidebar (desktop and mobile) */}
-          <div className={cn(
-            "fixed left-0 top-20 z-50",
-            isSidebarOpen ? "lg:hidden" : "lg:block",
-            "transition-all duration-300"
-          )}>
-            <Button
-              variant="secondary"
-              size="sm"
-              className="h-8 rounded-r-full rounded-l-none border border-l-0 shadow-md"
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            >
-              <Menu className="h-4 w-4" />
-            </Button>
-          </div>
-
+          {/* Toggleable ResizableHandle that works on both mobile and desktop */}
           <ResizableHandle withHandle className={cn(
             "bg-gray-200 hover:bg-gray-300 transition-colors",
-            !isSidebarOpen && "hidden lg:block"
+            !isSidebarOpen && "hidden lg:flex"
           )} />
 
           {/* Main Content */}
