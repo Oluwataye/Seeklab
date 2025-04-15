@@ -160,7 +160,7 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
 
       {/* Main Content with Resizable Sidebar */}
       <div className="flex-1 flex overflow-hidden">
-        <ResizablePanelGroup direction="horizontal" className="w-full">
+        <ResizablePanelGroup direction="horizontal" className="w-full relative">
           {/* Sidebar - only hidden on mobile when closed */}
           <ResizablePanel 
             defaultSize={20} 
@@ -215,7 +215,7 @@ export function EdecLayout({ children }: { children: React.ReactNode }) {
 
           {/* Main Content */}
           <ResizablePanel defaultSize={80}>
-            <main className="h-[calc(100vh-4rem)] overflow-auto p-6 bg-gray-50 custom-scrollbar">
+            <main className="h-[calc(100vh-4rem)] overflow-auto p-6 bg-gray-50 custom-scrollbar relative">
               <div className="max-w-7xl mx-auto">
                 {children}
               </div>

@@ -119,7 +119,7 @@ export function PsychologistLayout({ children }: { children: React.ReactNode }) 
 
       {/* Main Content with Resizable Sidebar */}
       <div className="flex-1 flex overflow-hidden">
-        <ResizablePanelGroup direction="horizontal" className="w-full">
+        <ResizablePanelGroup direction="horizontal" className="w-full relative">
           {/* Sidebar - only hidden on mobile when closed */}
           <ResizablePanel 
             defaultSize={20} 
@@ -169,12 +169,15 @@ export function PsychologistLayout({ children }: { children: React.ReactNode }) 
 
           {/* ResizableHandle - only shown when sidebar is visible */}
           {(!isMobile || isSidebarOpen) && (
-            <ResizableHandle withHandle className="w-1.5 bg-gray-200 hover:bg-gray-300 active:bg-gray-400 cursor-col-resize" />
+            <ResizableHandle 
+              withHandle 
+              className="w-2 bg-gray-200 hover:bg-gray-300 active:bg-gray-400 cursor-col-resize z-20" 
+            />
           )}
 
           {/* Main Content */}
           <ResizablePanel defaultSize={80}>
-            <main className="h-[calc(100vh-4rem)] overflow-auto p-6 bg-gray-50 custom-scrollbar">
+            <main className="h-[calc(100vh-4rem)] overflow-auto p-6 bg-gray-50 custom-scrollbar relative">
               <div className="max-w-7xl mx-auto flex flex-col min-h-[calc(100vh-8rem)]">
                 {children}
                 <Footer />
@@ -187,7 +190,7 @@ export function PsychologistLayout({ children }: { children: React.ReactNode }) 
       {/* Mobile sidebar overlay */}
       {isSidebarOpen && isMobile && (
         <div
-          className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-10 bg-black/50 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
