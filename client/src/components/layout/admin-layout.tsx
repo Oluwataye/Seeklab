@@ -164,7 +164,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                   </Button>
                 )}
               </div>
-              <div className="flex-1 overflow-y-auto py-2 px-3 custom-scrollbar" onClick={(e) => e.stopPropagation()}>
+              <div className="flex-1 overflow-y-auto py-2 px-3 custom-scrollbar sidebar-scroll" onClick={(e) => e.stopPropagation()}>
                 {navigation.map((item) => {
                   const isActive = location === item.href;
                   return (
@@ -224,7 +224,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       {/* Mobile sidebar overlay */}
       {isSidebarOpen && isMobile && (
         <div
-          className="fixed inset-0 z-10 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-5 bg-black/50 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
