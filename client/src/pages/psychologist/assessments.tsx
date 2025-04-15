@@ -49,6 +49,8 @@ export default function AssessmentsPage() {
     staleTime: 1000 * 60, // 1 minute
   });
 
+  const [assessmentInput, setAssessmentInput] = useState("");
+
   const addAssessmentMutation = useMutation({
     mutationFn: async ({ id, assessment }: { id: number, assessment: string }) => {
       return apiRequest(
@@ -59,6 +61,8 @@ export default function AssessmentsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/results"] });
+      setSelectedResult(null);
+      setAssessmentInput("");
       toast({
         title: "Assessment saved",
         description: "The assessment has been saved successfully.",
@@ -227,7 +231,10 @@ export default function AssessmentsPage() {
                           <DialogTrigger asChild>
                             <Button 
                               variant="outline"
-                              onClick={() => setSelectedResult(result)}
+                              onClick={() => {
+                                setSelectedResult(result);
+                                setAssessmentInput(result.psychologistAssessment || "");
+                              }}
                             >
                               {result.psychologistAssessment ? "View/Edit" : "Add Assessment"}
                             </Button>
@@ -268,17 +275,17 @@ export default function AssessmentsPage() {
                               <div className="space-y-2">
                                 <h3 className="font-medium">Psychological Assessment</h3>
                                 <Textarea
-                                  defaultValue={result?.psychologistAssessment || ""}
+                                  value={assessmentInput}
                                   className="min-h-[200px]"
                                   placeholder="Enter your psychological assessment based on the test results..."
-                                  onChange={(e) => handleAssessmentSubmit(e.target.value)}
+                                  onChange={(e) => setAssessmentInput(e.target.value)}
                                 />
                               </div>
                             </div>
                             <div className="flex justify-end gap-2 mt-4">
                               <Button
-                                onClick={() => handleAssessmentSubmit(result?.psychologistAssessment || "")}
-                                disabled={addAssessmentMutation.isPending}
+                                onClick={() => handleAssessmentSubmit(assessmentInput)}
+                                disabled={addAssessmentMutation.isPending || !assessmentInput.trim()}
                               >
                                 {addAssessmentMutation.isPending && (
                                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
