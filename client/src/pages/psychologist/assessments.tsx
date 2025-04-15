@@ -73,11 +73,19 @@ export default function AssessmentsPage() {
     },
   });
 
+  // Fix for the search function - explicitly convert undefined or null values to empty strings
   const filteredResults = results.filter((result) => {
+    // Safely convert potential undefined/null values to empty strings
+    const patientId = result.patientId?.toLowerCase() || '';
+    const testType = result.testType?.toLowerCase() || '';
+    const searchTermLower = searchTerm.toLowerCase();
+    
+    // Check if the search term is found in either patientId or testType
     const matchesSearch = 
-      result.patientId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      result.testType?.toLowerCase().includes(searchTerm.toLowerCase());
+      patientId.includes(searchTermLower) || 
+      testType.includes(searchTermLower);
 
+    // Apply status filtering
     if (filterStatus === "all") return matchesSearch;
     if (filterStatus === "pending") return matchesSearch && !result.psychologistAssessment;
     if (filterStatus === "completed") return matchesSearch && !!result.psychologistAssessment;

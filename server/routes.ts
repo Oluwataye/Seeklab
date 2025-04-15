@@ -346,6 +346,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint for psychologists to add/update assessments
+  app.post("/api/results/:id/assessment", async (req, res) => {
+    if (!req.isAuthenticated() || req.user?.role !== "psychologist") {
+      return res.status(403).json({ message: "Unauthorized - Only psychologists can add assessments" });
+    }
+
+    try {
+      const resultId = parseInt(req.params.id);
+      
+      if (isNaN(resultId)) {
+        return res.status(400).json({ message: "Invalid result ID" });
+      }
+      
+      const { assessment } = z.object({
+        assessment: z.string()
+      }).parse(req.body);
+      
+      // Get the current result
+      const results = await storage.getAllResults();
+      const result = results.find(r => r.id === resultId);
+      
+      if (!result) {
+        return res.status(404).json({ message: "Result not found" });
+      }
+      
+      // Update the result with the psychologist's assessment
+      const updatedResult = await storage.updateResult(resultId, {
+        psychologistAssessment: assessment
+      });
+      
+      // Create audit log for this action
+      if (req.user?.id) {
+        await storage.createAuditLog({
+          userId: req.user.id.toString(),
+          action: "add_assessment",
+          entityType: "result",
+          entityId: resultId.toString(),
+          details: { 
+            patientId: result.patientId,
+            testType: result.testType
+          },
+          ipAddress: req.ip || req.socket.remoteAddress || 'unknown'
+        });
+      }
+      
+      res.json(updatedResult);
+    } catch (error) {
+      console.error('Error adding assessment:', error);
+      res.status(400).json({ message: "Invalid assessment data" });
+    }
+  });
+
   app.get("/api/admin/check", async (req, res) => {
     if (!req.isAuthenticated() || !req.user?.isAdmin) {
       return res.status(403).json({ message: "Unauthorized" });
