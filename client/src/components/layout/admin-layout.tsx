@@ -128,64 +128,58 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
       {/* Main Content with Resizable Sidebar */}
       <div className="flex-1 flex overflow-hidden">
-        <ResizablePanelGroup direction="horizontal">
-          {/* Sidebar */}
-          <ResizablePanel
-            id="admin-sidebar"
-            defaultSize={20}
-            minSize={10}
-            maxSize={40}
-            collapsible={true}
-            onCollapse={() => setIsSidebarOpen(false)}
-            onExpand={() => setIsSidebarOpen(true)}
+        <ResizablePanelGroup direction="horizontal" className="w-full">
+          {/* Sidebar - only hidden on mobile when closed */}
+          <ResizablePanel 
+            defaultSize={20} 
+            minSize={15} 
+            maxSize={30}
             className={cn(
-              "bg-white border-r flex flex-col transition-all",
-              !isSidebarOpen && isMobile ? "hidden" : "",
-              isSidebarOpen && isMobile ? "fixed inset-y-0 left-0 z-40 w-64" : ""
+              "bg-white border-r",
+              isMobile && !isSidebarOpen && "hidden"
             )}
           >
-            <nav className="flex-1 flex flex-col h-full">
-              <div className="py-4 px-2 font-medium text-sm text-gray-500 flex justify-between items-center">
+            <div className="h-full flex flex-col">
+              <div className="py-4 px-3 font-medium text-sm text-gray-500 flex justify-between items-center border-b">
                 <span>MAIN NAVIGATION</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setIsSidebarOpen(false)}
-                  className="lg:hidden"
-                >
-                  <Menu className="h-5 w-5" />
-                </Button>
+                {isMobile && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsSidebarOpen(false)}
+                  >
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                )}
               </div>
-              <div className="overflow-y-auto flex-1 custom-scrollbar px-2">
-                <div className="space-y-1 min-h-min pb-4">
-                  {navigation.map((item) => {
-                    const isActive = location === item.href;
-                    return (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className={cn(
-                          "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                          isActive
-                            ? "bg-primary text-primary-foreground"
-                            : "text-gray-700 hover:bg-gray-50"
-                        )}
-                        onClick={() => isMobile && setIsSidebarOpen(false)}
-                      >
-                        <item.icon className="h-5 w-5 flex-shrink-0" />
-                        <span className="whitespace-normal break-words">{item.name}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
+              <div className="flex-1 overflow-y-auto py-2 px-3 custom-scrollbar">
+                {navigation.map((item) => {
+                  const isActive = location === item.href;
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2 my-1 text-sm font-medium rounded-md transition-colors",
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : "text-gray-700 hover:bg-gray-50"
+                      )}
+                      onClick={() => isMobile && setIsSidebarOpen(false)}
+                    >
+                      <item.icon className="h-5 w-5 flex-shrink-0" />
+                      <span className="whitespace-normal break-words">{item.name}</span>
+                    </Link>
+                  );
+                })}
               </div>
-            </nav>
+            </div>
           </ResizablePanel>
 
-          {/* ResizableHandle with proper visibility */}
-          <ResizableHandle withHandle 
-            className="bg-gray-200 hover:bg-gray-300 transition-colors cursor-col-resize block"
-          />
+          {/* ResizableHandle - only shown when sidebar is visible */}
+          {(!isMobile || isSidebarOpen) && (
+            <ResizableHandle withHandle className="w-1.5 bg-gray-200 hover:bg-gray-300 active:bg-gray-400 cursor-col-resize" />
+          )}
 
           {/* Main Content */}
           <ResizablePanel defaultSize={80}>
