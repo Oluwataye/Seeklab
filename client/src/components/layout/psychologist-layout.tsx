@@ -117,11 +117,22 @@ export function PsychologistLayout({ children }: { children: React.ReactNode }) 
             maxSize={35}
             className={cn(
               "bg-white border-r flex flex-col",
-              !isSidebarOpen && "hidden lg:block",
+              !isSidebarOpen && "hidden lg:flex",
               isSidebarOpen && isMobile && "fixed inset-y-0 left-0 z-40 w-64"
             )}
           >
             <nav className="h-full py-4 flex flex-col">
+              <div className="px-2 font-medium text-sm text-gray-500 flex justify-between items-center mb-4">
+                <span>PSYCHOLOGIST MENU</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsSidebarOpen(false)}
+                  className="lg:hidden"
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </div>
               <div className="overflow-y-auto flex-1 custom-scrollbar space-y-1 px-2">
                 {navigation.map((item) => {
                   const isActive = location === item.href;
@@ -135,6 +146,7 @@ export function PsychologistLayout({ children }: { children: React.ReactNode }) 
                           ? "bg-primary text-primary-foreground"
                           : "text-gray-700 hover:bg-gray-50"
                       )}
+                      onClick={() => isMobile && setIsSidebarOpen(false)}
                     >
                       <item.icon className="h-5 w-5 flex-shrink-0" />
                       <span className="whitespace-normal break-words">{item.name}</span>
@@ -145,7 +157,26 @@ export function PsychologistLayout({ children }: { children: React.ReactNode }) 
             </nav>
           </ResizablePanel>
 
-          <ResizableHandle withHandle className="bg-gray-200 hover:bg-gray-300 transition-colors" />
+          {/* Toggle button for sidebar (desktop and mobile) */}
+          <div className={cn(
+            "fixed left-0 top-20 z-50",
+            isSidebarOpen ? "lg:hidden" : "lg:block",
+            "transition-all duration-300"
+          )}>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="h-8 rounded-r-full rounded-l-none border border-l-0 shadow-md"
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            >
+              <Menu className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <ResizableHandle withHandle className={cn(
+            "bg-gray-200 hover:bg-gray-300 transition-colors",
+            !isSidebarOpen && "hidden lg:block"
+          )} />
 
           {/* Main Content */}
           <ResizablePanel defaultSize={80}>
