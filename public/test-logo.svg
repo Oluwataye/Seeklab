@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="200px" height="200px" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="100" cy="100" r="90" fill="#2A5C8A" />
-    <circle cx="100" cy="100" r="70" fill="#FFFFFF" />
-    <path d="M70,80 L130,80 L140,120 L60,120 Z" fill="#3AAFA9" />
-    <path d="M85,50 L115,50 L115,80 L85,80 Z" fill="#FF6B6B" />
-    <circle cx="100" cy="150" r="10" fill="#2A5C8A" />
-    <text x="100" y="100" font-family="Arial" font-size="30" font-weight="bold" text-anchor="middle" fill="#FFFFFF">SL</text>
-</svg>
