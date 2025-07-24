@@ -5,12 +5,17 @@ import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ChevronDown, ChevronRight, ArrowLeft } from "lucide-react"
+import { FileText, CreditCard, ChevronDown, ChevronRight, ArrowLeft } from "lucide-react"
+
+const Icons = {
+  FileText,
+  CreditCard,
+}
 
 interface SubMenuItem {
   name: string
   href: string
-  icon?: React.ElementType
+  icon?: keyof typeof Icons
 }
 
 interface MenuSection {
@@ -69,7 +74,8 @@ export default function SidebarNavigation({ moduleName, sections }: SidebarNavig
                         isActive ? "bg-red-50 text-red-600 font-medium" : "text-gray-600 hover:bg-gray-50"
                       }`}
                     >
-                      {item.icon && <item.icon className="h-4 w-4 mr-2" />}
+                      {item.icon && Icons[item.icon] && React.createElement(Icons[item.icon], { className: "h-4 w-4 mr-2" })}
+
                       <span>{item.name}</span>
                     </Link>
                   )
