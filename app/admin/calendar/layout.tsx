@@ -12,9 +12,9 @@ const calendarSections = [
   {
     title: "Calendar Management",
     items: [
-      { name: "Events", href: "/admin/calendar/events", icon: CalendarDays },
-      { name: "Appointments", href: "/admin/calendar/appointments", icon: CalendarClock },
-      { name: "Schedule", href: "/admin/calendar/schedule", icon: CalendarRange },
+      { name: "Events", href: "/admin/calendar/events", icon: "CalendarDays" },
+      { name: "Appointments", href: "/admin/calendar/appointments", icon: "CalendarClock" },
+      { name: "Schedule", href: "/admin/calendar/schedule", icon: "CalendarRange" },
     ],
   },
 ]
